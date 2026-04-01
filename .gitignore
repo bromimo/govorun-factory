@@ -1,0 +1,26 @@
+/vendor/
+/.env
+/.phpunit.result.cache
+/storage/logs/*.log
+!/storage/logs/.gitkeep
+/storage/state/*.json
+!/storage/state/.gitkeep
+
+# Development tooling — not part of the skeleton template
+/.claude/
+/.idea/
+/.vscode/
+/.osp/
+/composer.phar
+/composer-setup.php
+/docs/superpowers/
+.worktrees/
+.DS_Store
+Thumbs.db
+/.superpowers
+
+/node_modules
+/public/build
+/public/hot
+/storage/*.key
+.env.backup
