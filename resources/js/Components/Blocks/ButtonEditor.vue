@@ -21,9 +21,9 @@ function updateButton(index, field, value) {
         <label class="block text-xs font-medium text-gray-500">Кнопки</label>
         <div v-for="(btn, i) in model" :key="i" class="flex items-center gap-2">
             <input :value="btn.label" @input="updateButton(i, 'label', $event.target.value)"
-                placeholder="Текст" class="flex-1 rounded border-gray-300 text-sm" />
+                placeholder="Текст" class="flex-1 rounded border-gray-300 text-sm placeholder-gray-400" />
             <input :value="btn.action" @input="updateButton(i, 'action', $event.target.value)"
-                placeholder="Action" class="flex-1 rounded border-gray-300 text-sm" />
+                placeholder="Action" class="flex-1 rounded border-gray-300 text-sm placeholder-gray-400" />
             <button type="button" @click="removeButton(i)" class="text-red-400 hover:text-red-600 text-sm">x</button>
         </div>
         <button type="button" @click="addButton" class="text-xs text-indigo-600 hover:text-indigo-800">
