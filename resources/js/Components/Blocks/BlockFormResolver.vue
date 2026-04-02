@@ -1,0 +1,28 @@
+<script setup>
+import { computed } from 'vue';
+import ReplyTextForm from './ReplyTextForm.vue';
+import ReplyKeyboardForm from './ReplyKeyboardForm.vue';
+import SaveStateForm from './SaveStateForm.vue';
+import AskTextForm from './AskTextForm.vue';
+import AskKeyboardForm from './AskKeyboardForm.vue';
+import ConditionForm from './ConditionForm.vue';
+import ApiCallForm from './ApiCallForm.vue';
+
+const model = defineModel({ type: Object });
+const props = defineProps({ type: String });
+
+const formComponent = computed(() => ({
+    reply_text: ReplyTextForm,
+    reply_keyboard: ReplyKeyboardForm,
+    save_state: SaveStateForm,
+    ask_text: AskTextForm,
+    ask_keyboard: AskKeyboardForm,
+    condition: ConditionForm,
+    api_call: ApiCallForm,
+})[props.type] ?? null);
+</script>
+
+<template>
+    <component v-if="formComponent" :is="formComponent" v-model="model" />
+    <p v-else class="text-xs text-gray-400">Нет параметров для этого типа</p>
+</template>
