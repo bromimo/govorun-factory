@@ -1,3 +1,5 @@
+import '@vue-flow/core/dist/style.css';
+import '@vue-flow/core/dist/theme-default.css';
 import '../css/app.css';
 import './bootstrap';
 
