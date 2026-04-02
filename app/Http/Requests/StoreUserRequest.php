@@ -9,11 +9,19 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
 {
+    /** Проверка авторизации для создания пользователя.
+     *
+     * @return bool
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /** Правила валидации для создания пользователя.
+     *
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

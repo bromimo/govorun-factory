@@ -7,11 +7,19 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBotRequest extends FormRequest
 {
+    /** Проверка авторизации для создания бота.
+     *
+     * @return bool
+     */
     public function authorize(): bool
     {
         return $this->user()->can('create', Bot::class);
     }
 
+    /** Правила валидации для создания бота.
+     *
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

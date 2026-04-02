@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\ValidationException;
 
+/** Контроллер запроса ссылки сброса пароля. */
 class PasswordResetLinkController extends Controller
 {
-    /**
-     * Display the password reset link request view.
-     */
+    /** Форма запроса ссылки сброса пароля. */
     public function create(): Response
     {
         return Inertia::render('Auth/ForgotPassword', [
@@ -22,8 +21,7 @@ class PasswordResetLinkController extends Controller
         ]);
     }
 
-    /**
-     * Handle an incoming password reset link request.
+    /** Отправка ссылки для сброса пароля.
      *
      * @throws ValidationException
      */

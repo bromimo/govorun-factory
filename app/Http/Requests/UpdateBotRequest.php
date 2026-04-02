@@ -6,11 +6,19 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBotRequest extends FormRequest
 {
+    /** Проверка авторизации для обновления бота.
+     *
+     * @return bool
+     */
     public function authorize(): bool
     {
         return $this->user()->can('update', $this->route('bot'));
     }
 
+    /** Правила валидации для обновления бота.
+     *
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

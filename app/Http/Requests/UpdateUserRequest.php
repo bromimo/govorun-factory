@@ -9,11 +9,19 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateUserRequest extends FormRequest
 {
+    /** Проверка авторизации для обновления пользователя.
+     *
+     * @return bool
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /** Правила валидации для обновления пользователя.
+     *
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

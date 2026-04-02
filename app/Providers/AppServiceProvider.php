@@ -5,18 +5,21 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
+/** Основной сервис-провайдер приложения. */
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
+    /** Регистрация сервисов приложения.
+     *
+     * @return void
      */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
+    /** Начальная загрузка сервисов приложения.
+     *
+     * @return void
      */
     public function boot(): void
     {

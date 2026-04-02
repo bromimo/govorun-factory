@@ -2,23 +2,22 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rules;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rules;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\ValidationException;
 
+/** Контроллер установки нового пароля. */
 class NewPasswordController extends Controller
 {
-    /**
-     * Display the password reset view.
-     */
+    /** Форма сброса пароля. */
     public function create(Request $request): Response
     {
         return Inertia::render('Auth/ResetPassword', [
@@ -27,8 +26,7 @@ class NewPasswordController extends Controller
         ]);
     }
 
-    /**
-     * Handle an incoming new password request.
+    /** Установка нового пароля.
      *
      * @throws ValidationException
      */

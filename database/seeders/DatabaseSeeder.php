@@ -3,15 +3,17 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
+/** Главный сидер базы данных. */
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
+    /** Заполнить базу данных начальными записями.
+     *
+     * @return void
      */
     public function run(): void
     {

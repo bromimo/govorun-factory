@@ -2,18 +2,26 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\HandlerType;
 use App\Enums\RouteType;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\HandlerType;
 use Illuminate\Validation\Rule;
+use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBotRouteRequest extends FormRequest
 {
+    /** Проверка авторизации для создания маршрута бота.
+     *
+     * @return bool
+     */
     public function authorize(): bool
     {
         return $this->user()->can('update', $this->route('bot'));
     }
 
+    /** Правила валидации для создания маршрута бота.
+     *
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

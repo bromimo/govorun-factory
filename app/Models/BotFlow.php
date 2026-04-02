@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/** Модель flow-диалога бота. */
 class BotFlow extends Model
 {
     use HasFactory;
@@ -16,6 +17,10 @@ class BotFlow extends Model
         'interrupt_commands', 'interrupt_on_event',
     ];
 
+    /** Приведение атрибутов модели.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -25,11 +30,19 @@ class BotFlow extends Model
         ];
     }
 
+    /** Бот, которому принадлежит flow.
+     *
+     * @return BelongsTo
+     */
     public function bot(): BelongsTo
     {
         return $this->belongsTo(Bot::class);
     }
 
+    /** Маршруты, привязанные к этому flow.
+     *
+     * @return HasMany
+     */
     public function routes(): HasMany
     {
         return $this->hasMany(BotRoute::class, 'flow_id');

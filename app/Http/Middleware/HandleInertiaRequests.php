@@ -2,29 +2,26 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Http\Request;
 
+/** Middleware для Inertia.js — шаблон, версия и общие пропсы. */
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that is loaded on the first page visit.
-     *
-     * @var string
-     */
+    /** @var string Корневой шаблон Blade. */
     protected $rootView = 'app';
 
-    /**
-     * Determine the current asset version.
+    /** Текущая версия ассетов.
+     * @param Request $request
+     * @return string|null
      */
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    /**
-     * Define the props that are shared by default.
-     *
+    /** Пропсы, доступные на всех страницах.
+     * @param Request $request
      * @return array<string, mixed>
      */
     public function share(Request $request): array

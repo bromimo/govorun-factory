@@ -9,31 +9,40 @@ use App\Http\Controllers\BotRouteController;
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [BotController::class, 'index'])->name('dashboard');
-    Route::post('/bots', [BotController::class, 'store'])->name('bots.store');
-    Route::get('/bots/{bot}/edit', [BotController::class, 'edit'])->name('bots.edit');
-    Route::put('/bots/{bot}', [BotController::class, 'update'])->name('bots.update');
-    Route::delete('/bots/{bot}', [BotController::class, 'destroy'])->name('bots.destroy');
-    Route::post('/bots/{bot}/routes', [BotRouteController::class, 'store'])->name('bot-routes.store');
-    Route::post('/bots/{bot}/routes/reorder', [BotRouteController::class, 'reorder'])->name('bot-routes.reorder');
-    Route::put('/bots/{bot}/routes/{route}', [BotRouteController::class, 'update'])->name('bot-routes.update');
-    Route::delete('/bots/{bot}/routes/{route}', [BotRouteController::class, 'destroy'])->name('bot-routes.destroy');
-    Route::post('/bots/{bot}/flows', [BotFlowController::class, 'store'])->name('bot-flows.store');
-    Route::get('/bots/{bot}/flows/{flow}', [BotFlowController::class, 'show'])->name('bot-flows.show');
-    Route::put('/bots/{bot}/flows/{flow}', [BotFlowController::class, 'update'])->name('bot-flows.update');
-    Route::delete('/bots/{bot}/flows/{flow}', [BotFlowController::class, 'destroy'])->name('bot-flows.destroy');
+
+    Route::prefix('bots')->group(function () {
+        Route::post('', [BotController::class, 'store'])->name('bots.store');
+        Route::get('{bot}/edit', [BotController::class, 'edit'])->name('bots.edit');
+        Route::put('{bot}', [BotController::class, 'update'])->name('bots.update');
+        Route::delete('{bot}', [BotController::class, 'destroy'])->name('bots.destroy');
+
+        Route::prefix('{bot}/routes')->group(function () {
+            Route::post('', [BotRouteController::class, 'store'])->name('bot-routes.store');
+            Route::post('reorder', [BotRouteController::class, 'reorder'])->name('bot-routes.reorder');
+            Route::put('{route}', [BotRouteController::class, 'update'])->name('bot-routes.update');
+            Route::delete('{route}', [BotRouteController::class, 'destroy'])->name('bot-routes.destroy');
+        });
+
+        Route::prefix('{bot}/flows')->group(function () {
+            Route::post('', [BotFlowController::class, 'store'])->name('bot-flows.store');
+            Route::get('{flow}', [BotFlowController::class, 'show'])->name('bot-flows.show');
+            Route::put('{flow}', [BotFlowController::class, 'update'])->name('bot-flows.update');
+            Route::delete('{flow}', [BotFlowController::class, 'destroy'])->name('bot-flows.destroy');
+        });
+    });
+
+    Route::prefix('profile')->group(function () {
+        Route::get('', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    });
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+Route::middleware(['auth', 'role:admin'])->prefix('users')->group(function () {
+    Route::get('', [UserController::class, 'index'])->name('users.index');
+    Route::post('', [UserController::class, 'store'])->name('users.store');
+    Route::put('{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('{user}', [UserController::class, 'destroy'])->name('users.destroy');
 });
 
 require __DIR__.'/auth.php';

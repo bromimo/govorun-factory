@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Redirect;
+use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+/** Контроллер профиля пользователя. */
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
+    /** Форма редактирования профиля.
+     * @param Request $request
+     * @return Response
      */
     public function edit(Request $request): Response
     {
@@ -24,8 +26,9 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the user's profile information.
+    /** Обновление профиля пользователя.
+     * @param ProfileUpdateRequest $request
+     * @return RedirectResponse
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
@@ -40,8 +43,9 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit');
     }
 
-    /**
-     * Delete the user's account.
+    /** Удаление аккаунта пользователя.
+     * @param Request $request
+     * @return RedirectResponse
      */
     public function destroy(Request $request): RedirectResponse
     {
