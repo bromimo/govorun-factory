@@ -1,23 +1,17 @@
 <?php
 
+use App\Http\Controllers\BotController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+Route::middleware('auth')->group(function () {
+    Route::get('/', [BotController::class, 'index'])->name('dashboard');
+    Route::post('/bots', [BotController::class, 'store'])->name('bots.store');
+    Route::get('/bots/{bot}/edit', [BotController::class, 'edit'])->name('bots.edit');
+    Route::put('/bots/{bot}', [BotController::class, 'update'])->name('bots.update');
+    Route::delete('/bots/{bot}', [BotController::class, 'destroy'])->name('bots.destroy');
 });
-
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
