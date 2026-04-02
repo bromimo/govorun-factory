@@ -4,6 +4,8 @@ import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import SettingsForm from '@/Components/Bots/SettingsForm.vue';
 import MessengerConfigForm from '@/Components/Bots/MessengerConfigForm.vue';
+import RouteList from '@/Components/Routes/RouteList.vue';
+import FlowList from '@/Components/Flows/FlowList.vue';
 
 const props = defineProps({
     bot: Object,
@@ -67,27 +69,13 @@ function deleteBot() {
                     <div class="flex-1 rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-900/5">
                         <SettingsForm v-if="activeTab === 'settings'" :bot="bot" :can="can" />
 
-                        <div v-else-if="activeTab === 'routes'" class="text-sm text-gray-500">
-                            <p v-if="!bot.routes?.length">Нет маршрутов.</p>
-                            <ul v-else class="divide-y divide-gray-100">
-                                <li v-for="r in bot.routes" :key="r.id" class="py-3 flex items-center gap-2">
-                                    <span class="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-                                        {{ r.type }}
-                                    </span>
-                                    <span v-if="r.match" class="text-gray-600">{{ r.match }}</span>
-                                    <span class="ml-auto text-xs text-gray-400">{{ r.handler_type }}</span>
-                                </li>
-                            </ul>
-                        </div>
+                        <RouteList v-else-if="activeTab === 'routes'"
+                            :bot-id="bot.id" :routes="bot.routes ?? []" :flows="bot.flows ?? []"
+                            :can-update="can.update" />
 
-                        <div v-else-if="activeTab === 'flows'" class="text-sm text-gray-500">
-                            <p v-if="!bot.flows?.length">Нет диалогов.</p>
-                            <ul v-else class="divide-y divide-gray-100">
-                                <li v-for="f in bot.flows" :key="f.id" class="py-3">
-                                    <span class="font-medium text-gray-900">{{ f.name }}</span>
-                                </li>
-                            </ul>
-                        </div>
+                        <FlowList v-else-if="activeTab === 'flows'"
+                            :bot-id="bot.id" :flows="bot.flows ?? []"
+                            :can-update="can.update" />
 
                         <MessengerConfigForm v-else-if="activeTab === 'messengers'" :bot="bot" :can="can" />
                     </div>
