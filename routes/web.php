@@ -3,6 +3,7 @@
 use App\Http\Controllers\BotController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BotRouteController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -11,6 +12,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/bots/{bot}/edit', [BotController::class, 'edit'])->name('bots.edit');
     Route::put('/bots/{bot}', [BotController::class, 'update'])->name('bots.update');
     Route::delete('/bots/{bot}', [BotController::class, 'destroy'])->name('bots.destroy');
+    Route::post('/bots/{bot}/routes', [BotRouteController::class, 'store'])->name('bot-routes.store');
+    Route::post('/bots/{bot}/routes/reorder', [BotRouteController::class, 'reorder'])->name('bot-routes.reorder');
+    Route::put('/bots/{bot}/routes/{route}', [BotRouteController::class, 'update'])->name('bot-routes.update');
+    Route::delete('/bots/{bot}/routes/{route}', [BotRouteController::class, 'destroy'])->name('bot-routes.destroy');
 });
 
 Route::middleware('auth')->group(function () {
