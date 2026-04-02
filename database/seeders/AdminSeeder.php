@@ -1,0 +1,31 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Enums\UserRole;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+
+class AdminSeeder extends Seeder
+{
+    /**
+     * Выполнить сидирование базы данных.
+     */
+    public function run(): void
+    {
+        if (User::where('role', UserRole::Admin->value)->exists()) {
+            $this->command->info('Admin user already exists, skipping.');
+            return;
+        }
+
+        User::create([
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'password' => Hash::make('password'),
+            'role' => UserRole::Admin->value,
+        ]);
+
+        $this->command->info('Admin user created: admin@example.com / password');
+    }
+}
