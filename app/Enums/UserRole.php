@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+/** Роли пользователей системы. */
 enum UserRole: string
 {
     case Admin = 'admin';

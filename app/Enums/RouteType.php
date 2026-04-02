@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+/** Типы маршрутов бота. */
 enum RouteType: string
 {
     case Command = 'command';

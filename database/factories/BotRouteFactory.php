@@ -2,13 +2,18 @@
 
 namespace Database\Factories;
 
-use App\Enums\HandlerType;
-use App\Enums\RouteType;
 use App\Models\Bot;
+use App\Enums\RouteType;
+use App\Enums\HandlerType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/** Фабрика для модели BotRoute. */
 class BotRouteFactory extends Factory
 {
+    /** Определение состояния модели по умолчанию.
+     *
+     * @return array<string, mixed>
+     */
     public function definition(): array
     {
         return [

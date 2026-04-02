@@ -2,15 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Enums\UserRole;
 use App\Models\User;
+use App\Enums\UserRole;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
 {
-    /**
-     * Выполнить сидирование базы данных.
+    /** Выполнить сидирование базы данных.
+     *
+     * @return void
      */
     public function run(): void
     {

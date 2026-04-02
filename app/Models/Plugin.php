@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/** Модель плагина с пользовательскими блоками. */
 class Plugin extends Model
 {
     use HasFactory;
@@ -14,6 +15,10 @@ class Plugin extends Model
         'vue_component', 'php_stub', 'active',
     ];
 
+    /** Приведение атрибутов модели.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [

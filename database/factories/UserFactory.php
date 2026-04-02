@@ -2,24 +2,19 @@
 
 namespace Database\Factories;
 
-use App\Enums\UserRole;
 use App\Models\User;
+use App\Enums\UserRole;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<User>
- */
+/** @extends Factory<User> */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
+    /** Текущий пароль, используемый фабрикой. */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
+    /** Определение состояния модели по умолчанию.
      *
      * @return array<string, mixed>
      */
@@ -35,8 +30,9 @@ class UserFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
+    /** Указать, что email пользователя не подтверждён.
+     *
+     * @return static
      */
     public function unverified(): static
     {
@@ -45,11 +41,19 @@ class UserFactory extends Factory
         ]);
     }
 
+    /** Создать пользователя с ролью администратора.
+     *
+     * @return static
+     */
     public function admin(): static
     {
         return $this->state(fn () => ['role' => UserRole::Admin->value]);
     }
 
+    /** Создать пользователя с ролью редактора.
+     *
+     * @return static
+     */
     public function editor(): static
     {
         return $this->state(fn () => ['role' => UserRole::Editor->value]);

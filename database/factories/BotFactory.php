@@ -5,8 +5,13 @@ namespace Database\Factories;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/** Фабрика для модели Bot. */
 class BotFactory extends Factory
 {
+    /** Определение состояния модели по умолчанию.
+     *
+     * @return array<string, mixed>
+     */
     public function definition(): array
     {
         return [

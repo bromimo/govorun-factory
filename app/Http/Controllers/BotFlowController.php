@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bot;
-use App\Models\BotFlow;
 use Inertia\Inertia;
+use App\Models\BotFlow;
 use App\Http\Requests\StoreBotFlowRequest;
 use App\Http\Requests\UpdateBotFlowRequest;
 
 class BotFlowController extends Controller
 {
+    /** Создание нового flow-диалога.
+     * @param StoreBotFlowRequest $request
+     * @param Bot $bot
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(StoreBotFlowRequest $request, Bot $bot)
     {
         $flow = $bot->flows()->create([
@@ -20,6 +25,11 @@ class BotFlowController extends Controller
         return redirect()->route('bot-flows.show', [$bot, $flow]);
     }
 
+    /** Страница редактора flow-диалога.
+     * @param Bot $bot
+     * @param BotFlow $flow
+     * @return \Inertia\Response
+     */
     public function show(Bot $bot, BotFlow $flow)
     {
         $this->authorize('view', $bot);
@@ -33,6 +43,12 @@ class BotFlowController extends Controller
         ]);
     }
 
+    /** Обновление графа и настроек диалога.
+     * @param UpdateBotFlowRequest $request
+     * @param Bot $bot
+     * @param BotFlow $flow
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(UpdateBotFlowRequest $request, Bot $bot, BotFlow $flow)
     {
         $flow->update($request->validated());
@@ -40,6 +56,11 @@ class BotFlowController extends Controller
         return redirect()->route('bot-flows.show', [$bot, $flow]);
     }
 
+    /** Удаление flow-диалога.
+     * @param Bot $bot
+     * @param BotFlow $flow
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(Bot $bot, BotFlow $flow)
     {
         $this->authorize('update', $bot);

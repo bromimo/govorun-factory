@@ -10,6 +10,10 @@ use App\Http\Requests\UpdateBotRequest;
 
 class BotController extends Controller
 {
+    /** Список ботов с поиском.
+     * @param Request $request
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $bots = Bot::query()
@@ -28,6 +32,10 @@ class BotController extends Controller
         ]);
     }
 
+    /** Создание нового бота.
+     * @param StoreBotRequest $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(StoreBotRequest $request)
     {
         $bot = Bot::create([
@@ -38,6 +46,10 @@ class BotController extends Controller
         return redirect()->route('bots.edit', $bot);
     }
 
+    /** Страница редактора бота.
+     * @param Bot $bot
+     * @return \Inertia\Response
+     */
     public function edit(Bot $bot)
     {
         $this->authorize('view', $bot);
@@ -54,6 +66,11 @@ class BotController extends Controller
         ]);
     }
 
+    /** Обновление настроек бота.
+     * @param UpdateBotRequest $request
+     * @param Bot $bot
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(UpdateBotRequest $request, Bot $bot)
     {
         $bot->update($request->validated());
@@ -61,6 +78,10 @@ class BotController extends Controller
         return redirect()->route('bots.edit', $bot);
     }
 
+    /** Удаление бота.
+     * @param Bot $bot
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(Bot $bot)
     {
         $this->authorize('delete', $bot);

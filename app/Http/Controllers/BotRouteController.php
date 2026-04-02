@@ -10,6 +10,11 @@ use App\Http\Requests\ReorderBotRoutesRequest;
 
 class BotRouteController extends Controller
 {
+    /** Создание маршрута для бота.
+     * @param StoreBotRouteRequest $request
+     * @param Bot $bot
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(StoreBotRouteRequest $request, Bot $bot)
     {
         $maxOrder = $bot->routes()->max('sort_order') ?? -1;
@@ -22,6 +27,12 @@ class BotRouteController extends Controller
         return redirect()->route('bots.edit', $bot);
     }
 
+    /** Обновление маршрута.
+     * @param UpdateBotRouteRequest $request
+     * @param Bot $bot
+     * @param BotRoute $route
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(UpdateBotRouteRequest $request, Bot $bot, BotRoute $route)
     {
         $route->update($request->validated());
@@ -29,6 +40,11 @@ class BotRouteController extends Controller
         return redirect()->route('bots.edit', $bot);
     }
 
+    /** Удаление маршрута.
+     * @param Bot $bot
+     * @param BotRoute $route
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(Bot $bot, BotRoute $route)
     {
         $this->authorize('update', $bot);
@@ -38,6 +54,11 @@ class BotRouteController extends Controller
         return redirect()->route('bots.edit', $bot);
     }
 
+    /** Изменение порядка маршрутов.
+     * @param ReorderBotRoutesRequest $request
+     * @param Bot $bot
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function reorder(ReorderBotRoutesRequest $request, Bot $bot)
     {
         foreach ($request->ids as $index => $id) {

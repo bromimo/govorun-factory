@@ -6,11 +6,19 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBotFlowRequest extends FormRequest
 {
+    /** Проверка авторизации для создания потока бота.
+     *
+     * @return bool
+     */
     public function authorize(): bool
     {
         return $this->user()->can('update', $this->route('bot'));
     }
 
+    /** Правила валидации для создания потока бота.
+     *
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
