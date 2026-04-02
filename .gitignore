@@ -11,6 +11,7 @@
 /.idea/
 /.vscode/
 /.osp/
+/.playwright-mcp/
 /composer.phar
 /composer-setup.php
 /docs/superpowers/
