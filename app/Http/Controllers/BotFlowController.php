@@ -19,6 +19,7 @@ class BotFlowController extends Controller
     {
         $flow = $bot->flows()->create([
             'name' => $request->name,
+            'description' => $request->description,
             'graph' => ['nodes' => [], 'edges' => []],
         ]);
 

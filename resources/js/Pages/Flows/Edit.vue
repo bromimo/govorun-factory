@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+import KeyboardHints from '@/Components/Flows/KeyboardHints.vue';
 import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
 import NodePalette from '@/Components/Flows/NodePalette.vue';
 import NodeProperties from '@/Components/Flows/NodeProperties.vue';
@@ -16,7 +17,8 @@ const props = defineProps({
 const canvasRef = ref(null);
 const saving = ref(false);
 const saved = ref(false);
-const panelWidth = ref(288);
+const description = ref(props.flow.description ?? '');
+const panelWidth = ref(360);
 const resizing = ref(false);
 
 function startResize(e) {
@@ -25,7 +27,7 @@ function startResize(e) {
     const startWidth = panelWidth.value;
 
     function onMove(e) {
-        panelWidth.value = Math.max(200, Math.min(600, startWidth + startX - e.clientX));
+        panelWidth.value = Math.max(280, Math.min(800, startWidth + startX - e.clientX));
     }
     function onUp() {
         resizing.value = false;
@@ -39,6 +41,12 @@ function startResize(e) {
 const selectedNode = computed(() => canvasRef.value?.selectedNode);
 const selectedEdge = computed(() => canvasRef.value?.selectedEdge);
 const allNodeIds = computed(() => canvasRef.value?.getAllNodeIds() ?? []);
+const allStateKeys = computed(() => canvasRef.value?.getAllStateKeys() ?? []);
+const declaredStateKeys = computed(() => {
+    const node = selectedNode.value;
+    if (!node || !canvasRef.value) return [];
+    return canvasRef.value.getDeclaredStateKeysBefore(node.id);
+});
 
 const siblingLabels = computed(() => {
     const edge = selectedEdge.value;
@@ -67,6 +75,7 @@ function save() {
 
     router.put(route('bot-flows.update', [props.bot.id, props.flow.id]), {
         name: props.flow.name,
+        description: description.value,
         graph,
     }, {
         preserveState: true,
@@ -78,6 +87,10 @@ function save() {
 function fitView() {
     canvasRef.value?.doFitView();
 }
+
+function autoLayout() {
+    canvasRef.value?.autoLayout();
+}
 </script>
 
 <template>
@@ -88,9 +101,18 @@ function fitView() {
                 <div class="flex items-center gap-3">
                     <a :href="route('bots.edit', bot.id)" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ bot.name }}</a>
                     <span class="text-gray-300">/</span>
-                    <h2 class="text-xl font-semibold text-gray-800">{{ flow.name }}</h2>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">{{ flow.name }}</h2>
+                        <input v-if="can.update" v-model="description" type="text"
+                            class="mt-0.5 w-full border-0 border-b border-transparent bg-transparent px-0 py-0 text-xs text-gray-500 placeholder-gray-400 focus:border-gray-300 focus:ring-0"
+                            placeholder="Добавить описание..." />
+                        <p v-else-if="description" class="text-xs text-gray-500">{{ description }}</p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button v-if="can.update" @click="autoLayout" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
+                        Авто
+                    </button>
                     <button @click="fitView" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
                         Fit
                     </button>
@@ -103,8 +125,10 @@ function fitView() {
             </div>
         </template>
 
-        <div class="flex h-[calc(100vh-8rem)]">
+        <div class="relative flex h-[calc(100vh-8rem)]">
             <NodePalette v-if="can.update" class="w-48 shrink-0" />
+
+            <KeyboardHints />
 
             <FlowCanvas
                 ref="canvasRef"
@@ -121,6 +145,8 @@ function fitView() {
                     :node="selectedNode"
                     :can-update="can.update"
                     :all-node-ids="allNodeIds"
+                    :all-state-keys="allStateKeys"
+                    :declared-state-keys="declaredStateKeys"
                     class="flex-1 min-w-0"
                     @update="onNodeDataUpdated"
                     @rename="onNodeRenamed"

@@ -1,6 +1,7 @@
 export const controllerBlockTypes = [
     { type: 'reply_text', label: 'Ответ текстом', color: 'pink' },
     { type: 'reply_keyboard', label: 'Ответ с клавиатурой', color: 'pink' },
+    { type: 'reply_media', label: 'Ответ медиа', color: 'pink' },
     { type: 'save_state', label: 'Сохранить состояние', color: 'green' },
     { type: 'api_call', label: 'API-запрос', color: 'purple' },
 ];
@@ -10,6 +11,7 @@ export const flowNodeTypes = [
     { type: 'ask_keyboard', label: 'Вопрос с клавиатурой', color: 'blue' },
     { type: 'reply_text', label: 'Ответ текстом', color: 'pink' },
     { type: 'reply_keyboard', label: 'Ответ с клавиатурой', color: 'pink' },
+    { type: 'reply_media', label: 'Ответ медиа', color: 'pink' },
     { type: 'save_state', label: 'Сохранить состояние', color: 'green' },
     { type: 'condition', label: 'Условие', color: 'orange' },
     { type: 'api_call', label: 'API-запрос', color: 'purple' },
@@ -20,6 +22,7 @@ export const flowNodeTypes = [
 export const defaultBlockParams = {
     reply_text: { text: '' },
     reply_keyboard: { text: '', buttons: [] },
+    reply_media: { media_type: 'photo', url: '', caption: '' },
     save_state: { key: '', source: '' },
     ask_text: { text: '' },
     ask_keyboard: { text: '', buttons: [] },

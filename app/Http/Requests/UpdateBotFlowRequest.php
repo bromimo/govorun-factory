@@ -23,6 +23,7 @@ class UpdateBotFlowRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'graph' => ['sometimes', 'required', 'array'],
             'graph.nodes' => ['array'],
             'graph.edges' => ['array'],
