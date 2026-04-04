@@ -17,7 +17,7 @@ const colors = colorClasses[props.color] ?? colorClasses.gray;
 <template>
     <div class="rounded-lg border-2 shadow-sm min-w-[160px] max-w-[220px]"
         :class="[colors.border, colors.bg, selected ? 'ring-2 ring-indigo-400' : '']">
-        <Handle v-if="hasInput" type="target" :position="Position.Top" />
+        <Handle v-if="hasInput" type="target" :position="Position.Top" :connectable-start="false" />
 
         <div class="px-3 py-1.5 text-xs font-bold border-b" :class="[colors.text, colors.border]">
             {{ label }}

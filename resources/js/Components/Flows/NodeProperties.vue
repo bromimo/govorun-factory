@@ -7,6 +7,8 @@ const props = defineProps({
     node: Object,
     canUpdate: Boolean,
     allNodeIds: { type: Array, default: () => [] },
+    allStateKeys: { type: Array, default: () => [] },
+    declaredStateKeys: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(['update', 'rename', 'close']);
@@ -73,7 +75,7 @@ function validateAndRenameId() {
         </div>
 
         <div v-if="canUpdate">
-            <BlockFormResolver :type="node.type" v-model="localData" />
+            <BlockFormResolver :type="node.type" v-model="localData" :all-state-keys="allStateKeys" :declared-state-keys="declaredStateKeys" />
         </div>
         <div v-else class="text-xs text-gray-500">
             <pre class="whitespace-pre-wrap">{{ JSON.stringify(node.data, null, 2) }}</pre>

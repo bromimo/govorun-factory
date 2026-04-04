@@ -13,7 +13,7 @@ class BotFlow extends Model
     use HasFactory;
 
     protected $fillable = [
-        'bot_id', 'name', 'graph',
+        'bot_id', 'name', 'description', 'graph',
         'interrupt_commands', 'interrupt_on_event',
     ];
 
