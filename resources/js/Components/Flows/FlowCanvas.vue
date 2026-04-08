@@ -192,7 +192,7 @@ function handleKeydown(e) {
 
         clipboard = {
             nodes: selected.map(n => ({ type: n.type, data: JSON.parse(JSON.stringify(n.data)), position: { ...n.position } })),
-            edges: innerEdges.map(edge => ({ sourceIndex: selected.findIndex(n => n.id === edge.source), targetIndex: selected.findIndex(n => n.id === edge.target), label: edge.label })),
+            edges: innerEdges.map(edge => ({ sourceIndex: selected.findIndex(n => n.id === edge.source), targetIndex: selected.findIndex(n => n.id === edge.target), label: edge.label, data: edge.data ? JSON.parse(JSON.stringify(edge.data)) : {} })),
         };
         pasteCount = 0;
     }
@@ -222,6 +222,7 @@ function handleKeydown(e) {
                 source: idMap[edge.sourceIndex],
                 target: idMap[edge.targetIndex],
                 label: edge.label || '',
+                data: edge.data ? JSON.parse(JSON.stringify(edge.data)) : {},
             }));
 
         getNodes.value.forEach(n => { n.selected = false; });
