@@ -47,7 +47,7 @@ function validateAndUpdateLabel() {
         </div>
 
         <div>
-            <label class="block text-xs font-medium text-gray-500">Метка</label>
+            <label class="block text-xs font-medium text-gray-500">Значение</label>
             <div v-if="canUpdate" class="mt-0.5">
                 <input v-model="localLabel" @blur="validateAndUpdateLabel" @keydown.enter="validateAndUpdateLabel"
                     class="w-full rounded border-gray-300 text-sm placeholder-gray-400"
