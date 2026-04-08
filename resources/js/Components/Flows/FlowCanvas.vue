@@ -15,6 +15,7 @@ import ConditionNode from './nodes/ConditionNode.vue';
 import ApiCallNode from './nodes/ApiCallNode.vue';
 import OnCompleteNode from './nodes/OnCompleteNode.vue';
 import OnCancelNode from './nodes/OnCancelNode.vue';
+import EditableEdge from './edges/EditableEdge.vue';
 
 const props = defineProps({
     initialNodes: { type: Array, default: () => [] },
@@ -23,8 +24,8 @@ const props = defineProps({
 
 const nodes = ref([...props.initialNodes]);
 const arrowMarker = { type: MarkerType.ArrowClosed, width: 20, height: 20 };
-const edgeDefaults = { markerEnd: arrowMarker, interactionWidth: 20, updatable: 'target', type: 'default' };
-const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e })));
+const edgeDefaults = { markerEnd: arrowMarker, interactionWidth: 20, updatable: 'target', type: 'editable' };
+const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e, data: e.data || {} })));
 
 const selectedNode = ref(null);
 const selectedEdge = ref(null);
@@ -47,7 +48,7 @@ function isValidConnection(connection) {
 const { onDragOver, onDrop } = useFlowDragDrop();
 
 onConnect((params) => {
-    addEdges({ ...edgeDefaults, ...params, label: '' });
+    addEdges({ ...edgeDefaults, ...params, label: '', data: {} });
 });
 
 onEdgeUpdate(({ edge, connection }) => {
@@ -89,6 +90,7 @@ function getGraph() {
             source: e.source,
             target: e.target,
             label: e.label || undefined,
+            data: e.data?.waypoints?.length ? { waypoints: e.data.waypoints } : undefined,
         })),
     };
 }
@@ -294,6 +296,8 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
         <template #node-api_call="p"><ApiCallNode v-bind="p" /></template>
         <template #node-on_complete="p"><OnCompleteNode v-bind="p" /></template>
         <template #node-on_cancel="p"><OnCancelNode v-bind="p" /></template>
+
+        <template #edge-editable="edgeProps"><EditableEdge v-bind="edgeProps" /></template>
 
         <Background :gap="16" />
         <Controls />
