@@ -7,7 +7,7 @@
  * @returns {{x: number, y: number}}
  */
 function exitTangent(from, next, position) {
-    const mag = Math.max(Math.hypot(next.x - from.x, next.y - from.y) * 0.5, 30);
+    const mag = Math.max(Math.hypot(next.x - from.x, next.y - from.y) * 0.5, 48);
     switch (position) {
         case 'top': return { x: 0, y: -mag };
         case 'bottom': return { x: 0, y: mag };
@@ -26,7 +26,7 @@ function exitTangent(from, next, position) {
  * @returns {{x: number, y: number}}
  */
 function entryTangent(prev, to, position) {
-    const mag = Math.max(Math.hypot(to.x - prev.x, to.y - prev.y) * 0.5, 30);
+    const mag = Math.max(Math.hypot(to.x - prev.x, to.y - prev.y) * 0.5, 48);
     switch (position) {
         case 'top': return { x: 0, y: mag };
         case 'bottom': return { x: 0, y: -mag };
