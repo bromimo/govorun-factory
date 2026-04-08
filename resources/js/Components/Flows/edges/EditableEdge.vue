@@ -87,12 +87,12 @@ function onControlDblClick(event, index) {
     edge.data.waypoints.splice(index, 1);
 }
 
-function onControlMouseDown(event, index) {
+function onControlPointerDown(event, index) {
     event.stopPropagation();
     event.preventDefault();
     draggingIndex.value = index;
 
-    function onMouseMove(e) {
+    function onPointerMove(e) {
         if (draggingIndex.value === null) return;
         const flowPos = project({ x: e.clientX, y: e.clientY });
         const edge = getEdgeData();
@@ -100,14 +100,14 @@ function onControlMouseDown(event, index) {
         edge.data.waypoints[draggingIndex.value] = { x: flowPos.x, y: flowPos.y };
     }
 
-    function onMouseUp() {
+    function onPointerUp() {
         draggingIndex.value = null;
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('mouseup', onMouseUp);
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
     }
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
 }
 </script>
 
@@ -137,20 +137,21 @@ function onControlMouseDown(event, index) {
         />
 
         <!-- Управляющие точки (отображаются только при выделении) -->
-        <template v-if="selected">
+        <template v-if="selected || draggingIndex !== null">
             <circle
                 v-for="(wp, i) in waypoints"
                 :key="i"
                 :cx="wp.x"
                 :cy="wp.y"
-                r="5"
+                r="6"
                 fill="white"
                 stroke="#6366f1"
                 stroke-width="2"
                 class="nodrag nopan"
+                style="pointer-events: all;"
                 :class="draggingIndex === i ? 'cursor-grabbing' : 'cursor-grab'"
-                @mousedown="onControlMouseDown($event, i)"
-                @dblclick="onControlDblClick($event, i)"
+                @pointerdown.stop.prevent="onControlPointerDown($event, i)"
+                @dblclick.stop="onControlDblClick($event, i)"
             />
         </template>
     </g>
