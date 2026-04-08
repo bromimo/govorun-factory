@@ -28,10 +28,10 @@ const { screenToFlowCoordinate, getEdges } = useVueFlow();
 const draggingIndex = ref(null);
 
 const waypoints = computed(() =>
-    (props.data?.waypoints ?? []).map(wp => ({
-        x: props.sourceX + wp.dx,
-        y: props.sourceY + wp.dy,
-    }))
+    (props.data?.waypoints ?? []).map(wp => {
+        if ('dx' in wp) return { x: props.sourceX + wp.dx, y: props.sourceY + wp.dy };
+        return { x: wp.x, y: wp.y };
+    })
 );
 
 const svgPath = computed(() => {
