@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { EdgeLabelRenderer, getBezierPath, useVueFlow } from '@vue-flow/core';
+import { EdgeLabelRenderer, useVueFlow } from '@vue-flow/core';
 import { buildBezierPath, findInsertIndex } from './bezierPath.js';
 
 defineOptions({ inheritAttrs: false });
@@ -34,20 +34,9 @@ const waypoints = computed(() =>
     })
 );
 
-const svgPath = computed(() => {
-    if (!waypoints.value.length) {
-        const [path] = getBezierPath({
-            sourceX: props.sourceX,
-            sourceY: props.sourceY,
-            sourcePosition: props.sourcePosition,
-            targetX: props.targetX,
-            targetY: props.targetY,
-            targetPosition: props.targetPosition,
-        });
-        return path;
-    }
-    return buildBezierPath(props.sourceX, props.sourceY, props.targetX, props.targetY, waypoints.value, props.sourcePosition, props.targetPosition);
-});
+const svgPath = computed(() =>
+    buildBezierPath(props.sourceX, props.sourceY, props.targetX, props.targetY, waypoints.value, props.sourcePosition, props.targetPosition)
+);
 
 const midpoint = computed(() => {
     const pts = [

@@ -1,13 +1,32 @@
+/** Длина прямого вертикального/горизонтального участка на выходе/входе из узла (= шаг сетки). */
+const STEM = 16;
+
 /**
- * Вычисление касательной на выходе из узла (вертикальная/горизонтальная по позиции хэндла).
+ * Смещение stem-точки от хэндла по направлению позиции.
  *
- * @param {{x: number, y: number}} from — точка выхода
- * @param {{x: number, y: number}} next — следующая точка (для расчёта магнитуды)
- * @param {string} position — позиция хэндла (top/bottom/left/right)
+ * @param {string} position — top/bottom/left/right
+ * @returns {{x: number, y: number}}
+ */
+function stemOffset(position) {
+    switch (position) {
+        case 'top': return { x: 0, y: -STEM };
+        case 'bottom': return { x: 0, y: STEM };
+        case 'left': return { x: -STEM, y: 0 };
+        case 'right': return { x: STEM, y: 0 };
+        default: return { x: 0, y: STEM };
+    }
+}
+
+/**
+ * Касательная на выходе stem → первая точка кривой.
+ *
+ * @param {{x: number, y: number}} from
+ * @param {{x: number, y: number}} next
+ * @param {string} position
  * @returns {{x: number, y: number}}
  */
 function exitTangent(from, next, position) {
-    const mag = Math.max(Math.hypot(next.x - from.x, next.y - from.y) * 0.5, 48);
+    const mag = Math.max(Math.hypot(next.x - from.x, next.y - from.y) * 0.5, 30);
     switch (position) {
         case 'top': return { x: 0, y: -mag };
         case 'bottom': return { x: 0, y: mag };
@@ -18,15 +37,15 @@ function exitTangent(from, next, position) {
 }
 
 /**
- * Вычисление касательной на входе в узел.
+ * Касательная на входе в stem-точку цели.
  *
- * @param {{x: number, y: number}} prev — предыдущая точка
- * @param {{x: number, y: number}} to — точка входа
- * @param {string} position — позиция хэндла (top/bottom/left/right)
+ * @param {{x: number, y: number}} prev
+ * @param {{x: number, y: number}} to
+ * @param {string} position
  * @returns {{x: number, y: number}}
  */
 function entryTangent(prev, to, position) {
-    const mag = Math.max(Math.hypot(to.x - prev.x, to.y - prev.y) * 0.5, 48);
+    const mag = Math.max(Math.hypot(to.x - prev.x, to.y - prev.y) * 0.5, 30);
     switch (position) {
         case 'top': return { x: 0, y: mag };
         case 'bottom': return { x: 0, y: -mag };
@@ -37,21 +56,26 @@ function entryTangent(prev, to, position) {
 }
 
 /**
- * Построение SVG path (Catmull-Rom сплайн → cubic bezier) через все точки.
- * Кривая проходит точно через каждый waypoint.
- * На выходе из source и входе в target — вертикальная касательная.
+ * Построение SVG path: прямой stem от узла + Catmull-Rom кривая через waypoints + stem в узел.
+ * Гарантирует видимый прямой участок длиной STEM на выходе/входе.
  *
  * @param {number} sx — X источника
  * @param {number} sy — Y источника
  * @param {number} tx — X цели
  * @param {number} ty — Y цели
- * @param {Array<{x: number, y: number}>} waypoints — промежуточные точки
+ * @param {Array<{x: number, y: number}>} waypoints — промежуточные точки (абсолютные координаты)
  * @param {string} sourcePosition — позиция хэндла источника
  * @param {string} targetPosition — позиция хэндла цели
  * @returns {string} SVG path string
  */
 export function buildBezierPath(sx, sy, tx, ty, waypoints, sourcePosition, targetPosition) {
-    const pts = [{ x: sx, y: sy }, ...waypoints, { x: tx, y: ty }];
+    const sOff = stemOffset(sourcePosition);
+    const tOff = stemOffset(targetPosition);
+
+    const stemStart = { x: sx + sOff.x, y: sy + sOff.y };
+    const stemEnd = { x: tx + tOff.x, y: ty + tOff.y };
+
+    const pts = [stemStart, ...(waypoints || []), stemEnd];
 
     const tangents = pts.map((p, i) => {
         if (i === 0) return exitTangent(pts[0], pts[1], sourcePosition);
@@ -59,7 +83,7 @@ export function buildBezierPath(sx, sy, tx, ty, waypoints, sourcePosition, targe
         return { x: (pts[i + 1].x - pts[i - 1].x) / 2, y: (pts[i + 1].y - pts[i - 1].y) / 2 };
     });
 
-    let d = `M ${pts[0].x},${pts[0].y}`;
+    let d = `M ${sx},${sy} L ${stemStart.x},${stemStart.y}`;
     for (let i = 0; i < pts.length - 1; i++) {
         const cp1x = pts[i].x + tangents[i].x / 3;
         const cp1y = pts[i].y + tangents[i].y / 3;
@@ -67,6 +91,7 @@ export function buildBezierPath(sx, sy, tx, ty, waypoints, sourcePosition, targe
         const cp2y = pts[i + 1].y - tangents[i + 1].y / 3;
         d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${pts[i + 1].x},${pts[i + 1].y}`;
     }
+    d += ` L ${tx},${ty}`;
     return d;
 }
 
