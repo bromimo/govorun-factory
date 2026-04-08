@@ -41,7 +41,7 @@ const svgPath = computed(() => {
         });
         return path;
     }
-    return buildBezierPath(props.sourceX, props.sourceY, props.targetX, props.targetY, waypoints.value);
+    return buildBezierPath(props.sourceX, props.sourceY, props.targetX, props.targetY, waypoints.value, props.sourcePosition, props.targetPosition);
 });
 
 const midpoint = computed(() => {

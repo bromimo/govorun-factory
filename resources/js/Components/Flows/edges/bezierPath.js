@@ -1,43 +1,72 @@
 /**
- * Построение SVG path из source/target и массива управляющих точек (waypoints).
+ * Вычисление касательной на выходе из узла (вертикальная/горизонтальная по позиции хэндла).
+ *
+ * @param {{x: number, y: number}} from — точка выхода
+ * @param {{x: number, y: number}} next — следующая точка (для расчёта магнитуды)
+ * @param {string} position — позиция хэндла (top/bottom/left/right)
+ * @returns {{x: number, y: number}}
+ */
+function exitTangent(from, next, position) {
+    const mag = Math.max(Math.hypot(next.x - from.x, next.y - from.y) * 0.5, 30);
+    switch (position) {
+        case 'top': return { x: 0, y: -mag };
+        case 'bottom': return { x: 0, y: mag };
+        case 'left': return { x: -mag, y: 0 };
+        case 'right': return { x: mag, y: 0 };
+        default: return { x: 0, y: mag };
+    }
+}
+
+/**
+ * Вычисление касательной на входе в узел.
+ *
+ * @param {{x: number, y: number}} prev — предыдущая точка
+ * @param {{x: number, y: number}} to — точка входа
+ * @param {string} position — позиция хэндла (top/bottom/left/right)
+ * @returns {{x: number, y: number}}
+ */
+function entryTangent(prev, to, position) {
+    const mag = Math.max(Math.hypot(to.x - prev.x, to.y - prev.y) * 0.5, 30);
+    switch (position) {
+        case 'top': return { x: 0, y: mag };
+        case 'bottom': return { x: 0, y: -mag };
+        case 'left': return { x: mag, y: 0 };
+        case 'right': return { x: -mag, y: 0 };
+        default: return { x: 0, y: mag };
+    }
+}
+
+/**
+ * Построение SVG path (Catmull-Rom сплайн → cubic bezier) через все точки.
+ * Кривая проходит точно через каждый waypoint.
+ * На выходе из source и входе в target — вертикальная касательная.
  *
  * @param {number} sx — X источника
  * @param {number} sy — Y источника
  * @param {number} tx — X цели
  * @param {number} ty — Y цели
- * @param {Array<{x: number, y: number}>} waypoints — управляющие точки bezier
+ * @param {Array<{x: number, y: number}>} waypoints — промежуточные точки
+ * @param {string} sourcePosition — позиция хэндла источника
+ * @param {string} targetPosition — позиция хэндла цели
  * @returns {string} SVG path string
  */
-export function buildBezierPath(sx, sy, tx, ty, waypoints) {
-    if (!waypoints?.length) {
-        const midY = (sy + ty) / 2;
-        return `M ${sx},${sy} C ${sx},${midY} ${tx},${midY} ${tx},${ty}`;
-    }
-
+export function buildBezierPath(sx, sy, tx, ty, waypoints, sourcePosition, targetPosition) {
     const pts = [{ x: sx, y: sy }, ...waypoints, { x: tx, y: ty }];
 
-    if (pts.length === 3) {
-        return `M ${pts[0].x},${pts[0].y} Q ${pts[1].x},${pts[1].y} ${pts[2].x},${pts[2].y}`;
-    }
+    const tangents = pts.map((p, i) => {
+        if (i === 0) return exitTangent(pts[0], pts[1], sourcePosition);
+        if (i === pts.length - 1) return entryTangent(pts[pts.length - 2], pts[pts.length - 1], targetPosition);
+        return { x: (pts[i + 1].x - pts[i - 1].x) / 2, y: (pts[i + 1].y - pts[i - 1].y) / 2 };
+    });
 
     let d = `M ${pts[0].x},${pts[0].y}`;
-
-    // Первый сегмент: Q wp1, midpoint(wp1, wp2)
-    const mid1x = (pts[1].x + pts[2].x) / 2;
-    const mid1y = (pts[1].y + pts[2].y) / 2;
-    d += ` Q ${pts[1].x},${pts[1].y} ${mid1x},${mid1y}`;
-
-    // Средние сегменты
-    for (let i = 2; i < pts.length - 2; i++) {
-        const mx = (pts[i].x + pts[i + 1].x) / 2;
-        const my = (pts[i].y + pts[i + 1].y) / 2;
-        d += ` Q ${pts[i].x},${pts[i].y} ${mx},${my}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+        const cp1x = pts[i].x + tangents[i].x / 3;
+        const cp1y = pts[i].y + tangents[i].y / 3;
+        const cp2x = pts[i + 1].x - tangents[i + 1].x / 3;
+        const cp2y = pts[i + 1].y - tangents[i + 1].y / 3;
+        d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${pts[i + 1].x},${pts[i + 1].y}`;
     }
-
-    // Последний сегмент: Q wpN, target
-    const last = pts.length - 1;
-    d += ` Q ${pts[last - 1].x},${pts[last - 1].y} ${pts[last].x},${pts[last].y}`;
-
     return d;
 }
 
