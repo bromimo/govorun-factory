@@ -27,7 +27,12 @@ const { screenToFlowCoordinate, getEdges } = useVueFlow();
 
 const draggingIndex = ref(null);
 
-const waypoints = computed(() => props.data?.waypoints ?? []);
+const waypoints = computed(() =>
+    (props.data?.waypoints ?? []).map(wp => ({
+        x: props.sourceX + wp.dx,
+        y: props.sourceY + wp.dy,
+    }))
+);
 
 const svgPath = computed(() => {
     if (!waypoints.value.length) {
@@ -74,10 +79,10 @@ function onInteractionDblClick(event) {
     const idx = findInsertIndex(
         props.sourceX, props.sourceY,
         props.targetX, props.targetY,
-        edge.data.waypoints,
+        waypoints.value,
         flowPos
     );
-    edge.data.waypoints.splice(idx, 0, { x: flowPos.x, y: flowPos.y });
+    edge.data.waypoints.splice(idx, 0, { dx: flowPos.x - props.sourceX, dy: flowPos.y - props.sourceY });
 }
 
 function onControlDblClick(event, index) {
@@ -97,7 +102,7 @@ function onControlPointerDown(event, index) {
         const flowPos = screenToFlowCoordinate({ x: e.clientX, y: e.clientY });
         const edge = getEdgeData();
         if (!edge) return;
-        edge.data.waypoints[draggingIndex.value] = { x: flowPos.x, y: flowPos.y };
+        edge.data.waypoints[draggingIndex.value] = { dx: flowPos.x - props.sourceX, dy: flowPos.y - props.sourceY };
     }
 
     function onPointerUp() {
