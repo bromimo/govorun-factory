@@ -23,7 +23,7 @@ const props = defineProps({
     data: { type: Object, default: () => ({}) },
 });
 
-const { project, getEdges } = useVueFlow();
+const { screenToFlowCoordinate, getEdges } = useVueFlow();
 
 const draggingIndex = ref(null);
 
@@ -67,7 +67,7 @@ function getEdgeData() {
 
 function onInteractionDblClick(event) {
     event.stopPropagation();
-    const flowPos = project({ x: event.clientX, y: event.clientY });
+    const flowPos = screenToFlowCoordinate({ x: event.clientX, y: event.clientY });
     const edge = getEdgeData();
     if (!edge) return;
 
@@ -94,7 +94,7 @@ function onControlPointerDown(event, index) {
 
     function onPointerMove(e) {
         if (draggingIndex.value === null) return;
-        const flowPos = project({ x: e.clientX, y: e.clientY });
+        const flowPos = screenToFlowCoordinate({ x: e.clientX, y: e.clientY });
         const edge = getEdgeData();
         if (!edge) return;
         edge.data.waypoints[draggingIndex.value] = { x: flowPos.x, y: flowPos.y };
