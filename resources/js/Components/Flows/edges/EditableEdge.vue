@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { EdgeLabelRenderer, useVueFlow } from '@vue-flow/core';
+import { EdgeLabelRenderer, getBezierPath, useVueFlow } from '@vue-flow/core';
 import { buildBezierPath, findInsertIndex } from './bezierPath.js';
 
 defineOptions({ inheritAttrs: false });
@@ -29,9 +29,20 @@ const draggingIndex = ref(null);
 
 const waypoints = computed(() => props.data?.waypoints ?? []);
 
-const svgPath = computed(() =>
-    buildBezierPath(props.sourceX, props.sourceY, props.targetX, props.targetY, waypoints.value)
-);
+const svgPath = computed(() => {
+    if (!waypoints.value.length) {
+        const [path] = getBezierPath({
+            sourceX: props.sourceX,
+            sourceY: props.sourceY,
+            sourcePosition: props.sourcePosition,
+            targetX: props.targetX,
+            targetY: props.targetY,
+            targetPosition: props.targetPosition,
+        });
+        return path;
+    }
+    return buildBezierPath(props.sourceX, props.sourceY, props.targetX, props.targetY, waypoints.value);
+});
 
 const midpoint = computed(() => {
     const pts = [
@@ -136,6 +147,7 @@ function onControlMouseDown(event, index) {
                 fill="white"
                 stroke="#6366f1"
                 stroke-width="2"
+                class="nodrag nopan"
                 :class="draggingIndex === i ? 'cursor-grabbing' : 'cursor-grab'"
                 @mousedown="onControlMouseDown($event, i)"
                 @dblclick="onControlDblClick($event, i)"
