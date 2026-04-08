@@ -66,6 +66,10 @@ function onEdgeLabelUpdated(edgeId, label) {
     canvasRef.value?.setEdgeLabel(edgeId, label);
 }
 
+function onClearWaypoints(edgeId) {
+    canvasRef.value?.clearEdgeWaypoints(edgeId);
+}
+
 function save() {
     if (!canvasRef.value) return;
     saving.value = true;
@@ -160,6 +164,7 @@ function autoLayout() {
                     :sibling-labels="siblingLabels"
                     class="flex-1 min-w-0"
                     @update="onEdgeLabelUpdated"
+                    @clear-waypoints="onClearWaypoints"
                     @close="canvasRef.selectedEdge = null"
                 />
             </div>

@@ -126,6 +126,11 @@ function setEdgeLabel(edgeId, label) {
     if (edge) edge.label = label;
 }
 
+function clearEdgeWaypoints(edgeId) {
+    const edge = getEdges.value.find(e => e.id === edgeId);
+    if (edge?.data) edge.data.waypoints = [];
+}
+
 function getOutgoingEdgeLabels(sourceId, excludeEdgeId) {
     return getEdges.value
         .filter(e => e.source === sourceId && e.id !== excludeEdgeId && e.label)
@@ -269,7 +274,7 @@ function autoLayout() {
     setTimeout(() => fitView({ padding: 0.2 }), 50);
 }
 
-defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, selectedNode, selectedEdge });
+defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
 </script>
 
 <template>
