@@ -4,7 +4,7 @@ defineOptions({ inheritAttrs: false });
 defineProps(['id', 'data', 'selected']);
 </script>
 <template>
-    <BaseNode :id="id" :selected="selected" label="Начало" color="green" :has-input="false">
-        <p class="text-green-600 text-center">Старт диалога</p>
+    <BaseNode :id="id" :selected="selected" label="Начало" color="gray" :has-input="false">
+        <p class="text-gray-400">Старт диалога</p>
     </BaseNode>
 </template>

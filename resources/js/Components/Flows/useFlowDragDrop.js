@@ -26,6 +26,9 @@ export function useFlowDragDrop() {
             y: event.clientY,
         });
 
+        position.x -= 90;
+        position.y -= 30;
+
         const id = `${type}_${Date.now()}`;
 
         addNodes({
