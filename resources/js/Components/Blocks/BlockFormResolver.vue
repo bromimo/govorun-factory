@@ -32,6 +32,6 @@ const formComponent = computed(() => ({
 <template>
     <component v-if="formComponent" :is="formComponent" v-model="model"
         :all-state-keys="allStateKeys" :declared-state-keys="declaredStateKeys"
-        :bot-validation-messages="botValidationMessages" />
+        v-bind="['ask_text','ask_keyboard'].includes(type) ? { 'bot-validation-messages': botValidationMessages } : {}" />
     <p v-else class="text-xs text-gray-400">Нет параметров для этого типа</p>
 </template>

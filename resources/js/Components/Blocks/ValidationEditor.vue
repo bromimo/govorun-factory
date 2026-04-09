@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { validationRuleDefs, ruleGroups, defaultMessages } from './validationRules.js';
+import { validationRuleDefs, ruleGroups, getDefaultMessage } from './validationRules.js';
 
 const model = defineModel({ type: Array, default: () => [] });
 const props = defineProps({
@@ -55,7 +55,7 @@ function getRuleDef(name) {
 }
 
 function getPlaceholder(ruleName) {
-    return props.botValidationMessages[ruleName] || defaultMessages[ruleName] || '';
+    return props.botValidationMessages[ruleName] || getDefaultMessage(ruleName, model.value) || '';
 }
 
 function moveRule(index, direction) {
@@ -90,7 +90,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
         </button>
 
         <div v-if="!collapsed" class="mt-2 space-y-2">
-            <div v-for="(rule, i) in model" :key="i"
+            <div v-for="(rule, i) in model" :key="rule.name"
                 class="rounded border border-gray-200 bg-gray-50 p-2 space-y-1.5">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-1">
