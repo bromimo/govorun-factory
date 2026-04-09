@@ -22,6 +22,10 @@ const { uninitializedKeys, undeclaredKeys } = useStateWarnings(
         <textarea v-model="model.text" rows="3" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="Как вас зовут?" />
         <StateWarning :uninitialized-keys="uninitializedKeys" :undeclared-keys="undeclaredKeys" />
         <VarsHint />
+        <div class="mt-3">
+            <label class="block text-xs font-medium text-gray-500">Картинка (URL)</label>
+            <input v-model="model.image" type="url" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="https://example.com/image.jpg" />
+        </div>
         <ValidationEditor v-model="model.validation" :bot-validation-messages="botValidationMessages" />
     </div>
 </template>

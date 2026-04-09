@@ -25,6 +25,10 @@ const { uninitializedKeys, undeclaredKeys } = useStateWarnings(
             <StateWarning :uninitialized-keys="uninitializedKeys" :undeclared-keys="undeclaredKeys" />
             <VarsHint />
         </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500">Картинка (URL)</label>
+            <input v-model="model.image" type="url" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="https://example.com/image.jpg" />
+        </div>
         <ButtonEditor v-model="model.buttons" />
         <ValidationEditor v-model="model.validation" :bot-validation-messages="botValidationMessages" :allowed-rules="['required']" />
     </div>
