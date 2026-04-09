@@ -48,6 +48,8 @@ const declaredStateKeys = computed(() => {
     return canvasRef.value.getDeclaredStateKeysBefore(node.id);
 });
 
+const botValidationMessages = computed(() => props.bot.config?.validation_messages ?? {});
+
 const siblingLabels = computed(() => {
     const edge = selectedEdge.value;
     if (!edge || !canvasRef.value) return [];
@@ -151,6 +153,7 @@ function autoLayout() {
                     :all-node-ids="allNodeIds"
                     :all-state-keys="allStateKeys"
                     :declared-state-keys="declaredStateKeys"
+                    :bot-validation-messages="botValidationMessages"
                     class="flex-1 min-w-0"
                     @update="onNodeDataUpdated"
                     @rename="onNodeRenamed"
