@@ -20,7 +20,12 @@ class BotFlowController extends Controller
         $flow = $bot->flows()->create([
             'name' => $request->name,
             'description' => $request->description,
-            'graph' => ['nodes' => [], 'edges' => []],
+            'graph' => [
+                'nodes' => [
+                    ['id' => 'start', 'type' => 'start', 'position' => ['x' => 250, 'y' => 50], 'data' => (object) []],
+                ],
+                'edges' => [],
+            ],
         ]);
 
         return redirect()->route('bot-flows.show', [$bot, $flow]);

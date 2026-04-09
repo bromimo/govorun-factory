@@ -104,4 +104,17 @@ class BotFlowControllerTest extends TestCase
         $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/flows", [])
             ->assertSessionHasErrors(['name']);
     }
+
+    public function test_new_flow_has_start_node(): void
+    {
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/flows", [
+            'name' => 'WithStart',
+        ]);
+
+        $flow = BotFlow::where('name', 'WithStart')->first();
+        $startNodes = collect($flow->graph['nodes'])->where('type', 'start');
+
+        $this->assertCount(1, $startNodes);
+        $this->assertEquals('start', $startNodes->first()['id']);
+    }
 }
