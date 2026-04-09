@@ -79,12 +79,13 @@ onPaneClick(() => {
 function getGraph() {
     const obj = toObject();
     return {
-        nodes: obj.nodes.map(n => ({
-            id: n.id,
-            type: n.type,
-            data: n.data,
-            position: n.position,
-        })),
+        nodes: obj.nodes.map(n => {
+            const data = { ...n.data };
+            if (Array.isArray(data.validation) && data.validation.length === 0) {
+                delete data.validation;
+            }
+            return { id: n.id, type: n.type, data, position: n.position };
+        }),
         edges: obj.edges.map(e => ({
             id: e.id,
             source: e.source,
