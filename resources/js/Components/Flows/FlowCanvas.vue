@@ -15,6 +15,7 @@ import ConditionNode from './nodes/ConditionNode.vue';
 import ApiCallNode from './nodes/ApiCallNode.vue';
 import OnCompleteNode from './nodes/OnCompleteNode.vue';
 import OnCancelNode from './nodes/OnCancelNode.vue';
+import EditableEdge from './edges/EditableEdge.vue';
 
 const props = defineProps({
     initialNodes: { type: Array, default: () => [] },
@@ -23,8 +24,8 @@ const props = defineProps({
 
 const nodes = ref([...props.initialNodes]);
 const arrowMarker = { type: MarkerType.ArrowClosed, width: 20, height: 20 };
-const edgeDefaults = { markerEnd: arrowMarker, interactionWidth: 20, updatable: 'target', type: 'default' };
-const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e })));
+const edgeDefaults = { markerEnd: arrowMarker, interactionWidth: 20, updatable: 'target', type: 'editable' };
+const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e, data: e.data || {} })));
 
 const selectedNode = ref(null);
 const selectedEdge = ref(null);
@@ -47,7 +48,7 @@ function isValidConnection(connection) {
 const { onDragOver, onDrop } = useFlowDragDrop();
 
 onConnect((params) => {
-    addEdges({ ...edgeDefaults, ...params, label: '' });
+    addEdges({ ...edgeDefaults, ...params, label: '', data: {} });
 });
 
 onEdgeUpdate(({ edge, connection }) => {
@@ -78,17 +79,19 @@ onPaneClick(() => {
 function getGraph() {
     const obj = toObject();
     return {
-        nodes: obj.nodes.map(n => ({
-            id: n.id,
-            type: n.type,
-            data: n.data,
-            position: n.position,
-        })),
+        nodes: obj.nodes.map(n => {
+            const data = { ...n.data };
+            if (Array.isArray(data.validation) && data.validation.length === 0) {
+                delete data.validation;
+            }
+            return { id: n.id, type: n.type, data, position: n.position };
+        }),
         edges: obj.edges.map(e => ({
             id: e.id,
             source: e.source,
             target: e.target,
             label: e.label || undefined,
+            data: e.data?.waypoints?.length ? { waypoints: e.data.waypoints } : undefined,
         })),
     };
 }
@@ -122,6 +125,11 @@ function renameNode(oldId, newId) {
 function setEdgeLabel(edgeId, label) {
     const edge = getEdges.value.find(e => e.id === edgeId);
     if (edge) edge.label = label;
+}
+
+function clearEdgeWaypoints(edgeId) {
+    const edge = getEdges.value.find(e => e.id === edgeId);
+    if (edge?.data) edge.data.waypoints = [];
 }
 
 function getOutgoingEdgeLabels(sourceId, excludeEdgeId) {
@@ -185,7 +193,7 @@ function handleKeydown(e) {
 
         clipboard = {
             nodes: selected.map(n => ({ type: n.type, data: JSON.parse(JSON.stringify(n.data)), position: { ...n.position } })),
-            edges: innerEdges.map(edge => ({ sourceIndex: selected.findIndex(n => n.id === edge.source), targetIndex: selected.findIndex(n => n.id === edge.target), label: edge.label })),
+            edges: innerEdges.map(edge => ({ sourceIndex: selected.findIndex(n => n.id === edge.source), targetIndex: selected.findIndex(n => n.id === edge.target), label: edge.label, data: edge.data ? JSON.parse(JSON.stringify(edge.data)) : {} })),
         };
         pasteCount = 0;
     }
@@ -215,6 +223,7 @@ function handleKeydown(e) {
                 source: idMap[edge.sourceIndex],
                 target: idMap[edge.targetIndex],
                 label: edge.label || '',
+                data: edge.data ? JSON.parse(JSON.stringify(edge.data)) : {},
             }));
 
         getNodes.value.forEach(n => { n.selected = false; });
@@ -267,7 +276,7 @@ function autoLayout() {
     setTimeout(() => fitView({ padding: 0.2 }), 50);
 }
 
-defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, selectedNode, selectedEdge });
+defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
 </script>
 
 <template>
@@ -294,6 +303,8 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
         <template #node-api_call="p"><ApiCallNode v-bind="p" /></template>
         <template #node-on_complete="p"><OnCompleteNode v-bind="p" /></template>
         <template #node-on_cancel="p"><OnCancelNode v-bind="p" /></template>
+
+        <template #edge-editable="edgeProps"><EditableEdge v-bind="edgeProps" /></template>
 
         <Background :gap="16" />
         <Controls />

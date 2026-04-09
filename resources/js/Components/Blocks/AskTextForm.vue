@@ -1,12 +1,14 @@
 <script setup>
 import VarsHint from './VarsHint.vue';
 import StateWarning from './StateWarning.vue';
+import ValidationEditor from './ValidationEditor.vue';
 import { useStateWarnings } from './useStateWarnings.js';
 
-const model = defineModel({ type: Object, default: () => ({ text: '' }) });
+const model = defineModel({ type: Object, default: () => ({ text: '', validation: [] }) });
 const props = defineProps({
     allStateKeys: { type: Array, default: () => [] },
     declaredStateKeys: { type: Array, default: () => [] },
+    botValidationMessages: { type: Object, default: () => ({}) },
 });
 
 const { uninitializedKeys, undeclaredKeys } = useStateWarnings(
@@ -20,5 +22,6 @@ const { uninitializedKeys, undeclaredKeys } = useStateWarnings(
         <textarea v-model="model.text" rows="3" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="Как вас зовут?" />
         <StateWarning :uninitialized-keys="uninitializedKeys" :undeclared-keys="undeclaredKeys" />
         <VarsHint />
+        <ValidationEditor v-model="model.validation" :bot-validation-messages="botValidationMessages" />
     </div>
 </template>

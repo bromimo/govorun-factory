@@ -28,6 +28,8 @@ class UpdateBotRequest extends FormRequest
             'config.environment' => ['nullable', 'string', 'in:production,development'],
             'config.debug' => ['nullable', 'boolean'],
             'config.state_storage' => ['nullable', 'string', 'in:file,database,cache'],
+            'config.validation_messages' => ['nullable', 'array'],
+            'config.validation_messages.*' => ['nullable', 'string', 'max:500'],
             'messenger_config' => ['sometimes', 'nullable', 'array'],
         ];
     }

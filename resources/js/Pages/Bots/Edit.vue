@@ -6,6 +6,7 @@ import SettingsForm from '@/Components/Bots/SettingsForm.vue';
 import MessengerConfigForm from '@/Components/Bots/MessengerConfigForm.vue';
 import RouteList from '@/Components/Routes/RouteList.vue';
 import FlowList from '@/Components/Flows/FlowList.vue';
+import ValidationMessagesForm from '@/Components/Bots/ValidationMessagesForm.vue';
 
 const props = defineProps({
     bot: Object,
@@ -16,6 +17,7 @@ const tabs = [
     { key: 'settings', label: 'Настройки' },
     { key: 'routes', label: 'Маршруты' },
     { key: 'flows', label: 'Flow-диалоги' },
+    { key: 'validation', label: 'Валидация' },
     { key: 'messengers', label: 'Мессенджеры' },
 ];
 
@@ -76,6 +78,8 @@ function deleteBot() {
                         <FlowList v-else-if="activeTab === 'flows'"
                             :bot-id="bot.id" :flows="bot.flows ?? []"
                             :can-update="can.update" />
+
+                        <ValidationMessagesForm v-else-if="activeTab === 'validation'" :bot="bot" :can="can" />
 
                         <MessengerConfigForm v-else-if="activeTab === 'messengers'" :bot="bot" :can="can" />
                     </div>

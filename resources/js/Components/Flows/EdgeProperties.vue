@@ -7,7 +7,7 @@ const props = defineProps({
     siblingLabels: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(['update', 'close']);
+const emit = defineEmits(['update', 'close', 'clear-waypoints']);
 
 const localLabel = ref(props.edge?.label ?? '');
 const labelError = ref('');
@@ -47,7 +47,7 @@ function validateAndUpdateLabel() {
         </div>
 
         <div>
-            <label class="block text-xs font-medium text-gray-500">Метка</label>
+            <label class="block text-xs font-medium text-gray-500">Значение</label>
             <div v-if="canUpdate" class="mt-0.5">
                 <input v-model="localLabel" @blur="validateAndUpdateLabel" @keydown.enter="validateAndUpdateLabel"
                     class="w-full rounded border-gray-300 text-sm placeholder-gray-400"
@@ -56,6 +56,15 @@ function validateAndUpdateLabel() {
                 <p v-if="labelError" class="mt-0.5 text-xs text-red-500">{{ labelError }}</p>
             </div>
             <p v-else class="mt-0.5 text-xs text-gray-600">{{ edge.label || '—' }}</p>
+        </div>
+
+        <div v-if="canUpdate" class="mt-4">
+            <button
+                @click="emit('clear-waypoints', edge.id)"
+                class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+            >
+                Сбросить маршрут
+            </button>
         </div>
     </div>
 </template>
