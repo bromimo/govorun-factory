@@ -5,6 +5,7 @@ import { validationRuleDefs, ruleGroups, getDefaultMessage } from './validationR
 const model = defineModel({ type: Array, default: () => [] });
 const props = defineProps({
     botValidationMessages: { type: Object, default: () => ({}) },
+    allowedRules: { type: Array, default: null },
 });
 
 const collapsed = ref(model.value.length === 0);
@@ -13,11 +14,15 @@ const dropdownRef = ref(null);
 
 const addedRuleNames = computed(() => new Set(model.value.map(r => r.name)));
 
+const allowedDefs = computed(() =>
+    props.allowedRules ? validationRuleDefs.filter(r => props.allowedRules.includes(r.name)) : validationRuleDefs,
+);
+
 const availableGroups = computed(() => {
     return ruleGroups
         .map(g => ({
             ...g,
-            rules: validationRuleDefs.filter(r => r.group === g.key && !addedRuleNames.value.has(r.name)),
+            rules: allowedDefs.value.filter(r => r.group === g.key && !addedRuleNames.value.has(r.name)),
         }))
         .filter(g => g.rules.length > 0);
 });
@@ -122,7 +127,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 
             <div ref="dropdownRef" class="relative">
                 <button type="button" @click="dropdownOpen = !dropdownOpen"
-                    :disabled="addedRuleNames.size >= validationRuleDefs.length"
+                    :disabled="addedRuleNames.size >= allowedDefs.length"
                     class="text-xs text-indigo-600 hover:text-indigo-800 disabled:text-gray-400 disabled:cursor-not-allowed">
                     + Добавить правило
                 </button>

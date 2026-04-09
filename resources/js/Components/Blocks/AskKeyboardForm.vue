@@ -26,6 +26,6 @@ const { uninitializedKeys, undeclaredKeys } = useStateWarnings(
             <VarsHint />
         </div>
         <ButtonEditor v-model="model.buttons" />
-        <ValidationEditor v-model="model.validation" :bot-validation-messages="botValidationMessages" />
+        <ValidationEditor v-model="model.validation" :bot-validation-messages="botValidationMessages" :allowed-rules="['required']" />
     </div>
 </template>
