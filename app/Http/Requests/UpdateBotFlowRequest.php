@@ -27,6 +27,7 @@ class UpdateBotFlowRequest extends FormRequest
             'graph' => ['sometimes', 'required', 'array'],
             'graph.nodes' => ['array'],
             'graph.edges' => ['array'],
+            'graph.viewport' => ['sometimes', 'array'],
             'interrupt_commands' => ['sometimes', 'nullable', 'array'],
             'interrupt_commands.*' => ['string'],
             'interrupt_on_event' => ['sometimes', 'boolean'],

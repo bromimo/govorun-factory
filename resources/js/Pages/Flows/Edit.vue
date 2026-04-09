@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import KeyboardHints from '@/Components/Flows/KeyboardHints.vue';
 import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
 import NodePalette from '@/Components/Flows/NodePalette.vue';
@@ -90,6 +90,9 @@ function save() {
     });
 }
 
+onMounted(() => document.body.classList.add('overflow-hidden'));
+onBeforeUnmount(() => document.body.classList.remove('overflow-hidden'));
+
 function fitView() {
     canvasRef.value?.doFitView();
 }
@@ -131,7 +134,7 @@ function autoLayout() {
             </div>
         </template>
 
-        <div class="relative flex h-[calc(100vh-8rem)]">
+        <div class="relative flex h-[calc(100vh-10rem)] overflow-hidden">
             <NodePalette v-if="can.update" class="w-48 shrink-0" />
 
             <KeyboardHints />
@@ -140,6 +143,7 @@ function autoLayout() {
                 ref="canvasRef"
                 :initial-nodes="flow.graph?.nodes ?? []"
                 :initial-edges="flow.graph?.edges ?? []"
+                :initial-viewport="flow.graph?.viewport ?? null"
             />
 
             <div v-if="selectedNode || selectedEdge" class="flex shrink-0" :style="{ width: panelWidth + 'px' }">

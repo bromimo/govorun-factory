@@ -20,6 +20,7 @@ import EditableEdge from './edges/EditableEdge.vue';
 const props = defineProps({
     initialNodes: { type: Array, default: () => [] },
     initialEdges: { type: Array, default: () => [] },
+    initialViewport: { type: Object, default: null },
 });
 
 const nodes = ref([...props.initialNodes]);
@@ -79,6 +80,7 @@ onPaneClick(() => {
 function getGraph() {
     const obj = toObject();
     return {
+        viewport: obj.viewport,
         nodes: obj.nodes.map(n => {
             const data = { ...n.data };
             if (Array.isArray(data.validation) && data.validation.length === 0) {
@@ -287,7 +289,8 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
         :max-zoom="2"
         :delete-key-code="['Backspace', 'Delete']"
         :is-valid-connection="isValidConnection"
-        :fit-view-on-init="true"
+        :default-viewport="initialViewport ?? undefined"
+        :fit-view-on-init="!initialViewport"
         connect-on-click
         class="flex-1"
         @dragover="onDragOver"
