@@ -61,7 +61,10 @@ class BotFlowControllerTest extends TestCase
         ]);
 
         $newGraph = [
-            'nodes' => [['id' => 'step1', 'type' => 'ask_text', 'data' => ['text' => 'Hi'], 'position' => ['x' => 100, 'y' => 100]]],
+            'nodes' => [
+                ['id' => 'start', 'type' => 'start', 'position' => ['x' => 250, 'y' => 50], 'data' => []],
+                ['id' => 'step1', 'type' => 'ask_text', 'data' => ['text' => 'Hi'], 'position' => ['x' => 100, 'y' => 100]],
+            ],
             'edges' => [],
         ];
 
@@ -75,7 +78,7 @@ class BotFlowControllerTest extends TestCase
         $response->assertRedirect();
         $flow->refresh();
         $this->assertEquals('UpdatedFlow', $flow->name);
-        $this->assertCount(1, $flow->graph['nodes']);
+        $this->assertCount(2, $flow->graph['nodes']);
         $this->assertEquals(['/cancel'], $flow->interrupt_commands);
         $this->assertTrue($flow->interrupt_on_event);
     }
@@ -116,5 +119,26 @@ class BotFlowControllerTest extends TestCase
 
         $this->assertCount(1, $startNodes);
         $this->assertEquals('start', $startNodes->first()['id']);
+    }
+
+    public function test_update_flow_requires_start_node(): void
+    {
+        $flow = $this->bot->flows()->create([
+            'name' => 'TestFlow',
+            'graph' => [
+                'nodes' => [['id' => 'start', 'type' => 'start', 'position' => ['x' => 250, 'y' => 50], 'data' => []]],
+                'edges' => [],
+            ],
+        ]);
+
+        $response = $this->actingAs($this->admin)->put("/bots/{$this->bot->id}/flows/{$flow->id}", [
+            'name' => 'TestFlow',
+            'graph' => [
+                'nodes' => [['id' => 'step1', 'type' => 'ask_text', 'data' => ['text' => 'Hi'], 'position' => ['x' => 100, 'y' => 100]]],
+                'edges' => [],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors(['graph']);
     }
 }

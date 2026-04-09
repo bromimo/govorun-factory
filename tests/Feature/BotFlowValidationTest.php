@@ -23,6 +23,7 @@ class BotFlowValidationTest extends TestCase
 
         $graph = [
             'nodes' => [
+                ['id' => 'start', 'type' => 'start', 'position' => ['x' => 250, 'y' => 50], 'data' => []],
                 [
                     'id' => 'ask_text_1',
                     'type' => 'ask_text',
@@ -48,7 +49,7 @@ class BotFlowValidationTest extends TestCase
             ->assertRedirect();
 
         $flow->refresh();
-        $node = $flow->graph['nodes'][0];
+        $node = $flow->graph['nodes'][1];
 
         $this->assertEquals('ask_text_1', $node['id']);
         $this->assertCount(3, $node['data']['validation']);

@@ -24,7 +24,12 @@ class UpdateBotFlowRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:1000'],
-            'graph' => ['sometimes', 'required', 'array'],
+            'graph' => ['sometimes', 'required', 'array', function (string $attribute, mixed $value, \Closure $fail) {
+                $startNodes = collect($value['nodes'] ?? [])->where('type', 'start');
+                if ($startNodes->count() !== 1) {
+                    $fail('Граф должен содержать ровно один блок «Начало».');
+                }
+            }],
             'graph.nodes' => ['array'],
             'graph.edges' => ['array'],
             'graph.viewport' => ['sometimes', 'array'],
