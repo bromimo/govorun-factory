@@ -32,7 +32,16 @@ const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e, data: e.
 const selectedNode = ref(null);
 const selectedEdge = ref(null);
 
-const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, getNodes, getEdges } = useVueFlow();
+const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, getNodes, getEdges, onNodesChange } = useVueFlow();
+
+onNodesChange((changes) => {
+    return changes.filter(change => {
+        if (change.type === 'remove' && getNodes.value.find(n => n.id === change.id)?.type === 'start') {
+            return false;
+        }
+        return true;
+    });
+});
 
 function isValidConnection(connection) {
     if (connection.source === connection.target) return false;
@@ -64,8 +73,8 @@ onEdgeUpdate(({ edge, connection }) => {
 });
 
 onNodeClick(({ node }) => {
-    selectedNode.value = { id: node.id, type: node.type, data: node.data };
     selectedEdge.value = null;
+    selectedNode.value = node.type === 'start' ? null : { id: node.id, type: node.type, data: node.data };
 });
 
 onEdgeClick(({ edge }) => {
@@ -188,7 +197,7 @@ function handleKeydown(e) {
 
     if (e.key === 'c' || e.key === 'с' || e.code === 'KeyC') {
         e.preventDefault();
-        const selected = getNodes.value.filter(n => n.selected);
+        const selected = getNodes.value.filter(n => n.selected && n.type !== 'start');
         if (!selected.length) return;
 
         const selectedIds = new Set(selected.map(n => n.id));
