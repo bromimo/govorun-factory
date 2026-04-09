@@ -59,7 +59,11 @@ Inertia.js SFC pages in `resources/js/Pages/`. Reusable components in `resources
 
 ### Flow Editor
 
-Vue Flow canvas with 9 custom node types (ask_text, ask_keyboard, reply_text, reply_keyboard, save_state, condition, api_call, on_complete, on_cancel). Drag-and-drop from palette. Selected state managed inside `FlowCanvas.vue` and exposed via `defineExpose`. Node/edge properties edited in right panel.
+Vue Flow canvas with 10 custom node types (ask_text, ask_keyboard, reply_text, reply_keyboard, reply_media, save_state, condition, api_call, on_complete, on_cancel). Drag-and-drop from palette. Selected state managed inside `FlowCanvas.vue` and exposed via `defineExpose`. Node/edge properties edited in right panel.
+
+### Validation
+
+Runtime input validation on `ask_text`/`ask_keyboard` nodes. Rules stored in `node.data.validation` as array of `{ name, params?, message? }` (Laravel-style: required, email, numeric, min, max, regex, etc.). Default error messages configurable per bot via `bot.config.validation_messages`. Rule definitions and defaults in `Blocks/validationRules.js`. UI component: `Blocks/ValidationEditor.vue`. Shield icon on canvas nodes with active validation.
 
 ### Enums
 
