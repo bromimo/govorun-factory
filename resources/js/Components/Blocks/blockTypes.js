@@ -30,6 +30,7 @@ export const defaultBlockParams = {
     api_call: { url: '', method: 'GET' },
     on_complete: {},
     on_cancel: {},
+    start: {},
 };
 
 export const colorClasses = {

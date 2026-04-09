@@ -15,6 +15,7 @@ import ConditionNode from './nodes/ConditionNode.vue';
 import ApiCallNode from './nodes/ApiCallNode.vue';
 import OnCompleteNode from './nodes/OnCompleteNode.vue';
 import OnCancelNode from './nodes/OnCancelNode.vue';
+import StartNode from './nodes/StartNode.vue';
 import EditableEdge from './edges/EditableEdge.vue';
 
 const props = defineProps({
@@ -296,6 +297,7 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
         @dragover="onDragOver"
         @drop="onDrop"
     >
+        <template #node-start="p"><StartNode v-bind="p" /></template>
         <template #node-ask_text="p"><AskTextNode v-bind="p" /></template>
         <template #node-ask_keyboard="p"><AskKeyboardNode v-bind="p" /></template>
         <template #node-reply_text="p"><ReplyTextNode v-bind="p" /></template>
