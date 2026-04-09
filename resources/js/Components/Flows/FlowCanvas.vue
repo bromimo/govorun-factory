@@ -166,17 +166,23 @@ function getAncestorIds(nodeId) {
     return visited;
 }
 
+function getNodeStateKeys(node) {
+    if (Array.isArray(node.data?.variables)) return node.data.variables.filter(v => v.key).map(v => v.key);
+    if (node.data?.key) return [node.data.key];
+    return [];
+}
+
 function getAllStateKeys() {
     return getNodes.value
-        .filter(n => n.type === 'save_state' && n.data?.key)
-        .map(n => n.data.key);
+        .filter(n => n.type === 'save_state')
+        .flatMap(getNodeStateKeys);
 }
 
 function getDeclaredStateKeysBefore(nodeId) {
     const ancestors = getAncestorIds(nodeId);
     return getNodes.value
-        .filter(n => ancestors.has(n.id) && n.type === 'save_state' && n.data?.key)
-        .map(n => n.data.key);
+        .filter(n => ancestors.has(n.id) && n.type === 'save_state')
+        .flatMap(getNodeStateKeys);
 }
 
 let clipboard = null;
