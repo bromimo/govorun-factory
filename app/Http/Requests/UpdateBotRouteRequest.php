@@ -2,16 +2,15 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\RouteType;
 use App\Enums\HandlerType;
-use Illuminate\Validation\Rule;
+use App\Enums\RouteType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateBotRouteRequest extends FormRequest
 {
     /** Проверка авторизации для обновления маршрута бота.
      *
-     * @return bool
      */
     public function authorize(): bool
     {

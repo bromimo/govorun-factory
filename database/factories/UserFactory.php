@@ -2,11 +2,11 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
 use App\Enums\UserRole;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /** @extends Factory<User> */
 class UserFactory extends Factory
@@ -32,7 +32,6 @@ class UserFactory extends Factory
 
     /** Указать, что email пользователя не подтверждён.
      *
-     * @return static
      */
     public function unverified(): static
     {
@@ -43,7 +42,6 @@ class UserFactory extends Factory
 
     /** Создать пользователя с ролью администратора.
      *
-     * @return static
      */
     public function admin(): static
     {
@@ -52,7 +50,6 @@ class UserFactory extends Factory
 
     /** Создать пользователя с ролью редактора.
      *
-     * @return static
      */
     public function editor(): static
     {

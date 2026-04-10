@@ -8,7 +8,6 @@ class UpdateBotRequest extends FormRequest
 {
     /** Проверка авторизации для обновления бота.
      *
-     * @return bool
      */
     public function authorize(): bool
     {

@@ -67,7 +67,7 @@ class FlowGenerator
      * @param  array<string, string>  $edgeLabels
      * @param  array<string>  $visited
      */
-    private function walkGraph(string $nodeId, $nodes, array $adjacency, array $edgeLabels, array &$visited, int $indent = 1): string
+    private function walkGraph(string $nodeId, $nodes, array $adjacency, array $edgeLabels, array &$visited, int $indent = 2): string
     {
         if (in_array($nodeId, $visited)) {
             return '';
@@ -84,8 +84,12 @@ class FlowGenerator
         $data = $node['data'] ?? [];
         $targets = $adjacency[$nodeId] ?? [];
 
-        if ($type === 'on_complete' || $type === 'on_cancel') {
-            return '';
+        if (in_array($type, ['start', 'on_complete', 'on_cancel'])) {
+            foreach ($targets as $targetId) {
+                $code .= $this->walkGraph($targetId, $nodes, $adjacency, $edgeLabels, $visited, $indent);
+            }
+
+            return $code;
         }
 
         if ($type === 'condition') {
@@ -109,7 +113,7 @@ class FlowGenerator
                 'defaultBranch' => $defaultBranch,
             ])->render()."\n";
         } else {
-            $code .= $this->blockRenderer->renderBlock($type, $data);
+            $code .= $this->indentBlock($this->blockRenderer->renderBlock($type, $data), $indent);
 
             foreach ($targets as $targetId) {
                 $code .= $this->walkGraph($targetId, $nodes, $adjacency, $edgeLabels, $visited, $indent);
@@ -117,5 +121,18 @@ class FlowGenerator
         }
 
         return $code;
+    }
+
+    /** Добавить отступ к блоку кода.
+     */
+    private function indentBlock(string $code, int $level): string
+    {
+        $padding = str_repeat('    ', $level);
+        $lines = explode("\n", rtrim($code));
+
+        return implode("\n", array_map(
+            fn ($line) => $line === '' ? '' : $padding.$line,
+            $lines,
+        ))."\n";
     }
 }

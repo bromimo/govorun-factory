@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Bot;
-use App\Models\BotRoute;
+use App\Http\Requests\ReorderBotRoutesRequest;
 use App\Http\Requests\StoreBotRouteRequest;
 use App\Http\Requests\UpdateBotRouteRequest;
-use App\Http\Requests\ReorderBotRoutesRequest;
+use App\Models\Bot;
+use App\Models\BotRoute;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 class BotRouteController extends Controller
 {
     /** Создание маршрута для бота.
-     * @param StoreBotRouteRequest $request
-     * @param Bot $bot
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function store(StoreBotRouteRequest $request, Bot $bot)
     {
@@ -28,10 +28,7 @@ class BotRouteController extends Controller
     }
 
     /** Обновление маршрута.
-     * @param UpdateBotRouteRequest $request
-     * @param Bot $bot
-     * @param BotRoute $route
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function update(UpdateBotRouteRequest $request, Bot $bot, BotRoute $route)
     {
@@ -41,9 +38,7 @@ class BotRouteController extends Controller
     }
 
     /** Удаление маршрута.
-     * @param Bot $bot
-     * @param BotRoute $route
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function destroy(Bot $bot, BotRoute $route)
     {
@@ -55,9 +50,7 @@ class BotRouteController extends Controller
     }
 
     /** Изменение порядка маршрутов.
-     * @param ReorderBotRoutesRequest $request
-     * @param Bot $bot
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function reorder(ReorderBotRoutesRequest $request, Bot $bot)
     {

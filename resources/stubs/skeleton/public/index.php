@@ -1,5 +1,7 @@
 <?php
 
+use Govorun\Http\Request;
+
 $app = require __DIR__.'/../bootstrap/app.php';
 
-$app->run();
+$app->handleWebhook(Request::capture());

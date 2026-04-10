@@ -25,7 +25,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('{route}', [BotRouteController::class, 'destroy'])->name('bot-routes.destroy');
         });
 
-        Route::post('{bot}/export', ExportController::class)->name('bots.export');
+        Route::get('{bot}/export', ExportController::class)->name('bots.export');
 
         Route::prefix('{bot}/flows')->group(function () {
             Route::post('', [BotFlowController::class, 'store'])->name('bot-flows.store');

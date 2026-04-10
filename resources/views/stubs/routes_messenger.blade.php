@@ -1,18 +1,37 @@
-use Govorun\Framework\Routing\Router;
-@foreach($routes as $route)
-@if($route['handler_type'] === 'controller')
-use App\Controllers\{{ $route['controller_class'] }};
-@else
-use App\Flows\{{ $route['flow_class'] }};
-@endif
+@foreach($imports as $import)
+use {{ $import }};
 @endforeach
 
-return function (Router $router) {
+/**
+    |--------------------------------------------------------------------------
+    | Messenger Routes
+    |--------------------------------------------------------------------------
+    |
+    | Доступные методы маршрутизации:
+    |
+    | Route::command('name', Action)      — команда /name
+    | Route::phrase('text', Action)       — текстовая фраза (поиск вхождения)
+    | Route::pattern('/regex/', Action)   — регулярное выражение
+    | Route::action('name', Action)       — callback-действие (inline-кнопки)
+    | Route::event('name', Action)        — событие (member_joined и т.д.)
+    | Route::media('type', Action)        — медиафайл (photo, video, document)
+    | Route::location(Action)             — геолокация
+    | Route::contact(Action)              — контакт
+    | Route::referral('code', Action)     — реферальный код
+    | Route::fallback(Action)             — всё, что не совпало с другими
+    |
+    | Route::middleware(Class, fn)        — обернуть группу маршрутов в middleware
+    | Route::phrase('text', fn)           — группа вложенных маршрутов
+    |
+    | Action — класс контроллера (метод handle() или __invoke())
+    | RouteEntry->alias(['синоним', ...]) — алиасы для phrase-маршрутов
+    |
+    */
+
 @foreach($routes as $route)
 @if($route['type'] === 'fallback')
-    $router->fallback({{ $route['handler_type'] === 'controller' ? $route['controller_class'] . '::class' : $route['flow_class'] . '::class' }})@if(!empty($route['middleware']))->middleware({!! json_encode($route['middleware']) !!})@endif;
+Route::fallback({{ $route['controller_class'] }}::class);
 @else
-    $router->{{ $route['type'] }}({!! $route['match'] !== null ? "'" . $route['match'] . "', " : '' !!}{{ $route['handler_type'] === 'controller' ? $route['controller_class'] . '::class' : $route['flow_class'] . '::class' }})@if(!empty($route['middleware']))->middleware({!! json_encode($route['middleware']) !!})@endif;
+Route::{{ $route['type'] }}({!! $route['match'] !== null ? "'" . $route['match'] . "', " : '' !!}{{ $route['controller_class'] }}::class);
 @endif
 @endforeach
-};

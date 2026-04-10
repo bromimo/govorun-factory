@@ -10,14 +10,10 @@ class RoleMiddleware
 {
     /** Проверяет, что роль аутентифицированного пользователя входит в список разрешённых.
      *
-     * @param Request $request
-     * @param Closure $next
-     * @param string ...$roles
-     * @return Response
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        if (!$request->user() || !in_array($request->user()->role->value, $roles)) {
+        if (! $request->user() || ! in_array($request->user()->role->value, $roles)) {
             abort(403);
         }
 

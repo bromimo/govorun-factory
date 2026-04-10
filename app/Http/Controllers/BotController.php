@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Bot;
-use Inertia\Inertia;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreBotRequest;
 use App\Http\Requests\UpdateBotRequest;
+use App\Models\Bot;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class BotController extends Controller
 {
     /** Список ботов с поиском.
-     * @param Request $request
-     * @return \Inertia\Response
+     * @return Response
      */
     public function index(Request $request)
     {
@@ -33,8 +34,7 @@ class BotController extends Controller
     }
 
     /** Создание нового бота.
-     * @param StoreBotRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function store(StoreBotRequest $request)
     {
@@ -47,8 +47,7 @@ class BotController extends Controller
     }
 
     /** Страница редактора бота.
-     * @param Bot $bot
-     * @return \Inertia\Response
+     * @return Response
      */
     public function edit(Bot $bot)
     {
@@ -67,9 +66,7 @@ class BotController extends Controller
     }
 
     /** Обновление настроек бота.
-     * @param UpdateBotRequest $request
-     * @param Bot $bot
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function update(UpdateBotRequest $request, Bot $bot)
     {
@@ -79,8 +76,7 @@ class BotController extends Controller
     }
 
     /** Удаление бота.
-     * @param Bot $bot
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function destroy(Bot $bot)
     {

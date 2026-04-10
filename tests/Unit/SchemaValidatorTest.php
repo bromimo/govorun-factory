@@ -11,7 +11,7 @@ uses(RefreshDatabase::class);
 test('passes when bot has routes and valid config', function () {
     $admin = User::factory()->admin()->create();
     $bot = Bot::factory()->for($admin, 'creator')->create([
-        'messenger_config' => ['telegram' => ['token' => 'test']],
+        'messenger_config' => ['telegram'],
     ]);
     BotRoute::factory()->for($bot)->create();
 
@@ -24,7 +24,7 @@ test('passes when bot has routes and valid config', function () {
 test('fails when bot has no routes', function () {
     $admin = User::factory()->admin()->create();
     $bot = Bot::factory()->for($admin, 'creator')->create([
-        'messenger_config' => ['telegram' => ['token' => 'test']],
+        'messenger_config' => ['telegram'],
     ]);
 
     $validator = new SchemaValidator($bot);
@@ -51,7 +51,7 @@ test('fails when messenger config is empty', function () {
 test('fails when flow has no steps', function () {
     $admin = User::factory()->admin()->create();
     $bot = Bot::factory()->for($admin, 'creator')->create([
-        'messenger_config' => ['telegram' => ['token' => 'test']],
+        'messenger_config' => ['telegram'],
     ]);
     BotRoute::factory()->for($bot)->create();
     $bot->flows()->create([
@@ -69,7 +69,7 @@ test('fails when flow has no steps', function () {
 test('fails when flow has no on_complete node', function () {
     $admin = User::factory()->admin()->create();
     $bot = Bot::factory()->for($admin, 'creator')->create([
-        'messenger_config' => ['telegram' => ['token' => 'test']],
+        'messenger_config' => ['telegram'],
     ]);
     BotRoute::factory()->for($bot)->create();
     $bot->flows()->create([

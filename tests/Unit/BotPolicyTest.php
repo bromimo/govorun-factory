@@ -13,15 +13,18 @@ class BotPolicyTest extends TestCase
     use RefreshDatabase;
 
     private BotPolicy $policy;
+
     private User $admin;
+
     private User $editor;
+
     private User $viewer;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->policy = new BotPolicy();
+        $this->policy = new BotPolicy;
         $this->admin = User::factory()->admin()->create();
         $this->editor = User::factory()->editor()->create();
         $this->viewer = User::factory()->create();

@@ -1,12 +1,12 @@
 namespace App\Controllers;
 
-use Govorun\Messaging\Message;
+use App\Flows\{{ $flowClass }};
 use Govorun\Routing\Controller;
 
 class {{ $className }} extends Controller
 {
     public function handle(): void
     {
-{!! $blockCode !!}
+        $this->startFlow({{ $flowClass }}::class);
     }
 }

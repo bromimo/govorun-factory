@@ -9,7 +9,6 @@ class StoreBotRequest extends FormRequest
 {
     /** Проверка авторизации для создания бота.
      *
-     * @return bool
      */
     public function authorize(): bool
     {
