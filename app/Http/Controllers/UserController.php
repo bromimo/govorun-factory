@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Inertia\Inertia;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class UserController extends Controller
 {
     /** Список пользователей.
-     * @return \Inertia\Response
+     * @return Response
      */
     public function index()
     {
@@ -23,8 +25,7 @@ class UserController extends Controller
     }
 
     /** Создание пользователя.
-     * @param StoreUserRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function store(StoreUserRequest $request)
     {
@@ -37,9 +38,7 @@ class UserController extends Controller
     }
 
     /** Обновление пользователя.
-     * @param UpdateUserRequest $request
-     * @param User $user
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function update(UpdateUserRequest $request, User $user)
     {
@@ -55,8 +54,7 @@ class UserController extends Controller
     }
 
     /** Удаление пользователя.
-     * @param User $user
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function destroy(User $user)
     {

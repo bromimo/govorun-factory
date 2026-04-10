@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\Bot;
-use App\Enums\RouteType;
 use App\Enums\HandlerType;
+use App\Enums\RouteType;
+use App\Models\Bot;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** Фабрика для модели BotRoute. */
@@ -19,7 +19,7 @@ class BotRouteFactory extends Factory
         return [
             'bot_id' => Bot::factory(),
             'type' => RouteType::Command->value,
-            'match' => '/' . fake()->word(),
+            'match' => '/'.fake()->word(),
             'handler_type' => HandlerType::Controller->value,
             'handler_schema' => ['blocks' => [['type' => 'reply_text', 'params' => ['text' => fake()->sentence()]]]],
             'middleware' => [],

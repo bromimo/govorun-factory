@@ -13,6 +13,7 @@ class BotRouteControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private Bot $bot;
 
     protected function setUp(): void

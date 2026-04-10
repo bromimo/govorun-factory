@@ -8,7 +8,6 @@ class ReorderBotRoutesRequest extends FormRequest
 {
     /** Проверка авторизации для изменения порядка маршрутов бота.
      *
-     * @return bool
      */
     public function authorize(): bool
     {

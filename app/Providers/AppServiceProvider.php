@@ -10,7 +10,6 @@ class AppServiceProvider extends ServiceProvider
 {
     /** Регистрация сервисов приложения.
      *
-     * @return void
      */
     public function register(): void
     {
@@ -19,7 +18,6 @@ class AppServiceProvider extends ServiceProvider
 
     /** Начальная загрузка сервисов приложения.
      *
-     * @return void
      */
     public function boot(): void
     {

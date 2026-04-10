@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Bot;
-use Inertia\Inertia;
-use App\Models\BotFlow;
 use App\Http\Requests\StoreBotFlowRequest;
 use App\Http\Requests\UpdateBotFlowRequest;
+use App\Models\Bot;
+use App\Models\BotFlow;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class BotFlowController extends Controller
 {
     /** Создание нового flow-диалога.
-     * @param StoreBotFlowRequest $request
-     * @param Bot $bot
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function store(StoreBotFlowRequest $request, Bot $bot)
     {
@@ -32,9 +32,7 @@ class BotFlowController extends Controller
     }
 
     /** Страница редактора flow-диалога.
-     * @param Bot $bot
-     * @param BotFlow $flow
-     * @return \Inertia\Response
+     * @return Response
      */
     public function show(Bot $bot, BotFlow $flow)
     {
@@ -50,10 +48,7 @@ class BotFlowController extends Controller
     }
 
     /** Обновление графа и настроек диалога.
-     * @param UpdateBotFlowRequest $request
-     * @param Bot $bot
-     * @param BotFlow $flow
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function update(UpdateBotFlowRequest $request, Bot $bot, BotFlow $flow)
     {
@@ -63,9 +58,7 @@ class BotFlowController extends Controller
     }
 
     /** Удаление flow-диалога.
-     * @param Bot $bot
-     * @param BotFlow $flow
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function destroy(Bot $bot, BotFlow $flow)
     {

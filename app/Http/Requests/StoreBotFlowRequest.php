@@ -8,7 +8,6 @@ class StoreBotFlowRequest extends FormRequest
 {
     /** Проверка авторизации для создания потока бота.
      *
-     * @return bool
      */
     public function authorize(): bool
     {

@@ -2,17 +2,15 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Bot;
 use App\Models\User;
-use App\Enums\UserRole;
 
 /** Политика доступа к ботам. */
 class BotPolicy
 {
     /** Может ли пользователь просматривать список ботов.
      *
-     * @param User $user
-     * @return bool
      */
     public function viewAny(User $user): bool
     {
@@ -21,9 +19,6 @@ class BotPolicy
 
     /** Может ли пользователь просматривать конкретного бота.
      *
-     * @param User $user
-     * @param Bot $bot
-     * @return bool
      */
     public function view(User $user, Bot $bot): bool
     {
@@ -32,8 +27,6 @@ class BotPolicy
 
     /** Может ли пользователь создавать ботов.
      *
-     * @param User $user
-     * @return bool
      */
     public function create(User $user): bool
     {
@@ -42,9 +35,6 @@ class BotPolicy
 
     /** Может ли пользователь обновлять бота.
      *
-     * @param User $user
-     * @param Bot $bot
-     * @return bool
      */
     public function update(User $user, Bot $bot): bool
     {
@@ -57,9 +47,6 @@ class BotPolicy
 
     /** Может ли пользователь удалять бота.
      *
-     * @param User $user
-     * @param Bot $bot
-     * @return bool
      */
     public function delete(User $user, Bot $bot): bool
     {
@@ -68,9 +55,6 @@ class BotPolicy
 
     /** Может ли пользователь экспортировать бота.
      *
-     * @param User $user
-     * @param Bot $bot
-     * @return bool
      */
     public function export(User $user, Bot $bot): bool
     {

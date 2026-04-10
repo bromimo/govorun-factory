@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** Модель бота — проект с маршрутами и flow-диалогами. */
 class Bot extends Model
@@ -32,7 +32,6 @@ class Bot extends Model
     }
 
     /** Создатель бота.
-     * @return BelongsTo
      */
     public function creator(): BelongsTo
     {
@@ -40,7 +39,6 @@ class Bot extends Model
     }
 
     /** Маршруты бота, отсортированные по порядку.
-     * @return HasMany
      */
     public function routes(): HasMany
     {
@@ -48,7 +46,6 @@ class Bot extends Model
     }
 
     /** Flow-диалоги бота.
-     * @return HasMany
      */
     public function flows(): HasMany
     {

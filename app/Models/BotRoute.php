@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use App\Enums\RouteType;
 use App\Enums\HandlerType;
+use App\Enums\RouteType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /** Модель маршрута бота. */
 class BotRoute extends Model
@@ -34,7 +34,6 @@ class BotRoute extends Model
 
     /** Бот, которому принадлежит маршрут.
      *
-     * @return BelongsTo
      */
     public function bot(): BelongsTo
     {
@@ -43,7 +42,6 @@ class BotRoute extends Model
 
     /** Flow-диалог, к которому привязан маршрут.
      *
-     * @return BelongsTo
      */
     public function flow(): BelongsTo
     {
