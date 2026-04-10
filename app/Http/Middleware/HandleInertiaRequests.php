@@ -2,8 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use Inertia\Middleware;
+use App\Models\Plugin;
 use Illuminate\Http\Request;
+use Inertia\Middleware;
 
 /** Middleware для Inertia.js — шаблон, версия и общие пропсы. */
 class HandleInertiaRequests extends Middleware
@@ -12,8 +13,6 @@ class HandleInertiaRequests extends Middleware
     protected $rootView = 'app';
 
     /** Текущая версия ассетов.
-     * @param Request $request
-     * @return string|null
      */
     public function version(Request $request): ?string
     {
@@ -21,7 +20,6 @@ class HandleInertiaRequests extends Middleware
     }
 
     /** Пропсы, доступные на всех страницах.
-     * @param Request $request
      * @return array<string, mixed>
      */
     public function share(Request $request): array
@@ -36,6 +34,9 @@ class HandleInertiaRequests extends Middleware
                     'role' => $request->user()->role->value,
                 ] : null,
             ],
+            'plugins' => fn () => Plugin::where('active', true)
+                ->select('id', 'name', 'description', 'block_schema', 'vue_component')
+                ->get(),
         ];
     }
 }

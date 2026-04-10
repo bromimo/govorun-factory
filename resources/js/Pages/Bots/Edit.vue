@@ -22,6 +22,32 @@ const tabs = [
 ];
 
 const activeTab = ref('settings');
+const exportErrors = ref([]);
+
+function exportBot() {
+    exportErrors.value = [];
+
+    fetch(route('bots.export', props.bot.id), {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+            'Accept': 'application/json',
+        },
+    }).then(async (response) => {
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = response.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'bot.zip';
+            a.click();
+            URL.revokeObjectURL(url);
+        } else {
+            const data = await response.json();
+            exportErrors.value = data.errors || ['Ошибка экспорта'];
+        }
+    });
+}
 
 function deleteBot() {
     if (confirm('Удалить бота? Это действие необратимо.')) {
@@ -37,8 +63,8 @@ function deleteBot() {
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ bot.name }}</h2>
                 <div class="flex gap-2">
-                    <button v-if="can.export" disabled
-                        class="cursor-not-allowed rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white opacity-50">
+                    <button v-if="can.export" @click="exportBot"
+                        class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-500">
                         Экспорт ZIP
                     </button>
                     <button v-if="can.delete" @click="deleteBot"
@@ -48,6 +74,14 @@ function deleteBot() {
                 </div>
             </div>
         </template>
+
+        <div v-if="exportErrors.length" class="mx-auto mt-2 max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="rounded-md bg-red-50 p-3">
+                <ul class="text-sm text-red-700">
+                    <li v-for="(err, i) in exportErrors" :key="i">{{ err }}</li>
+                </ul>
+            </div>
+        </div>
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">

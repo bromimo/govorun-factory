@@ -33,6 +33,26 @@ export const defaultBlockParams = {
     start: {},
 };
 
+export function getFlowNodeTypesWithPlugins(plugins = []) {
+    const pluginTypes = plugins.map(p => ({
+        type: p.name,
+        label: p.description || p.name,
+        color: 'purple',
+        isPlugin: true,
+    }));
+    return [...flowNodeTypes, ...pluginTypes];
+}
+
+export function getControllerBlockTypesWithPlugins(plugins = []) {
+    const pluginTypes = plugins.map(p => ({
+        type: p.name,
+        label: p.description || p.name,
+        color: 'purple',
+        isPlugin: true,
+    }));
+    return [...controllerBlockTypes, ...pluginTypes];
+}
+
 export const colorClasses = {
     blue: { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-800', badge: 'bg-blue-100' },
     pink: { bg: 'bg-pink-50', border: 'border-pink-300', text: 'text-pink-800', badge: 'bg-pink-100' },

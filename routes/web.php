@@ -1,11 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BotController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BotFlowController;
 use App\Http\Controllers\BotRouteController;
+use App\Http\Controllers\ExportController;
+use App\Http\Controllers\PluginController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [BotController::class, 'index'])->name('dashboard');
@@ -22,6 +24,8 @@ Route::middleware('auth')->group(function () {
             Route::put('{route}', [BotRouteController::class, 'update'])->name('bot-routes.update');
             Route::delete('{route}', [BotRouteController::class, 'destroy'])->name('bot-routes.destroy');
         });
+
+        Route::post('{bot}/export', ExportController::class)->name('bots.export');
 
         Route::prefix('{bot}/flows')->group(function () {
             Route::post('', [BotFlowController::class, 'store'])->name('bot-flows.store');
@@ -43,6 +47,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('users')->group(function () {
     Route::post('', [UserController::class, 'store'])->name('users.store');
     Route::put('{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('{user}', [UserController::class, 'destroy'])->name('users.destroy');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('plugins')->group(function () {
+    Route::get('', [PluginController::class, 'index'])->name('plugins.index');
+    Route::post('', [PluginController::class, 'store'])->name('plugins.store');
+    Route::put('{plugin}', [PluginController::class, 'update'])->name('plugins.update');
+    Route::delete('{plugin}', [PluginController::class, 'destroy'])->name('plugins.destroy');
 });
 
 require __DIR__.'/auth.php';
