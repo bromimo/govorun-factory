@@ -1,16 +1,19 @@
 namespace App\Flows;
 
-use Govorun\Framework\Flow;
-use Govorun\Framework\Message;
+use Govorun\State\Flow;
+use Govorun\Messaging\Message;
 
 class {{ $className }} extends Flow
 {
 @if(!empty($interruptCommands))
     protected array $interruptCommands = {!! var_export($interruptCommands, true) !!};
+
 @endif
 @if($interruptOnEvent)
     protected bool $interruptOnEvent = true;
-@endif
 
-{!! $stepsCode !!}
+@endif
+    public function handle(): void
+    {
+{!! $stepsCode !!}    }
 }

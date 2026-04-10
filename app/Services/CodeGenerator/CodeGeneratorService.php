@@ -19,6 +19,9 @@ class CodeGeneratorService
 
     private ComposerGenerator $composer;
 
+    /** @var array<int, string> Маппинг flow_id → имя класса. */
+    private array $flowClassNames = [];
+
     public function __construct()
     {
         $this->config = new ConfigGenerator;
@@ -34,12 +37,38 @@ class CodeGeneratorService
     {
         $bot->load(['routes.flow', 'flows']);
 
+        $this->buildFlowClassNames($bot);
         $this->copySkeletonTo($outputPath);
         $this->generateConfigs($bot, $outputPath);
         $this->generateRoutes($bot, $outputPath);
         $this->generateControllers($bot, $outputPath);
         $this->generateFlows($bot, $outputPath);
         $this->generateComposer($bot, $outputPath);
+    }
+
+    /** Построить уникальные имена классов для всех flow.
+     */
+    private function buildFlowClassNames(Bot $bot): void
+    {
+        $usedNames = [];
+
+        foreach ($bot->flows as $flow) {
+            $baseName = Str::studly(Str::ascii($flow->name, 'ru'));
+
+            if (empty($baseName)) {
+                $baseName = 'Flow';
+            }
+
+            $className = $baseName;
+            $counter = 2;
+            while (in_array($className, $usedNames)) {
+                $className = $baseName.$counter;
+                $counter++;
+            }
+
+            $usedNames[] = $className;
+            $this->flowClassNames[$flow->id] = $className;
+        }
     }
 
     /** Скопировать скелетон в целевую директорию.
@@ -54,17 +83,15 @@ class CodeGeneratorService
     private function generateConfigs(Bot $bot, string $outputPath): void
     {
         $config = $bot->config ?? [];
-        $drivers = $bot->messenger_config ?? [];
+        $drivers = $this->config->resolveDriverFields($bot->messenger_config ?? []);
 
         File::ensureDirectoryExists("{$outputPath}/config");
 
         File::put("{$outputPath}/config/app.php", $this->config->generateAppConfig($bot->name, $config));
         File::put("{$outputPath}/config/messenger.php", $this->config->generateMessengerConfig($drivers));
         File::put("{$outputPath}/config/database.php", $this->config->generateDatabaseConfig());
-        File::put("{$outputPath}/.env", $this->config->generateEnv(
+        File::put("{$outputPath}/.env.example", $this->config->generateEnvExample(
             $bot->name,
-            $config['environment'] ?? 'production',
-            $config['debug'] ?? false,
             $drivers,
         ));
     }
@@ -74,7 +101,7 @@ class CodeGeneratorService
     private function generateRoutes(Bot $bot, string $outputPath): void
     {
         File::ensureDirectoryExists("{$outputPath}/routes");
-        File::put("{$outputPath}/routes/messenger.php", $this->routes->generate($bot));
+        File::put("{$outputPath}/routes/messenger.php", $this->routes->generate($bot, $this->flowClassNames));
     }
 
     /** Сгенерировать контроллеры.
@@ -84,13 +111,18 @@ class CodeGeneratorService
         File::ensureDirectoryExists("{$outputPath}/app/Controllers");
 
         foreach ($bot->routes as $route) {
-            if ($route->handler_type->value !== 'controller') {
-                continue;
+            if ($route->handler_type->value === 'controller') {
+                $className = Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
+                $code = $this->controller->generate($className, $route->handler_schema ?? ['blocks' => []]);
+                File::put("{$outputPath}/app/Controllers/{$className}.php", $code);
+            } elseif ($route->handler_type->value === 'flow' && $route->flow_id) {
+                $flowClass = $this->flowClassNames[$route->flow_id] ?? null;
+                if ($flowClass) {
+                    $className = $flowClass.'Controller';
+                    $code = "<?php\n\n".view('stubs.flow_controller', compact('className', 'flowClass'))->render();
+                    File::put("{$outputPath}/app/Controllers/{$className}.php", $code);
+                }
             }
-
-            $className = Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
-            $code = $this->controller->generate($className, $route->handler_schema ?? ['blocks' => []]);
-            File::put("{$outputPath}/app/Controllers/{$className}.php", $code);
         }
     }
 
@@ -101,13 +133,14 @@ class CodeGeneratorService
         File::ensureDirectoryExists("{$outputPath}/app/Flows");
 
         foreach ($bot->flows as $flow) {
+            $className = $this->flowClassNames[$flow->id];
             $code = $this->flow->generate(
-                $flow->name,
+                $className,
                 $flow->graph ?? ['nodes' => [], 'edges' => []],
                 $flow->interrupt_commands ?? [],
                 $flow->interrupt_on_event ?? false,
             );
-            File::put("{$outputPath}/app/Flows/{$flow->name}.php", $code);
+            File::put("{$outputPath}/app/Flows/{$className}.php", $code);
         }
     }
 

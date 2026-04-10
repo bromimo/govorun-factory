@@ -28,9 +28,7 @@ function exportBot() {
     exportErrors.value = [];
 
     fetch(route('bots.export', props.bot.id), {
-        method: 'POST',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
             'Accept': 'application/json',
         },
     }).then(async (response) => {

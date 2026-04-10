@@ -1,1 +1,1 @@
-        $step->ask('{!! addslashes($params['text']) !!}');
+        $this->ask('{!! addslashes($params['text']) !!}');

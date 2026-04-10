@@ -7,19 +7,23 @@ const props = defineProps({
 });
 
 const drivers = [
-    { key: 'telegram', label: 'Telegram', fields: ['token'] },
-    { key: 'vk', label: 'VKontakte', fields: ['token', 'secret', 'confirmation'] },
+    { key: 'telegram', label: 'Telegram' },
+    { key: 'vk', label: 'VKontakte' },
 ];
 
 const form = useForm({
-    messenger_config: JSON.parse(JSON.stringify(props.bot.messenger_config ?? {})),
+    messenger_config: [...(props.bot.messenger_config ?? [])],
 });
 
+function isEnabled(driverKey) {
+    return form.messenger_config.includes(driverKey);
+}
+
 function toggleDriver(driverKey) {
-    if (form.messenger_config[driverKey]) {
-        delete form.messenger_config[driverKey];
+    if (isEnabled(driverKey)) {
+        form.messenger_config = form.messenger_config.filter(k => k !== driverKey);
     } else {
-        form.messenger_config[driverKey] = {};
+        form.messenger_config = [...form.messenger_config, driverKey];
     }
 }
 
@@ -35,19 +39,14 @@ function save() {
             <div class="flex items-center justify-between">
                 <h4 class="font-medium text-gray-900">{{ driver.label }}</h4>
                 <button type="button" @click="toggleDriver(driver.key)" class="text-sm"
-                    :class="form.messenger_config[driver.key] ? 'text-red-600' : 'text-indigo-600'">
-                    {{ form.messenger_config[driver.key] ? 'Отключить' : 'Подключить' }}
+                    :class="isEnabled(driver.key) ? 'text-red-600' : 'text-indigo-600'">
+                    {{ isEnabled(driver.key) ? 'Отключить' : 'Подключить' }}
                 </button>
             </div>
 
-            <div v-if="form.messenger_config[driver.key]" class="mt-4 space-y-3">
-                <div v-for="field in driver.fields" :key="field">
-                    <label class="block text-sm font-medium text-gray-700 capitalize">{{ field }}</label>
-                    <input v-model="form.messenger_config[driver.key][field]" type="text"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        :placeholder="`Введите ${field}`" />
-                </div>
-            </div>
+            <p v-if="isEnabled(driver.key)" class="mt-2 text-sm text-gray-500">
+                Подключён. Токены и секреты указываются в <code>.env</code> при развёртывании.
+            </p>
         </div>
 
         <div v-if="can.update" class="pt-4">

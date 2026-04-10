@@ -10,11 +10,11 @@ uses(RefreshDatabase::class);
 test('admin can export valid bot as ZIP', function () {
     $admin = User::factory()->admin()->create();
     $bot = Bot::factory()->for($admin, 'creator')->create([
-        'messenger_config' => ['telegram' => ['token' => 'test-token']],
+        'messenger_config' => ['telegram'],
     ]);
     BotRoute::factory()->for($bot)->create();
 
-    $response = $this->actingAs($admin)->post("/bots/{$bot->id}/export");
+    $response = $this->actingAs($admin)->get("/bots/{$bot->id}/export");
 
     $response->assertOk();
     $response->assertHeader('content-type', 'application/zip');
@@ -26,7 +26,7 @@ test('export fails with validation errors for invalid bot', function () {
         'messenger_config' => [],
     ]);
 
-    $response = $this->actingAs($admin)->post("/bots/{$bot->id}/export");
+    $response = $this->actingAs($admin)->get("/bots/{$bot->id}/export");
 
     $response->assertStatus(422);
     $response->assertJsonStructure(['errors']);
@@ -36,5 +36,5 @@ test('viewer cannot export', function () {
     $viewer = User::factory()->create();
     $bot = Bot::factory()->create();
 
-    $this->actingAs($viewer)->post("/bots/{$bot->id}/export")->assertForbidden();
+    $this->actingAs($viewer)->get("/bots/{$bot->id}/export")->assertForbidden();
 });

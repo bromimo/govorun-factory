@@ -1,1 +1,1 @@
-        $this->state->set('{{ $params['key'] }}', $this->message->{{ $params['source'] ?? 'text' }});
+        $this->state->set('{!! $params['key'] !!}', $this->{!! str_replace('.', '->', $params['source'] ?? 'message->text') !!});

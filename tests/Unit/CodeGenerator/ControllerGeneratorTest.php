@@ -28,7 +28,7 @@ test('generates controller class from handler schema', function () {
 test('generates controller with save_state block', function () {
     $schema = [
         'blocks' => [
-            ['type' => 'save_state', 'params' => ['key' => 'name', 'source' => 'text']],
+            ['type' => 'save_state', 'params' => ['key' => 'name', 'source' => 'message.text']],
         ],
     ];
 

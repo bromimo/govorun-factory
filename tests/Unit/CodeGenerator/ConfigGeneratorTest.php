@@ -18,27 +18,46 @@ test('generates app config from bot settings', function () {
     expect($result)->toContain("'state_storage' => 'database'");
 });
 
-test('generates messenger config', function () {
+test('generates messenger config with correct env vars', function () {
     $drivers = [
-        'telegram' => ['token' => 'abc123'],
-        'vk' => ['token' => 'xyz', 'secret' => 'sec'],
+        'telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET'],
     ];
 
     $generator = new ConfigGenerator;
     $result = $generator->generateMessengerConfig($drivers);
 
     expect($result)->toContain("'telegram'");
-    expect($result)->toContain("env('TELEGRAM_TOKEN', '')");
-    expect($result)->toContain("'vk'");
-    expect($result)->toContain("env('VK_SECRET', '')");
+    expect($result)->toContain("env('TELEGRAM_BOT_TOKEN', '')");
+    expect($result)->toContain("env('TELEGRAM_WEBHOOK_SECRET', null)");
+    expect($result)->toContain("'drivers'");
 });
 
-test('generates .env file', function () {
-    $drivers = ['telegram' => ['token' => 'my-token']];
+test('generates .env.example with correct env var names', function () {
+    $drivers = ['telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET']];
 
     $generator = new ConfigGenerator;
-    $result = $generator->generateEnv('Test Bot', 'production', false, $drivers);
+    $result = $generator->generateEnvExample('Test Bot', $drivers);
 
     expect($result)->toContain('APP_NAME="Test Bot"');
-    expect($result)->toContain('TELEGRAM_TOKEN=my-token');
+    expect($result)->toContain('TELEGRAM_BOT_TOKEN=');
+    expect($result)->toContain('TELEGRAM_WEBHOOK_SECRET=');
+});
+
+test('resolves driver fields from list format', function () {
+    $generator = new ConfigGenerator;
+
+    $result = $generator->resolveDriverFields(['telegram', 'vk']);
+
+    expect($result)->toBe([
+        'telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET'],
+        'vk' => ['token' => 'VK_BOT_TOKEN', 'secret' => 'VK_SECRET', 'confirmation' => 'VK_CONFIRMATION'],
+    ]);
+});
+
+test('resolves driver fields ignores unknown drivers', function () {
+    $generator = new ConfigGenerator;
+
+    $result = $generator->resolveDriverFields(['unknown']);
+
+    expect($result)->toBe([]);
 });

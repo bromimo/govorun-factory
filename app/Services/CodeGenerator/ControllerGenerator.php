@@ -17,7 +17,7 @@ class ControllerGenerator
         $blockCode = '';
 
         foreach ($blocks as $block) {
-            $blockCode .= $this->renderBlock($block['type'], $block['params'] ?? []);
+            $blockCode .= $this->indentBlock($this->renderBlock($block['type'], $block['params'] ?? []));
         }
 
         return "<?php\n\n".view('stubs.controller', [
@@ -43,5 +43,18 @@ class ControllerGenerator
         }
 
         return "        // Unknown block type: {$type}\n";
+    }
+
+    /** Добавить отступ к блоку кода (2 уровня — класс + метод).
+     */
+    private function indentBlock(string $code): string
+    {
+        $padding = str_repeat('    ', 2);
+        $lines = explode("\n", rtrim($code));
+
+        return implode("\n", array_map(
+            fn ($line) => $line === '' ? '' : $padding.$line,
+            $lines,
+        ))."\n";
     }
 }

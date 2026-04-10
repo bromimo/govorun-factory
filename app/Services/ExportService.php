@@ -53,10 +53,10 @@ class ExportService
         $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
         $baseName = basename($sourceDir);
-        $files = File::allFiles($sourceDir);
+        $files = File::allFiles($sourceDir, true);
 
         foreach ($files as $file) {
-            $relativePath = $baseName.'/'.$file->getRelativePathname();
+            $relativePath = $baseName.'/'.str_replace('\\', '/', $file->getRelativePathname());
             $zip->addFile($file->getRealPath(), $relativePath);
         }
 

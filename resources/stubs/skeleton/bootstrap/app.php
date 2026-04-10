@@ -1,6 +1,6 @@
 <?php
 
-use Govorun\Framework\Application;
+use Govorun\Foundation\Application;
 
 require __DIR__.'/../vendor/autoload.php';
 
