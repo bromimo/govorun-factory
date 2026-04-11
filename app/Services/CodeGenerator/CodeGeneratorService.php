@@ -132,6 +132,8 @@ class CodeGeneratorService
     {
         File::ensureDirectoryExists("{$outputPath}/app/Flows");
 
+        $validationMessages = $bot->config['validation_messages'] ?? [];
+
         foreach ($bot->flows as $flow) {
             $className = $this->flowClassNames[$flow->id];
             $code = $this->flow->generate(
@@ -139,6 +141,7 @@ class CodeGeneratorService
                 $flow->graph ?? ['nodes' => [], 'edges' => []],
                 $flow->interrupt_commands ?? [],
                 $flow->interrupt_on_event ?? false,
+                $validationMessages,
             );
             File::put("{$outputPath}/app/Flows/{$className}.php", $code);
         }
