@@ -20,6 +20,23 @@ test('admin can export valid bot as ZIP', function () {
     $response->assertHeader('content-type', 'application/zip');
 });
 
+test('archive is deleted from storage/exports after download', function () {
+    $admin = User::factory()->admin()->create();
+    $bot = Bot::factory()->for($admin, 'creator')->create([
+        'messenger_config' => ['telegram'],
+    ]);
+    BotRoute::factory()->for($bot)->create();
+
+    $before = glob(storage_path('exports/*.zip')) ?: [];
+
+    $response = $this->actingAs($admin)->get("/bots/{$bot->id}/export");
+    $response->assertOk();
+    $response->streamedContent();
+
+    $after = glob(storage_path('exports/*.zip')) ?: [];
+    expect(array_diff($after, $before))->toBeEmpty();
+});
+
 test('export fails with validation errors for invalid bot', function () {
     $admin = User::factory()->admin()->create();
     $bot = Bot::factory()->for($admin, 'creator')->create([
