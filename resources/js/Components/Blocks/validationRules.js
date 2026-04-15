@@ -1,3 +1,5 @@
+import messages from '../../../validation-messages.json';
+
 export const validationRuleDefs = [
     { name: 'required', label: 'Обязательное', group: 'general', params: [] },
     { name: 'string', label: 'Текст', group: 'type', params: [] },
@@ -21,35 +23,11 @@ export const ruleGroups = [
     { key: 'range', label: 'Диапазон' },
 ];
 
-export const defaultMessages = {
-    required: 'Пожалуйста, введите значение',
-    string: 'Значение должно быть текстом',
-    numeric: 'Значение должно быть числом',
-    integer: 'Значение должно быть целым числом',
-    email: 'Введите корректный email',
-    url: 'Введите корректный URL',
-    phone: 'Введите корректный номер телефона',
-    min: 'Минимальная длина: {0} символов',
-    max: 'Максимальная длина: {0} символов',
-    between: 'Значение должно быть от {0} до {1}',
-    in: 'Допустимые значения: {0}',
-    regex: 'Значение не соответствует формату',
-    date: 'Введите корректную дату',
-};
-
-export const numericMessages = {
-    min: 'Минимальное значение: {0}',
-    max: 'Максимальное значение: {0}',
-};
+export const defaultMessages = messages;
 
 export function getDefaultMessage(ruleName, rules) {
     if ((ruleName === 'min' || ruleName === 'max') && rules.some(r => r.name === 'numeric' || r.name === 'integer')) {
-        return numericMessages[ruleName] ?? defaultMessages[ruleName];
+        return messages[ruleName + 'Numeric'] ?? messages[ruleName] ?? '';
     }
-    return defaultMessages[ruleName] ?? '';
-}
-
-export function formatMessage(template, params) {
-    if (!params?.length) return template;
-    return params.reduce((msg, val, i) => msg.replace(`{${i}}`, val), template);
+    return messages[ruleName] ?? '';
 }
