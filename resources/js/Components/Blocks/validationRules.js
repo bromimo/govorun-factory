@@ -1,4 +1,4 @@
-import messages from '../../../validation-messages.json';
+import messages from '@resources/validation-messages.json';
 
 export const validationRuleDefs = [
     { name: 'required', label: 'Обязательное', group: 'general', params: [] },
