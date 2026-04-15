@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { validationRuleDefs, defaultMessages } from '../Blocks/validationRules.js';
 
@@ -30,6 +31,20 @@ function save() {
 function hasParams(ruleName) {
     return validationRuleDefs.find(r => r.name === ruleName)?.params?.length > 0;
 }
+
+function exportJson() {
+    const overrides = form.config.validation_messages;
+    const snapshot = Object.fromEntries(
+        Object.keys(defaultMessages).map(k => [k, overrides[k]?.trim() || defaultMessages[k]])
+    );
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `validation-messages-${props.bot.name}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
 </script>
 
 <template>
@@ -45,16 +60,20 @@ function hasParams(ruleName) {
                 :placeholder="defaultMessages[rule.name]"
                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
             <p v-if="hasParams(rule.name)" class="text-xs text-gray-400">
-                Используйте {0}, {1} для подстановки параметров
+                Используйте {value}, {min}, {max} для подстановки параметров
             </p>
         </div>
 
-        <div v-if="can.update" class="pt-4">
-            <button type="submit" :disabled="form.processing"
+        <div class="flex flex-wrap items-center gap-2 pt-4">
+            <button v-if="can.update" type="submit" :disabled="form.processing"
                 class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
                 Сохранить
             </button>
-            <span v-if="form.recentlySuccessful" class="ml-3 text-sm text-green-600">Сохранено</span>
+            <button type="button" @click="exportJson"
+                class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200">
+                Экспорт JSON
+            </button>
+            <span v-if="form.recentlySuccessful" class="text-sm text-green-600">Сохранено</span>
         </div>
     </form>
 </template>
