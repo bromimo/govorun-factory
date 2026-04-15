@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bot;
-use App\Services\CodeGenerator\CodeGeneratorService;
 use App\Services\ExportService;
 use App\Services\SchemaValidator;
+use App\Services\CodeGenerator\CodeGeneratorService;
 
 /** Контроллер экспорта бота в ZIP-архив. */
 class ExportController extends Controller
@@ -27,8 +27,17 @@ class ExportController extends Controller
             return response()->json(['errors' => $result['errors']], 422);
         }
 
-        return response()->download($result['path'], $result['filename'], [
+        $path = $result['path'];
+
+        return response()->streamDownload(function () use ($path) {
+            try {
+                readfile($path);
+            } finally {
+                @unlink($path);
+            }
+        }, $result['filename'], [
             'Content-Type' => 'application/zip',
-        ])->deleteFileAfterSend();
+            'Content-Length' => (string) filesize($path),
+        ]);
     }
 }

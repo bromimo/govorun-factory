@@ -38,6 +38,26 @@ Schema-first visual bot builder: **Vue UI → JSON Schema (DB) → PHP Code Gene
 
 **Stack:** Laravel 13, PHP 8.3+, Vue 3 + Inertia.js, Tailwind CSS, Vue Flow, Pest, SQLite (dev/test).
 
+### Code Generator (ядро проекта)
+
+`App\Services\CodeGenerator\CodeGeneratorService` — оркестратор. Пошагово:
+1. Копирует `resources/stubs/skeleton/` (заготовка проекта) в output-директорию.
+2. Под-генераторы рендерят артефакты через Blade-шаблоны из `resources/views/stubs/`:
+   - `ConfigGenerator` → `config/*.php`, `.env.example`
+   - `RouteGenerator` → `routes/messenger.php`
+   - `ControllerGenerator` → `app/Controllers/*.php`
+   - `FlowGenerator` → `app/Flows/*.php` (step-based, см. ниже)
+   - `ComposerGenerator` → `composer.json`
+
+ZIP-экспорт делает `ExportService`; артефакты попадают в `storage/exports/`.
+Валидация схемы бота — `App\Services\SchemaValidator` (возвращает `App\Services\ValidationResult`).
+
+**Целевой фреймворк — `govorun/framework` (step-based Flow):**
+`FlowGenerator` превращает граф нод в класс с массивом `$steps` и методами `{name}Step(Step $step)`,
+где каждый шаг использует `$step->ask()` и `$step->receive()`, а `$this->nextStep()` продвигает поток.
+Lifecycle-методы: `onComplete()`, `onCancel()`. См. `docs/plan-flow-generator-step-based.md`.
+Локальные репозитории фреймворка — `C:\domains\govorun-framework` и `govorun-skeleton`.
+
 ### Data Model
 
 `User` (admin/editor/viewer) → `Bot` (config, messenger_config as JSON) → `BotRoute` (entry points with type/match/handler) + `BotFlow` (dialog graphs stored as JSON with nodes/edges). `Plugin` — extensible block types.
@@ -48,11 +68,12 @@ Role-based via `UserRole` enum + `BotPolicy`. Admin: full access. Editor: own bo
 
 ### Route Structure
 
-All routes in `routes/web.php` under `auth` middleware, grouped by prefix: `bots/`, `bots/{bot}/routes/`, `bots/{bot}/flows/`, `profile/`, `users/` (admin-only).
+All routes in `routes/web.php` under `auth` middleware, grouped by prefix: `bots/`, `bots/{bot}/routes/`, `bots/{bot}/flows/`, `bots/{bot}/export`, `profile/`, `users/` (admin-only), `plugins/` (admin-only).
+Роуты пробрасываются во фронт через Ziggy (`tightenco/ziggy`).
 
 ### Frontend
 
-Inertia.js SFC pages in `resources/js/Pages/`. Reusable components in `resources/js/Components/`. Key areas:
+Inertia.js SFC pages in `resources/js/Pages/`. Reusable components in `resources/js/Components/`. Alias `@/` → `resources/js/` (см. `jsconfig.json`). Key areas:
 - `Blocks/` — shared block form components (used in both route editor and flow editor)
 - `Routes/` — route list, editor drawer, block list
 - `Flows/` — Vue Flow canvas, node palette, properties panels, custom nodes in `nodes/`
