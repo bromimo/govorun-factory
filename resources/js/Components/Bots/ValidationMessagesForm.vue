@@ -8,6 +8,9 @@ const props = defineProps({
     can: Object,
 });
 
+const fileInput = ref(null);
+const importError = ref('');
+
 const existing = props.bot.config?.validation_messages ?? {};
 
 const form = useForm({
@@ -45,6 +48,35 @@ function exportJson() {
     a.click();
     URL.revokeObjectURL(url);
 }
+
+function triggerImport() {
+    fileInput.value.click();
+}
+
+async function onFilePicked(e) {
+    importError.value = '';
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+
+        if (typeof parsed !== 'object' || Array.isArray(parsed) || parsed === null) {
+            throw new Error('Ожидался JSON-объект');
+        }
+
+        for (const [key, value] of Object.entries(parsed)) {
+            if (typeof value !== 'string') continue;
+            if (!(key in form.config.validation_messages)) continue;
+            form.config.validation_messages[key] = value === defaultMessages[key] ? '' : value;
+        }
+    } catch (err) {
+        importError.value = `Ошибка импорта: ${err.message}`;
+    } finally {
+        e.target.value = '';
+    }
+}
 </script>
 
 <template>
@@ -73,7 +105,14 @@ function exportJson() {
                 class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200">
                 Экспорт JSON
             </button>
+            <button v-if="can.update" type="button" @click="triggerImport"
+                class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200">
+                Импорт JSON
+            </button>
+            <input ref="fileInput" type="file" accept="application/json,.json" class="hidden" @change="onFilePicked">
             <span v-if="form.recentlySuccessful" class="text-sm text-green-600">Сохранено</span>
         </div>
+
+        <p v-if="importError" class="text-sm text-red-600">{{ importError }}</p>
     </form>
 </template>
