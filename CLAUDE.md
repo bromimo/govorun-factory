@@ -86,6 +86,8 @@ Vue Flow canvas with 10 custom node types (ask_text, ask_keyboard, reply_text, r
 
 Runtime input validation on `ask_text`/`ask_keyboard` nodes. Rules stored in `node.data.validation` as array of `{ name, params?, message? }` (Laravel-style: required, email, numeric, min, max, regex, etc.). Default error messages configurable per bot via `bot.config.validation_messages`. Rule definitions and defaults in `Blocks/validationRules.js`. UI component: `Blocks/ValidationEditor.vue`. Shield icon on canvas nodes with active validation.
 
+Дефолтные тексты — в `resources/validation-messages.json` (плоский `{ruleName: template}` с именованными плейсчолдерами `{value}`, `{min}`, `{max}`). **Синхронизированная копия с `govorun-framework/resources/validation-messages.json`** — при изменении править обе. UI-форма (`Bots/ValidationMessagesForm.vue`) умеет Export/Import полного слепка JSON.
+
 ### Enums
 
 `UserRole` (admin/editor/viewer), `RouteType` (command/phrase/pattern/action/event/media/location/contact/referral/fallback), `HandlerType` (controller/flow). All backed enums in PHP, stored as strings in DB — never use `enum` column type in migrations.
