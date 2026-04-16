@@ -50,6 +50,20 @@ const showAliases = computed(() => form.type === 'phrase');
 const longMatch = computed(() => (form.match?.length ?? 0) > 20);
 const showControllerName = computed(() => isParentPhrase.value || isNested.value || (showHandler.value && form.handler_type === 'controller'));
 
+function slugify(str) {
+    return str.replace(/[^\w\s]/g, '').replace(/\s+/g, '_').toLowerCase();
+}
+
+const autoControllerName = computed(() => {
+    const match = form.match?.trim();
+    if (!match) return '';
+    const slug = slugify(match);
+    if (isNested.value) {
+        return slug.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    }
+    return slug.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+});
+
 watch(() => form.type, (newType) => {
     if (newType !== 'phrase') {
         form.aliases = [];
@@ -120,11 +134,19 @@ function submit() {
 
                 <div v-if="showControllerName">
                     <label class="block text-sm font-medium text-gray-700">
-                        {{ isNested ? 'Имя метода' : isParentPhrase ? 'Имя контроллера' : 'Имя контроллера' }}
+                        {{ isNested ? 'Имя метода' : 'Имя контроллера' }}
                     </label>
-                    <input v-model="form.controller_name" type="text"
-                        class="mt-1 w-full rounded-md border-gray-300 text-sm font-mono"
-                        :placeholder="isNested ? 'Авто из фразы' : 'Авто'" />
+                    <div class="mt-1 flex gap-2">
+                        <input v-model="form.controller_name" type="text"
+                            class="w-full rounded-md border-gray-300 text-sm font-mono"
+                            :placeholder="autoControllerName || (isNested ? 'метод' : 'Контроллер')" />
+                        <button v-if="form.controller_name" type="button" @click="form.controller_name = ''"
+                            class="shrink-0 text-gray-400 hover:text-red-500">
+                            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
                     <p v-if="isNested" class="mt-1 text-xs text-gray-400">
                         camelCase. Например: <span class="font-mono">manicure</span>
                     </p>
