@@ -7,6 +7,7 @@ const props = defineProps({
     botId: Number,
     route: { type: Object, default: null },
     parentId: { type: Number, default: null },
+    hasChildren: { type: Boolean, default: false },
     flows: { type: Array, default: () => [] },
 });
 
@@ -14,6 +15,8 @@ const emit = defineEmits(['close']);
 
 const isEditing = computed(() => !!props.route);
 const isNested = computed(() => !!props.parentId);
+const isParentPhrase = computed(() => props.hasChildren);
+const showHandler = computed(() => !isParentPhrase.value);
 
 const routeTypes = [
     { value: 'command', label: 'Command' },
@@ -111,34 +114,38 @@ function submit() {
                     </button>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Обработчик</label>
-                    <div class="mt-1 flex rounded-md border border-gray-300 overflow-hidden">
-                        <button type="button" @click="form.handler_type = 'controller'"
-                            class="flex-1 px-3 py-2 text-sm font-medium"
-                            :class="form.handler_type === 'controller' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700'">
-                            Controller
-                        </button>
-                        <button type="button" @click="form.handler_type = 'flow'"
-                            class="flex-1 px-3 py-2 text-sm font-medium"
-                            :class="form.handler_type === 'flow' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700'">
-                            Flow
-                        </button>
+                <template v-if="showHandler">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Обработчик</label>
+                        <div class="mt-1 flex rounded-md border border-gray-300 overflow-hidden">
+                            <button type="button" @click="form.handler_type = 'controller'"
+                                class="flex-1 px-3 py-2 text-sm font-medium"
+                                :class="form.handler_type === 'controller' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700'">
+                                Controller
+                            </button>
+                            <button type="button" @click="form.handler_type = 'flow'"
+                                class="flex-1 px-3 py-2 text-sm font-medium"
+                                :class="form.handler_type === 'flow' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700'">
+                                Flow
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div v-if="form.handler_type === 'flow'">
-                    <label class="block text-sm font-medium text-gray-700">Flow-диалог</label>
-                    <select v-model="form.flow_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
-                        <option :value="null">-- Выберите --</option>
-                        <option v-for="f in flows" :key="f.id" :value="f.id">{{ f.name }}</option>
-                    </select>
-                </div>
+                    <div v-if="form.handler_type === 'flow'">
+                        <label class="block text-sm font-medium text-gray-700">Flow-диалог</label>
+                        <select v-model="form.flow_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                            <option :value="null">-- Выберите --</option>
+                            <option v-for="f in flows" :key="f.id" :value="f.id">{{ f.name }}</option>
+                        </select>
+                    </div>
 
-                <div v-if="form.handler_type === 'controller'">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Блоки</label>
-                    <BlockList v-model="form.handler_schema.blocks" />
-                </div>
+                    <div v-if="form.handler_type === 'controller'">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Блоки</label>
+                        <BlockList v-model="form.handler_schema.blocks" />
+                    </div>
+                </template>
+
+                <p v-else class="text-sm text-gray-500 italic">Обработчик задаётся у дочерних маршрутов</p>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Middleware (через запятую)</label>

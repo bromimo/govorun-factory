@@ -49,6 +49,8 @@ class RouteGenerator
             foreach ($route->children as $child) {
                 $entry['children'][] = $this->buildEntry($child, $flowClassNames, $imports);
             }
+
+            return $entry;
         }
 
         if ($route->handler_type->value === 'controller') {

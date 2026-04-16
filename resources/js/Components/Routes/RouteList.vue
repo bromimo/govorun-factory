@@ -99,7 +99,7 @@ const typeColors = {
                     <div class="min-w-0">
                         <div class="flex items-center gap-2">
                             <span v-if="r.match" class="text-sm text-gray-700">{{ r.match }}</span>
-                            <span class="text-xs text-gray-400">{{ r.handler_type }}</span>
+                            <span v-if="!r.children?.length" class="text-xs text-gray-400">{{ r.handler_type }}</span>
                         </div>
                         <div v-if="r.aliases?.length" class="mt-1 flex flex-wrap gap-1">
                             <span v-for="alias in r.aliases" :key="alias"
@@ -148,6 +148,7 @@ const typeColors = {
             Добавить маршрут
         </button>
 
-        <RouteEditor v-if="showEditor" :bot-id="botId" :route="editingRoute" :parent-id="editorParentId" :flows="flows" @close="closeEditor" />
+        <RouteEditor v-if="showEditor" :bot-id="botId" :route="editingRoute" :parent-id="editorParentId"
+            :has-children="!!editingRoute?.children?.length" :flows="flows" @close="closeEditor" />
     </div>
 </template>
