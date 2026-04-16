@@ -151,9 +151,10 @@ function submit() {
                         {{ isNested ? 'Имя метода' : 'Имя контроллера' }}
                     </label>
                     <div class="mt-1 flex gap-2">
-                        <input v-model="form.controller_name" type="text"
+                        <input :value="form.controller_name" type="text"
+                            @input="form.controller_name = $event.target.value.replace(/[^a-zA-Z0-9]/g, '')"
                             class="w-full rounded-md border-gray-300 text-sm font-mono"
-                            :placeholder="autoControllerName || (isNested ? 'метод' : 'Контроллер')" />
+                            :placeholder="autoControllerName || (isNested ? 'method' : 'Controller')" />
                         <button v-if="form.controller_name" type="button" @click="form.controller_name = ''"
                             class="shrink-0 text-gray-400 hover:text-red-500">
                             <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
