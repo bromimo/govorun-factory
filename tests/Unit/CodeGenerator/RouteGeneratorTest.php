@@ -49,6 +49,6 @@ test('does not generate alias for non-phrase routes', function () {
     $generator = new RouteGenerator;
     $result = $generator->generate($bot);
 
-    expect($result)->toContain("Route::command('start',");
+    expect($result)->toContain("Route::command('/start',");
     expect($result)->not->toContain('::class)->alias(');
 });

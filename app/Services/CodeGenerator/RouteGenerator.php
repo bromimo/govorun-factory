@@ -18,9 +18,6 @@ class RouteGenerator
 
         foreach ($bot->routes as $route) {
             $match = $route->match;
-            if ($route->type->value === 'command' && $match !== null) {
-                $match = ltrim($match, '/');
-            }
 
             $entry = [
                 'type' => $route->type->value,
