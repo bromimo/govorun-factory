@@ -52,7 +52,7 @@ class BotRouteController extends Controller
         if (isset($data['aliases'])) {
             $data['aliases'] = array_values(array_filter(
                 $data['aliases'],
-                fn ($v) => trim($v) !== '',
+                fn ($v) => is_string($v) && trim($v) !== '',
             ));
         }
 

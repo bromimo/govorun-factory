@@ -134,4 +134,50 @@ class BotRouteControllerTest extends TestCase
         $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [])
             ->assertSessionHasErrors(['type', 'handler_type']);
     }
+
+    public function test_can_create_phrase_route_with_aliases(): void
+    {
+        $response = $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
+            'type' => 'phrase',
+            'match' => 'запись',
+            'aliases' => ['записаться', 'записать'],
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ]);
+
+        $response->assertRedirect();
+        $route = $this->bot->routes()->where('match', 'запись')->first();
+        $this->assertEquals(['записаться', 'записать'], $route->aliases);
+    }
+
+    public function test_aliases_is_null_for_non_phrase_type(): void
+    {
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
+            'type' => 'command',
+            'match' => '/start',
+            'aliases' => ['old'],
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ]);
+
+        $route = $this->bot->routes()->where('match', '/start')->first();
+        $this->assertNull($route->aliases);
+    }
+
+    public function test_empty_aliases_are_filtered_out(): void
+    {
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
+            'type' => 'phrase',
+            'match' => 'hello',
+            'aliases' => ['hi', '', '  ', 'hey'],
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ]);
+
+        $route = $this->bot->routes()->where('match', 'hello')->first();
+        $this->assertEquals(['hi', 'hey'], $route->aliases);
+    }
 }
