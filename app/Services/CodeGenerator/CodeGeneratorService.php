@@ -110,9 +110,15 @@ class CodeGeneratorService
     {
         File::ensureDirectoryExists("{$outputPath}/app/Controllers");
 
-        foreach ($bot->routes as $route) {
-            if ($route->handler_type->value === 'controller') {
-                $className = Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
+        $topRoutes = $bot->routes()->whereNull('parent_id')->orderBy('sort_order')->with('children')->get();
+
+        foreach ($topRoutes as $route) {
+            if ($route->children->isNotEmpty()) {
+                $this->generateGroupController($route, $outputPath);
+            } elseif ($route->handler_type->value === 'controller') {
+                $className = $route->controller_name
+                    ? $route->controller_name.'Controller'
+                    : Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
                 $code = $this->controller->generate($className, $route->handler_schema ?? ['blocks' => []]);
                 File::put("{$outputPath}/app/Controllers/{$className}.php", $code);
             } elseif ($route->handler_type->value === 'flow' && $route->flow_id) {
@@ -124,6 +130,25 @@ class CodeGeneratorService
                 }
             }
         }
+    }
+
+    /** Сгенерировать контроллер группы (родительская phrase с дочерними методами).
+     */
+    private function generateGroupController($parentRoute, string $outputPath): void
+    {
+        $className = ($parentRoute->controller_name ?? Str::studly(Str::slug($parentRoute->match ?? 'handler', '_'))).'Controller';
+
+        $methods = [];
+        foreach ($parentRoute->children as $child) {
+            $methodName = $child->controller_name ?: Str::camel(Str::slug($child->match ?: 'handle', '_'));
+            $methods[] = [
+                'name' => $methodName,
+                'schema' => $child->handler_schema ?? ['blocks' => []],
+            ];
+        }
+
+        $code = $this->controller->generateWithMethods($className, $methods);
+        File::put("{$outputPath}/app/Controllers/{$className}.php", $code);
     }
 
     /** Сгенерировать Flow-классы.

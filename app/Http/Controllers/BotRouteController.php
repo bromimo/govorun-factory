@@ -20,7 +20,7 @@ class BotRouteController extends Controller
         $maxOrder = $bot->routes()->max('sort_order') ?? -1;
 
         $bot->routes()->create([
-            ...$request->validated(),
+            ...$this->sanitizeAliases($request->validated()),
             'sort_order' => $maxOrder + 1,
         ]);
 
@@ -32,9 +32,35 @@ class BotRouteController extends Controller
      */
     public function update(UpdateBotRouteRequest $request, Bot $bot, BotRoute $route)
     {
-        $route->update($request->validated());
+        $route->update($this->sanitizeAliases($request->validated()));
 
         return redirect()->route('bots.edit', $bot);
+    }
+
+    /** Очистить данные маршрута: алиасы и controller_name.
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function sanitizeAliases(array $data): array
+    {
+        if (empty($data['controller_name'])) {
+            $data['controller_name'] = null;
+        }
+
+        if (($data['type'] ?? '') !== 'phrase') {
+            $data['aliases'] = null;
+
+            return $data;
+        }
+
+        if (isset($data['aliases'])) {
+            $data['aliases'] = array_values(array_filter(
+                $data['aliases'],
+                fn ($v) => is_string($v) && trim($v) !== '',
+            ));
+        }
+
+        return $data;
     }
 
     /** Удаление маршрута.

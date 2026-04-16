@@ -29,8 +29,21 @@ use {{ $import }};
     */
 
 @foreach($routes as $route)
-@if($route['type'] === 'fallback')
+@if(!empty($route['children']))
+Route::phrase('{{ $route['match'] }}', function () {
+@foreach($route['children'] as $child)
+@php
+    $cls = $route['controller_class'] . '::class';
+    $action = $child['method'] ? '[' . $cls . ", '" . $child['method'] . "']" : $cls;
+    $aliasChain = !empty($child['aliases']) ? "->alias([" . collect($child['aliases'])->map(fn ($a) => "'" . $a . "'")->implode(', ') . "])" : '';
+@endphp
+    Route::phrase('{!! $child['match'] !!}', {!! $action !!}){!! $aliasChain !!};
+@endforeach
+}){!! !empty($route['aliases']) ? "->alias([" . collect($route['aliases'])->map(fn ($a) => "'" . $a . "'")->implode(', ') . "])" : '' !!};
+@elseif($route['type'] === 'fallback')
 Route::fallback({{ $route['controller_class'] }}::class);
+@elseif(!empty($route['aliases']))
+Route::{{ $route['type'] }}({!! $route['match'] !== null ? "'" . $route['match'] . "', " : '' !!}{{ $route['controller_class'] }}::class)->alias([{!! collect($route['aliases'])->map(fn ($a) => "'" . $a . "'")->implode(', ') !!}]);
 @else
 Route::{{ $route['type'] }}({!! $route['match'] !== null ? "'" . $route['match'] . "', " : '' !!}{{ $route['controller_class'] }}::class);
 @endif

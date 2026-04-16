@@ -53,7 +53,7 @@ class BotController extends Controller
     {
         $this->authorize('view', $bot);
 
-        $bot->load(['routes', 'flows']);
+        $bot->load(['routes' => fn ($q) => $q->whereNull('parent_id')->orderBy('sort_order')->with('children'), 'flows']);
 
         return Inertia::render('Bots/Edit', [
             'bot' => $bot,

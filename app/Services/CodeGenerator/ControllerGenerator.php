@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Blade;
 /** Генератор классов контроллеров из схемы обработчика. */
 class ControllerGenerator
 {
-    /** Сгенерировать класс контроллера.
+    /** Сгенерировать класс контроллера с одним методом handle().
      * @param  array<string, mixed>  $handlerSchema
      */
     public function generate(string $className, array $handlerSchema): string
@@ -23,6 +23,33 @@ class ControllerGenerator
         return "<?php\n\n".view('stubs.controller', [
             'className' => $className,
             'blockCode' => $blockCode,
+        ])->render();
+    }
+
+    /** Сгенерировать класс контроллера с несколькими методами.
+     * @param  array<int, array{name: string, schema: array}> $methods
+     */
+    public function generateWithMethods(string $className, array $methods): string
+    {
+        $methodsCode = '';
+
+        foreach ($methods as $method) {
+            $blocks = $method['schema']['blocks'] ?? [];
+            $blockCode = '';
+            foreach ($blocks as $block) {
+                $blockCode .= $this->indentBlock($this->renderBlock($block['type'], $block['params'] ?? []));
+            }
+
+            $rendered = view('stubs.controller_method', [
+                'methodName' => $method['name'],
+                'blockCode' => $blockCode,
+            ])->render();
+            $methodsCode .= '    '.$rendered;
+        }
+
+        return "<?php\n\n".view('stubs.controller_multi', [
+            'className' => $className,
+            'methodsCode' => $methodsCode,
         ])->render();
     }
 

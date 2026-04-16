@@ -24,6 +24,9 @@ function removeVariable(index) {
 }
 
 function updateVariable(index, field, value) {
+    if (field === 'key') {
+        value = value.replace(/\./g, '');
+    }
     const next = [...variables.value];
     next[index] = { ...next[index], [field]: value };
     variables.value = next;
