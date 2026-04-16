@@ -54,9 +54,10 @@ class RouteGenerator
             return $entry;
         }
 
-        $matchPrefix = $parentMatch ? Str::slug($parentMatch, '_').'_' : '';
-
-        if ($route->handler_type->value === 'controller') {
+        if ($route->controller_name) {
+            $className = $route->controller_name.'Controller';
+        } elseif ($route->handler_type->value === 'controller') {
+            $matchPrefix = $parentMatch ? Str::slug($parentMatch, '_').'_' : '';
             $className = Str::studly($route->type->value.'_'.$matchPrefix.Str::slug($route->match ?? 'handler', '_')).'Controller';
         } else {
             $flowName = $flowClassNames[$route->flow_id] ?? 'UnknownFlow';

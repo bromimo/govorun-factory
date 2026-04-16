@@ -15,8 +15,8 @@ class BotRoute extends Model
     use HasFactory;
 
     protected $fillable = [
-        'bot_id', 'parent_id', 'type', 'match', 'aliases', 'handler_type',
-        'flow_id', 'handler_schema', 'middleware', 'sort_order',
+        'bot_id', 'parent_id', 'type', 'match', 'aliases', 'controller_name',
+        'handler_type', 'flow_id', 'handler_schema', 'middleware', 'sort_order',
     ];
 
     /** Приведение атрибутов модели.

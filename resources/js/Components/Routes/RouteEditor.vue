@@ -36,6 +36,7 @@ const form = useForm({
     type: props.parentId ? 'phrase' : (props.route?.type ?? 'command'),
     match: props.route?.match ?? '',
     aliases: props.route?.aliases ?? [],
+    controller_name: props.route?.controller_name ?? '',
     handler_type: props.route?.handler_type ?? 'controller',
     flow_id: props.route?.flow_id ?? null,
     handler_schema: props.route?.handler_schema ?? { blocks: [] },
@@ -45,6 +46,9 @@ const form = useForm({
 const showMatch = computed(() => ['command', 'phrase', 'pattern', 'action', 'referral'].includes(form.type));
 
 const showAliases = computed(() => form.type === 'phrase');
+
+const longMatch = computed(() => (form.match?.length ?? 0) > 20);
+const showControllerName = computed(() => showHandler.value && form.handler_type === 'controller');
 
 watch(() => form.type, (newType) => {
     if (newType !== 'phrase') {
@@ -112,6 +116,18 @@ function submit() {
                         class="mt-2 text-xs text-indigo-600 hover:text-indigo-800">
                         + Добавить алиас
                     </button>
+                </div>
+
+                <div v-if="showControllerName">
+                    <label class="block text-sm font-medium text-gray-700">Имя контроллера</label>
+                    <input v-model="form.controller_name" type="text"
+                        class="mt-1 w-full rounded-md border-gray-300 text-sm font-mono"
+                        placeholder="Авто" />
+                    <p class="mt-1 text-xs text-gray-400">Без суффикса Controller. Например: <span class="font-mono">Help</span> → <span class="font-mono">HelpController</span></p>
+                    <p v-if="longMatch && !form.controller_name" class="mt-1 text-xs text-amber-600">
+                        Фраза длинная — рекомендуется задать короткое имя контроллера вручную
+                    </p>
+                    <p v-if="form.errors.controller_name" class="mt-1 text-xs text-red-600">{{ form.errors.controller_name }}</p>
                 </div>
 
                 <template v-if="showHandler">

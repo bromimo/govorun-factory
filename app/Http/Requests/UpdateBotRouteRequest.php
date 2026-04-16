@@ -28,6 +28,7 @@ class UpdateBotRouteRequest extends FormRequest
             'match' => ['nullable', 'string', 'max:255'],
             'aliases' => ['nullable', 'array'],
             'aliases.*' => ['nullable', 'string', 'max:255'],
+            'controller_name' => ['nullable', 'string', 'max:100', 'regex:/^[A-Z][a-zA-Z0-9]*$/', Rule::unique('bot_routes')->where('bot_id', $this->route('bot')->id)->ignore($this->route('route'))],
             'handler_type' => ['required', 'string', Rule::in(array_column(HandlerType::cases(), 'value'))],
             'flow_id' => ['nullable', 'integer', 'exists:bot_flows,id'],
             'handler_schema' => ['nullable', 'array'],
