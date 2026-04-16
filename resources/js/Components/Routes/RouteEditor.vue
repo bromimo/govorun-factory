@@ -152,7 +152,7 @@ function submit() {
                     </label>
                     <div class="mt-1 flex gap-2">
                         <input :value="form.controller_name" type="text"
-                            @input="form.controller_name = $event.target.value.replace(/[^a-zA-Z0-9]/g, '')"
+                            @input="form.controller_name = $event.target.value.replace(/[^a-zA-Z0-9]/g, '').replace(/^\d+/, '')"
                             class="w-full rounded-md border-gray-300 text-sm font-mono"
                             :placeholder="autoControllerName || (isNested ? 'method' : 'Controller')" />
                         <button v-if="form.controller_name" type="button" @click="form.controller_name = ''"
