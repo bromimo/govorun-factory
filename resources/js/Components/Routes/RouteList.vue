@@ -13,6 +13,8 @@ const props = defineProps({
 
 const showEditor = ref(false);
 const editingRoute = ref(null);
+const dragIndex = ref(null);
+const overIndex = ref(null);
 
 function openCreate() {
     editingRoute.value = null;
@@ -35,6 +37,25 @@ function deleteRoute(route) {
     }
 }
 
+function onDragStart(index) {
+    dragIndex.value = index;
+}
+
+function onDragOver(index) {
+    overIndex.value = index;
+}
+
+function onDragEnd() {
+    if (dragIndex.value !== null && overIndex.value !== null && dragIndex.value !== overIndex.value) {
+        const ids = [...props.routes].map(r => r.id);
+        const [moved] = ids.splice(dragIndex.value, 1);
+        ids.splice(overIndex.value, 0, moved);
+        router.post(window.route('bot-routes.reorder', props.botId), { ids }, { preserveScroll: true });
+    }
+    dragIndex.value = null;
+    overIndex.value = null;
+}
+
 const typeColors = {
     command: 'blue', phrase: 'green', pattern: 'purple', action: 'orange',
     event: 'gray', media: 'pink', fallback: 'gray', location: 'green',
@@ -45,7 +66,16 @@ const typeColors = {
 <template>
     <div>
         <div v-if="routes.length" class="divide-y divide-gray-100">
-            <div v-for="r in routes" :key="r.id" class="flex items-center gap-3 py-3">
+            <div v-for="(r, index) in routes" :key="r.id"
+                class="flex items-center gap-3 py-3 transition-colors"
+                :class="{ 'border-t-2 border-indigo-400': overIndex === index && dragIndex !== index }"
+                :draggable="canUpdate"
+                @dragstart="onDragStart(index)"
+                @dragover.prevent="onDragOver(index)"
+                @dragend="onDragEnd">
+                <svg v-if="canUpdate" class="h-4 w-4 shrink-0 cursor-grab text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
+                </svg>
                 <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
                     :class="[colorClasses[typeColors[r.type] ?? 'gray']?.badge, colorClasses[typeColors[r.type] ?? 'gray']?.text]">
                     {{ r.type }}
