@@ -1,4 +1,4 @@
-    public function {{ $methodName }}(): void
+public function {{ $methodName }}(): void
     {
 {!! $blockCode !!}
     }

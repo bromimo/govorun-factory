@@ -40,10 +40,11 @@ class ControllerGenerator
                 $blockCode .= $this->indentBlock($this->renderBlock($block['type'], $block['params'] ?? []));
             }
 
-            $methodsCode .= view('stubs.controller_method', [
+            $rendered = view('stubs.controller_method', [
                 'methodName' => $method['name'],
                 'blockCode' => $blockCode,
             ])->render();
+            $methodsCode .= '    '.$rendered;
         }
 
         return "<?php\n\n".view('stubs.controller_multi', [

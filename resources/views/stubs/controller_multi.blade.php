@@ -5,5 +5,6 @@ use Govorun\Routing\Controller;
 
 class {{ $className }} extends Controller
 {
-{!! $methodsCode !!}
+{!! rtrim($methodsCode) !!}
+
 }
