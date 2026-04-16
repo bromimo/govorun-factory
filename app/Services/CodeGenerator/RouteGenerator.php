@@ -19,7 +19,7 @@ class RouteGenerator
 
         $routes = [];
         foreach ($topRoutes as $route) {
-            $routes[] = $this->buildEntry($route, $flowClassNames, $imports);
+            $routes[] = $this->buildEntry($route, $flowClassNames, $imports, null);
         }
 
         $imports = array_unique($imports);
@@ -32,9 +32,10 @@ class RouteGenerator
      * @param  \App\Models\BotRoute  $route
      * @param  array<int, string>  $flowClassNames
      * @param  array<int, string>  $imports
+     * @param  string|null  $parentMatch Match родительского маршрута для формирования имени контроллера
      * @return array<string, mixed>
      */
-    private function buildEntry($route, array $flowClassNames, array &$imports): array
+    private function buildEntry($route, array $flowClassNames, array &$imports, ?string $parentMatch): array
     {
         $entry = [
             'type' => $route->type->value,
@@ -47,14 +48,16 @@ class RouteGenerator
 
         if ($route->children->isNotEmpty()) {
             foreach ($route->children as $child) {
-                $entry['children'][] = $this->buildEntry($child, $flowClassNames, $imports);
+                $entry['children'][] = $this->buildEntry($child, $flowClassNames, $imports, $route->match);
             }
 
             return $entry;
         }
 
+        $matchPrefix = $parentMatch ? Str::slug($parentMatch, '_').'_' : '';
+
         if ($route->handler_type->value === 'controller') {
-            $className = Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
+            $className = Str::studly($route->type->value.'_'.$matchPrefix.Str::slug($route->match ?? 'handler', '_')).'Controller';
         } else {
             $flowName = $flowClassNames[$route->flow_id] ?? 'UnknownFlow';
             $className = $flowName.'Controller';
