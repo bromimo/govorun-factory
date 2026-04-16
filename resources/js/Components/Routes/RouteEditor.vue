@@ -30,7 +30,7 @@ const routeTypes = [
 
 const form = useForm({
     parent_id: props.parentId,
-    type: isNested ? 'phrase' : (props.route?.type ?? 'command'),
+    type: props.parentId ? 'phrase' : (props.route?.type ?? 'command'),
     match: props.route?.match ?? '',
     aliases: props.route?.aliases ?? [],
     handler_type: props.route?.handler_type ?? 'controller',

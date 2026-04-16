@@ -14,7 +14,7 @@ const props = defineProps({
 const showEditor = ref(false);
 const editingRoute = ref(null);
 const editorParentId = ref(null);
-const localRoutes = ref([...props.routes]);
+const localRoutes = ref(props.routes ? [...props.routes] : []);
 const dragIndex = ref(null);
 const overIndex = ref(null);
 
