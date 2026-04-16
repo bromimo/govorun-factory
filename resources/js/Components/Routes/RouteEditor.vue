@@ -50,10 +50,28 @@ const showAliases = computed(() => form.type === 'phrase');
 const longMatch = computed(() => (form.match?.length ?? 0) > 20);
 const showControllerName = computed(() => isParentPhrase.value || isNested.value || (showHandler.value && form.handler_type === 'controller'));
 
+const translitMap = {
+    а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'yo',ж:'zh',з:'z',и:'i',й:'j',к:'k',
+    л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'kh',ц:'ts',
+    ч:'ch',ш:'sh',щ:'shch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya',
+};
+
+function translit(str) {
+    return str.split('').map(c => {
+        const lower = c.toLowerCase();
+        if (translitMap[lower] !== undefined) {
+            const t = translitMap[lower];
+            return c === lower ? t : t.charAt(0).toUpperCase() + t.slice(1);
+        }
+        return c;
+    }).join('');
+}
+
 const autoControllerName = computed(() => {
     const match = form.match?.trim();
     if (!match) return '';
-    const words = match.split(/\s+/).filter(Boolean);
+    const ascii = translit(match);
+    const words = ascii.split(/[^a-zA-Z0-9]+/).filter(Boolean);
     if (isNested.value) {
         return words.map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
     }
