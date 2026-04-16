@@ -13,36 +13,54 @@ class RouteGenerator
      */
     public function generate(Bot $bot, array $flowClassNames = []): string
     {
-        $routes = [];
         $imports = ['Govorun\Routing\Route'];
 
-        foreach ($bot->routes as $route) {
-            $match = $route->match;
+        $topRoutes = $bot->routes()->whereNull('parent_id')->orderBy('sort_order')->with('children')->get();
 
-            $entry = [
-                'type' => $route->type->value,
-                'match' => $match,
-                'handler_type' => $route->handler_type->value,
-                'middleware' => $route->middleware ?? [],
-                'aliases' => $route->aliases ?? [],
-            ];
-
-            if ($route->handler_type->value === 'controller') {
-                $className = Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
-            } else {
-                $flowName = $flowClassNames[$route->flow_id] ?? 'UnknownFlow';
-                $className = $flowName.'Controller';
-            }
-
-            $entry['controller_class'] = $className;
-            $imports[] = "App\\Controllers\\{$className}";
-
-            $routes[] = $entry;
+        $routes = [];
+        foreach ($topRoutes as $route) {
+            $routes[] = $this->buildEntry($route, $flowClassNames, $imports);
         }
 
         $imports = array_unique($imports);
         usort($imports, fn ($a, $b) => strlen($a) <=> strlen($b));
 
         return "<?php\n\n".view('stubs.routes_messenger', compact('routes', 'imports'))->render();
+    }
+
+    /** Построить массив данных маршрута для шаблона.
+     * @param  \App\Models\BotRoute  $route
+     * @param  array<int, string>  $flowClassNames
+     * @param  array<int, string>  $imports
+     * @return array<string, mixed>
+     */
+    private function buildEntry($route, array $flowClassNames, array &$imports): array
+    {
+        $entry = [
+            'type' => $route->type->value,
+            'match' => $route->match,
+            'handler_type' => $route->handler_type->value,
+            'middleware' => $route->middleware ?? [],
+            'aliases' => $route->aliases ?? [],
+            'children' => [],
+        ];
+
+        if ($route->children->isNotEmpty()) {
+            foreach ($route->children as $child) {
+                $entry['children'][] = $this->buildEntry($child, $flowClassNames, $imports);
+            }
+        }
+
+        if ($route->handler_type->value === 'controller') {
+            $className = Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
+        } else {
+            $flowName = $flowClassNames[$route->flow_id] ?? 'UnknownFlow';
+            $className = $flowName.'Controller';
+        }
+
+        $entry['controller_class'] = $className;
+        $imports[] = "App\\Controllers\\{$className}";
+
+        return $entry;
     }
 }

@@ -13,25 +13,29 @@ const props = defineProps({
 
 const showEditor = ref(false);
 const editingRoute = ref(null);
+const editorParentId = ref(null);
 const localRoutes = ref([...props.routes]);
 const dragIndex = ref(null);
 const overIndex = ref(null);
 
 watch(() => props.routes, (val) => { localRoutes.value = [...val]; });
 
-function openCreate() {
+function openCreate(parentId = null) {
     editingRoute.value = null;
+    editorParentId.value = parentId;
     showEditor.value = true;
 }
 
 function openEdit(route) {
     editingRoute.value = route;
+    editorParentId.value = route.parent_id ?? null;
     showEditor.value = true;
 }
 
 function closeEditor() {
     showEditor.value = false;
     editingRoute.value = null;
+    editorParentId.value = null;
 }
 
 function deleteRoute(route) {
@@ -104,9 +108,37 @@ const typeColors = {
                         </span>
                     </div>
                 </div>
-                <div v-if="canUpdate" class="ml-auto flex gap-2">
+                <div v-if="canUpdate" class="ml-auto flex gap-2 shrink-0">
+                    <button v-if="r.type === 'phrase' && !r.parent_id" @click="openCreate(r.id)"
+                        class="text-xs text-green-600 hover:text-green-800">+ Вложенный</button>
                     <button @click="openEdit(r)" class="text-xs text-indigo-600 hover:text-indigo-800">Изменить</button>
                     <button @click="deleteRoute(r)" class="text-xs text-red-600 hover:text-red-800">Удалить</button>
+                </div>
+            </div>
+            <!-- Дочерние маршруты -->
+            <div v-if="r.children?.length" class="divide-y divide-gray-50">
+                <div v-for="child in r.children" :key="child.id"
+                    class="flex items-center gap-3 py-2 pl-10">
+                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                        :class="[colorClasses[typeColors[child.type] ?? 'gray']?.badge, colorClasses[typeColors[child.type] ?? 'gray']?.text]">
+                        {{ child.type }}
+                    </span>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span v-if="child.match" class="text-sm text-gray-700">{{ child.match }}</span>
+                            <span class="text-xs text-gray-400">{{ child.handler_type }}</span>
+                        </div>
+                        <div v-if="child.aliases?.length" class="mt-1 flex flex-wrap gap-1">
+                            <span v-for="alias in child.aliases" :key="alias"
+                                class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                                {{ alias }}
+                            </span>
+                        </div>
+                    </div>
+                    <div v-if="canUpdate" class="ml-auto flex gap-2 shrink-0">
+                        <button @click="openEdit(child)" class="text-xs text-indigo-600 hover:text-indigo-800">Изменить</button>
+                        <button @click="deleteRoute(child)" class="text-xs text-red-600 hover:text-red-800">Удалить</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -117,6 +149,6 @@ const typeColors = {
             Добавить маршрут
         </button>
 
-        <RouteEditor v-if="showEditor" :bot-id="botId" :route="editingRoute" :flows="flows" @close="closeEditor" />
+        <RouteEditor v-if="showEditor" :bot-id="botId" :route="editingRoute" :parent-id="editorParentId" :flows="flows" @close="closeEditor" />
     </div>
 </template>

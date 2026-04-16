@@ -6,12 +6,14 @@ import BlockList from './BlockList.vue';
 const props = defineProps({
     botId: Number,
     route: { type: Object, default: null },
+    parentId: { type: Number, default: null },
     flows: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(['close']);
 
 const isEditing = computed(() => !!props.route);
+const isNested = computed(() => !!props.parentId);
 
 const routeTypes = [
     { value: 'command', label: 'Command' },
@@ -27,7 +29,8 @@ const routeTypes = [
 ];
 
 const form = useForm({
-    type: props.route?.type ?? 'command',
+    parent_id: props.parentId,
+    type: isNested ? 'phrase' : (props.route?.type ?? 'command'),
     match: props.route?.match ?? '',
     aliases: props.route?.aliases ?? [],
     handler_type: props.route?.handler_type ?? 'controller',
@@ -69,12 +72,12 @@ function submit() {
     <div class="fixed inset-0 z-50 flex justify-end bg-black/30" @click.self="emit('close')">
         <div class="h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-xl">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-medium">{{ isEditing ? 'Редактировать' : 'Новый' }} маршрут</h3>
+                <h3 class="text-lg font-medium">{{ isEditing ? 'Редактировать' : 'Новый' }}{{ isNested ? ' вложенный' : '' }} маршрут</h3>
                 <button @click="emit('close')" class="text-gray-400 hover:text-gray-600">x</button>
             </div>
 
             <form @submit.prevent="submit" class="space-y-5">
-                <div>
+                <div v-if="!isNested">
                     <label class="block text-sm font-medium text-gray-700">Тип маршрута</label>
                     <select v-model="form.type" class="mt-1 w-full rounded-md border-gray-300 text-sm">
                         <option v-for="rt in routeTypes" :key="rt.value" :value="rt.value">{{ rt.label }}</option>

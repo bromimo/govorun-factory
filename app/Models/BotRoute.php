@@ -7,6 +7,7 @@ use App\Enums\RouteType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** Модель маршрута бота. */
 class BotRoute extends Model
@@ -14,7 +15,7 @@ class BotRoute extends Model
     use HasFactory;
 
     protected $fillable = [
-        'bot_id', 'type', 'match', 'aliases', 'handler_type',
+        'bot_id', 'parent_id', 'type', 'match', 'aliases', 'handler_type',
         'flow_id', 'handler_schema', 'middleware', 'sort_order',
     ];
 
@@ -41,8 +42,21 @@ class BotRoute extends Model
         return $this->belongsTo(Bot::class);
     }
 
+    /** Родительский маршрут (для вложенных phrase).
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    /** Дочерние маршруты.
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order');
+    }
+
     /** Flow-диалог, к которому привязан маршрут.
-     *
      */
     public function flow(): BelongsTo
     {

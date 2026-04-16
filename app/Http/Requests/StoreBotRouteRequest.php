@@ -24,6 +24,7 @@ class StoreBotRouteRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'parent_id' => ['nullable', 'integer', 'exists:bot_routes,id'],
             'type' => ['required', 'string', Rule::in(array_column(RouteType::cases(), 'value'))],
             'match' => ['nullable', 'string', 'max:255'],
             'aliases' => ['nullable', 'array'],
