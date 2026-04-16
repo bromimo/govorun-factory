@@ -1,6 +1,6 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
-import { computed, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import BlockList from './BlockList.vue';
 
 const props = defineProps({
@@ -78,6 +78,29 @@ const autoControllerName = computed(() => {
     return words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
 });
 
+const controllerNameWarning = ref('');
+let controllerNameWarningTimer = null;
+
+function onControllerNameInput(e) {
+    const raw = e.target.value;
+    const clean = raw.replace(/[^a-zA-Z0-9]/g, '').replace(/^\d+/, '');
+
+    if (/[а-яёА-ЯЁ]/.test(raw)) {
+        controllerNameWarning.value = 'Только латиница';
+    } else if (/^\d/.test(raw.replace(/[^a-zA-Z0-9]/g, ''))) {
+        controllerNameWarning.value = 'Не может начинаться с цифры';
+    } else {
+        controllerNameWarning.value = '';
+    }
+
+    if (controllerNameWarning.value) {
+        clearTimeout(controllerNameWarningTimer);
+        controllerNameWarningTimer = setTimeout(() => { controllerNameWarning.value = ''; }, 3000);
+    }
+
+    form.controller_name = clean;
+}
+
 watch(() => form.type, (newType) => {
     if (newType !== 'phrase') {
         form.aliases = [];
@@ -152,7 +175,7 @@ function submit() {
                     </label>
                     <div class="mt-1 flex gap-2">
                         <input :value="form.controller_name" type="text"
-                            @input="form.controller_name = $event.target.value.replace(/[^a-zA-Z0-9]/g, '').replace(/^\d+/, '')"
+                            @input="onControllerNameInput($event)"
                             class="w-full rounded-md border-gray-300 text-sm font-mono"
                             :placeholder="autoControllerName || (isNested ? 'method' : 'Controller')" />
                         <button v-if="form.controller_name" type="button" @click="form.controller_name = ''"
@@ -174,6 +197,7 @@ function submit() {
                     <p v-if="longMatch && !form.controller_name" class="mt-1 text-xs text-amber-600">
                         Фраза длинная — рекомендуется задать короткое имя вручную
                     </p>
+                    <p v-if="controllerNameWarning" class="mt-1 text-xs text-amber-600">{{ controllerNameWarning }}</p>
                     <p v-if="form.errors.controller_name" class="mt-1 text-xs text-red-600">{{ form.errors.controller_name }}</p>
                 </div>
 
