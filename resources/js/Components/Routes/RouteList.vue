@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { colorClasses } from '../Blocks/blockTypes.js';
 import RouteEditor from './RouteEditor.vue';
@@ -13,8 +13,11 @@ const props = defineProps({
 
 const showEditor = ref(false);
 const editingRoute = ref(null);
+const localRoutes = ref([...props.routes]);
 const dragIndex = ref(null);
 const overIndex = ref(null);
+
+watch(() => props.routes, (val) => { localRoutes.value = [...val]; });
 
 function openCreate() {
     editingRoute.value = null;
@@ -37,21 +40,29 @@ function deleteRoute(route) {
     }
 }
 
-function onDragStart(index) {
+function onDragStart(e, index) {
     dragIndex.value = index;
+    e.dataTransfer.effectAllowed = 'move';
 }
 
-function onDragOver(index) {
+function onDragOver(e, index) {
+    e.preventDefault();
     overIndex.value = index;
 }
 
+function onDrop() {
+    if (dragIndex.value === null || overIndex.value === null || dragIndex.value === overIndex.value) return;
+
+    const list = [...localRoutes.value];
+    const [moved] = list.splice(dragIndex.value, 1);
+    list.splice(overIndex.value, 0, moved);
+    localRoutes.value = list;
+
+    const ids = list.map(r => r.id);
+    window.axios.post(window.route('bot-routes.reorder', props.botId), { ids });
+}
+
 function onDragEnd() {
-    if (dragIndex.value !== null && overIndex.value !== null && dragIndex.value !== overIndex.value) {
-        const ids = [...props.routes].map(r => r.id);
-        const [moved] = ids.splice(dragIndex.value, 1);
-        ids.splice(overIndex.value, 0, moved);
-        window.axios.post(window.route('bot-routes.reorder', props.botId), { ids });
-    }
     dragIndex.value = null;
     overIndex.value = null;
 }
@@ -65,13 +76,14 @@ const typeColors = {
 
 <template>
     <div>
-        <div v-if="routes.length" class="divide-y divide-gray-100">
-            <div v-for="(r, index) in routes" :key="r.id"
+        <div v-if="localRoutes.length" class="divide-y divide-gray-100">
+            <div v-for="(r, index) in localRoutes" :key="r.id"
                 class="flex items-center gap-3 py-3 transition-colors"
                 :class="{ 'border-t-2 border-indigo-400': overIndex === index && dragIndex !== index }"
                 :draggable="canUpdate"
-                @dragstart="onDragStart(index)"
-                @dragover.prevent="onDragOver(index)"
+                @dragstart="onDragStart($event, index)"
+                @dragover="onDragOver($event, index)"
+                @drop="onDrop"
                 @dragend="onDragEnd">
                 <svg v-if="canUpdate" class="h-4 w-4 shrink-0 cursor-grab text-gray-300" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
@@ -98,7 +110,7 @@ const typeColors = {
                 </div>
             </div>
         </div>
-        <p v-else class="text-sm text-gray-500">Нет маршрутов</p>
+        <p v-if="!localRoutes.length" class="text-sm text-gray-500">Нет маршрутов</p>
 
         <button v-if="canUpdate" @click="openCreate"
             class="mt-4 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500">
