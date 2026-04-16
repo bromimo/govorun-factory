@@ -47,8 +47,9 @@ class RouteGenerator
         ];
 
         if ($route->children->isNotEmpty()) {
+            $parentPrefix = $route->controller_name ?? $route->match;
             foreach ($route->children as $child) {
-                $entry['children'][] = $this->buildEntry($child, $flowClassNames, $imports, $route->match);
+                $entry['children'][] = $this->buildEntry($child, $flowClassNames, $imports, $parentPrefix);
             }
 
             return $entry;
@@ -57,8 +58,11 @@ class RouteGenerator
         if ($route->controller_name) {
             $className = $route->controller_name.'Controller';
         } elseif ($route->handler_type->value === 'controller') {
-            $matchPrefix = $parentMatch ? Str::slug($parentMatch, '_').'_' : '';
-            $className = Str::studly($route->type->value.'_'.$matchPrefix.Str::slug($route->match ?? 'handler', '_')).'Controller';
+            $matchPrefix = $parentMatch ? Str::studly(Str::slug($parentMatch, '_')) : '';
+            $className = Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
+            if ($matchPrefix) {
+                $className = $matchPrefix.$className;
+            }
         } else {
             $flowName = $flowClassNames[$route->flow_id] ?? 'UnknownFlow';
             $className = $flowName.'Controller';
