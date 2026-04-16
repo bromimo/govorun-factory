@@ -50,11 +50,7 @@ function onDragEnd() {
         const ids = [...props.routes].map(r => r.id);
         const [moved] = ids.splice(dragIndex.value, 1);
         ids.splice(overIndex.value, 0, moved);
-        fetch(window.route('bot-routes.reorder', props.botId), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({ ids }),
-        });
+        window.axios.post(window.route('bot-routes.reorder', props.botId), { ids });
     }
     dragIndex.value = null;
     overIndex.value = null;
