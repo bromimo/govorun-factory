@@ -48,7 +48,7 @@ const showMatch = computed(() => ['command', 'phrase', 'pattern', 'action', 'ref
 const showAliases = computed(() => form.type === 'phrase');
 
 const longMatch = computed(() => (form.match?.length ?? 0) > 20);
-const showControllerName = computed(() => isParentPhrase.value || (showHandler.value && form.handler_type === 'controller'));
+const showControllerName = computed(() => !isParentPhrase.value && showHandler.value && form.handler_type === 'controller');
 
 watch(() => form.type, (newType) => {
     if (newType !== 'phrase') {
@@ -123,8 +123,7 @@ function submit() {
                     <input v-model="form.controller_name" type="text"
                         class="mt-1 w-full rounded-md border-gray-300 text-sm font-mono"
                         placeholder="Авто" />
-                    <p v-if="isParentPhrase" class="mt-1 text-xs text-gray-400">Используется как префикс для контроллеров дочерних маршрутов</p>
-                    <p v-else class="mt-1 text-xs text-gray-400">Без суффикса Controller. Например: <span class="font-mono">Help</span> → <span class="font-mono">HelpController</span></p>
+                    <p class="mt-1 text-xs text-gray-400">Без префикса Phrase и суффикса Controller. Например: <span class="font-mono">Help</span> → <span class="font-mono">PhraseHelpController</span></p>
                     <p v-if="longMatch && !form.controller_name" class="mt-1 text-xs text-amber-600">
                         Фраза длинная — рекомендуется задать короткое имя вручную
                     </p>
