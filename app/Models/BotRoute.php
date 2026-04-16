@@ -14,7 +14,7 @@ class BotRoute extends Model
     use HasFactory;
 
     protected $fillable = [
-        'bot_id', 'type', 'match', 'handler_type',
+        'bot_id', 'type', 'match', 'aliases', 'handler_type',
         'flow_id', 'handler_schema', 'middleware', 'sort_order',
     ];
 
@@ -28,6 +28,7 @@ class BotRoute extends Model
             'type' => RouteType::class,
             'handler_type' => HandlerType::class,
             'handler_schema' => 'array',
+            'aliases' => 'array',
             'middleware' => 'array',
         ];
     }
