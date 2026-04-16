@@ -5,6 +5,6 @@ defineProps(['id', 'data', 'selected']);
 </script>
 <template>
     <BaseNode :id="id" :selected="selected" label="Ответ текстом" color="pink">
-        <p v-if="data.text" class="truncate">{{ data.text }}</p>
+        <p v-if="data.text" class="line-clamp-3">{{ data.text }}</p>
     </BaseNode>
 </template>
