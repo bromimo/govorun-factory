@@ -1,1 +1,1 @@
-        $this->ask('{!! addslashes($params['text']) !!}');
+        $this->ask({!! \App\Services\CodeGenerator\CodeHelper::renderText($params['text']) !!});
