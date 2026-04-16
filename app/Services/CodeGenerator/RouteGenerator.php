@@ -27,6 +27,7 @@ class RouteGenerator
                 'match' => $match,
                 'handler_type' => $route->handler_type->value,
                 'middleware' => $route->middleware ?? [],
+                'aliases' => $route->aliases ?? [],
             ];
 
             if ($route->handler_type->value === 'controller') {

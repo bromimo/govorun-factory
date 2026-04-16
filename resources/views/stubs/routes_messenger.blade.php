@@ -31,6 +31,8 @@ use {{ $import }};
 @foreach($routes as $route)
 @if($route['type'] === 'fallback')
 Route::fallback({{ $route['controller_class'] }}::class);
+@elseif(!empty($route['aliases']))
+Route::{{ $route['type'] }}({!! $route['match'] !== null ? "'" . $route['match'] . "', " : '' !!}{{ $route['controller_class'] }}::class)->alias([{!! collect($route['aliases'])->map(fn ($a) => "'" . $a . "'")->implode(', ') !!}]);
 @else
 Route::{{ $route['type'] }}({!! $route['match'] !== null ? "'" . $route['match'] . "', " : '' !!}{{ $route['controller_class'] }}::class);
 @endif
