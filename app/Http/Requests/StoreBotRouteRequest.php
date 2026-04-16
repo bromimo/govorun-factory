@@ -23,13 +23,20 @@ class StoreBotRouteRequest extends FormRequest
      */
     public function rules(): array
     {
+        $parentId = $this->input('parent_id');
+        $botId = $this->route('bot')->id;
+
+        $uniqueRule = Rule::unique('bot_routes', 'controller_name')
+            ->where('bot_id', $botId)
+            ->where('parent_id', $parentId);
+
         return [
             'parent_id' => ['nullable', 'integer', 'exists:bot_routes,id'],
             'type' => ['required', 'string', Rule::in(array_column(RouteType::cases(), 'value'))],
             'match' => ['nullable', 'string', 'max:255'],
             'aliases' => ['nullable', 'array'],
             'aliases.*' => ['nullable', 'string', 'max:255'],
-            'controller_name' => ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z][a-zA-Z0-9]*$/'],
+            'controller_name' => ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z][a-zA-Z0-9]*$/', $uniqueRule],
             'handler_type' => ['required', 'string', Rule::in(array_column(HandlerType::cases(), 'value'))],
             'flow_id' => ['nullable', 'integer', 'exists:bot_flows,id'],
             'handler_schema' => ['nullable', 'array'],
