@@ -50,8 +50,18 @@ const typeColors = {
                     :class="[colorClasses[typeColors[r.type] ?? 'gray']?.badge, colorClasses[typeColors[r.type] ?? 'gray']?.text]">
                     {{ r.type }}
                 </span>
-                <span v-if="r.match" class="text-sm text-gray-700">{{ r.match }}</span>
-                <span class="text-xs text-gray-400">{{ r.handler_type }}</span>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span v-if="r.match" class="text-sm text-gray-700">{{ r.match }}</span>
+                        <span class="text-xs text-gray-400">{{ r.handler_type }}</span>
+                    </div>
+                    <div v-if="r.aliases?.length" class="mt-1 flex flex-wrap gap-1">
+                        <span v-for="alias in r.aliases" :key="alias"
+                            class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                            {{ alias }}
+                        </span>
+                    </div>
+                </div>
                 <div v-if="canUpdate" class="ml-auto flex gap-2">
                     <button @click="openEdit(r)" class="text-xs text-indigo-600 hover:text-indigo-800">Изменить</button>
                     <button @click="deleteRoute(r)" class="text-xs text-red-600 hover:text-red-800">Удалить</button>
