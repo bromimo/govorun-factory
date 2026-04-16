@@ -26,6 +26,8 @@ class UpdateBotRouteRequest extends FormRequest
         return [
             'type' => ['required', 'string', Rule::in(array_column(RouteType::cases(), 'value'))],
             'match' => ['nullable', 'string', 'max:255'],
+            'aliases' => ['nullable', 'array'],
+            'aliases.*' => ['string', 'max:255'],
             'handler_type' => ['required', 'string', Rule::in(array_column(HandlerType::cases(), 'value'))],
             'flow_id' => ['nullable', 'integer', 'exists:bot_flows,id'],
             'handler_schema' => ['nullable', 'array'],
