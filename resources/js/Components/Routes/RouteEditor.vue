@@ -50,18 +50,14 @@ const showAliases = computed(() => form.type === 'phrase');
 const longMatch = computed(() => (form.match?.length ?? 0) > 20);
 const showControllerName = computed(() => isParentPhrase.value || isNested.value || (showHandler.value && form.handler_type === 'controller'));
 
-function slugify(str) {
-    return str.replace(/[^\w\s]/g, '').replace(/\s+/g, '_').toLowerCase();
-}
-
 const autoControllerName = computed(() => {
     const match = form.match?.trim();
     if (!match) return '';
-    const slug = slugify(match);
+    const words = match.split(/\s+/).filter(Boolean);
     if (isNested.value) {
-        return slug.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+        return words.map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
     }
-    return slug.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+    return words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
 });
 
 watch(() => form.type, (newType) => {
