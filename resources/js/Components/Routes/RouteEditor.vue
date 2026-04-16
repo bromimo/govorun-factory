@@ -48,7 +48,7 @@ const showMatch = computed(() => ['command', 'phrase', 'pattern', 'action', 'ref
 const showAliases = computed(() => form.type === 'phrase');
 
 const longMatch = computed(() => (form.match?.length ?? 0) > 20);
-const showControllerName = computed(() => !isParentPhrase.value && showHandler.value && form.handler_type === 'controller');
+const showControllerName = computed(() => isParentPhrase.value || isNested.value || (showHandler.value && form.handler_type === 'controller'));
 
 watch(() => form.type, (newType) => {
     if (newType !== 'phrase') {
@@ -119,11 +119,21 @@ function submit() {
                 </div>
 
                 <div v-if="showControllerName">
-                    <label class="block text-sm font-medium text-gray-700">Имя контроллера</label>
+                    <label class="block text-sm font-medium text-gray-700">
+                        {{ isNested ? 'Имя метода' : isParentPhrase ? 'Имя контроллера' : 'Имя контроллера' }}
+                    </label>
                     <input v-model="form.controller_name" type="text"
                         class="mt-1 w-full rounded-md border-gray-300 text-sm font-mono"
-                        placeholder="Авто" />
-                    <p class="mt-1 text-xs text-gray-400">Без префикса Phrase и суффикса Controller. Например: <span class="font-mono">Help</span> → <span class="font-mono">PhraseHelpController</span></p>
+                        :placeholder="isNested ? 'Авто из фразы' : 'Авто'" />
+                    <p v-if="isNested" class="mt-1 text-xs text-gray-400">
+                        camelCase. Например: <span class="font-mono">manicure</span>
+                    </p>
+                    <p v-else-if="isParentPhrase" class="mt-1 text-xs text-gray-400">
+                        PascalCase, без суффикса Controller. Например: <span class="font-mono">Price</span> → <span class="font-mono">PriceController</span>
+                    </p>
+                    <p v-else class="mt-1 text-xs text-gray-400">
+                        PascalCase, без суффикса Controller
+                    </p>
                     <p v-if="longMatch && !form.controller_name" class="mt-1 text-xs text-amber-600">
                         Фраза длинная — рекомендуется задать короткое имя вручную
                     </p>

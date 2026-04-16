@@ -19,7 +19,7 @@ class RouteGenerator
 
         $routes = [];
         foreach ($topRoutes as $route) {
-            $routes[] = $this->buildEntry($route, $flowClassNames, $imports, null);
+            $routes[] = $this->buildEntry($route, $flowClassNames, $imports);
         }
 
         $imports = array_unique($imports);
@@ -32,10 +32,9 @@ class RouteGenerator
      * @param  \App\Models\BotRoute  $route
      * @param  array<int, string>  $flowClassNames
      * @param  array<int, string>  $imports
-     * @param  string|null  $parentMatch Match родительского маршрута для формирования имени контроллера
      * @return array<string, mixed>
      */
-    private function buildEntry($route, array $flowClassNames, array &$imports, ?string $parentMatch): array
+    private function buildEntry($route, array $flowClassNames, array &$imports): array
     {
         $entry = [
             'type' => $route->type->value,
@@ -47,19 +46,26 @@ class RouteGenerator
         ];
 
         if ($route->children->isNotEmpty()) {
+            $className = ($route->controller_name ?? Str::studly(Str::slug($route->match ?? 'handler', '_'))).'Controller';
+            $entry['controller_class'] = $className;
+            $imports[] = "App\\Controllers\\{$className}";
+
             foreach ($route->children as $child) {
-                $entry['children'][] = $this->buildEntry($child, $flowClassNames, $imports, $route->match);
+                $method = $child->controller_name ?: Str::camel(Str::slug($child->match ?: 'handle', '_'));
+                $entry['children'][] = [
+                    'match' => $child->match,
+                    'method' => $method === 'handle' ? null : $method,
+                    'aliases' => $child->aliases ?? [],
+                ];
             }
 
             return $entry;
         }
 
         if ($route->controller_name) {
-            $className = 'Phrase'.$route->controller_name.'Controller';
+            $className = $route->controller_name.'Controller';
         } elseif ($route->handler_type->value === 'controller') {
-            $parentPart = $parentMatch ? Str::studly(Str::slug($parentMatch, '_')) : '';
-            $childPart = Str::studly(Str::slug($route->match ?? 'handler', '_'));
-            $className = Str::studly($route->type->value).$parentPart.$childPart.'Controller';
+            $className = Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
         } else {
             $flowName = $flowClassNames[$route->flow_id] ?? 'UnknownFlow';
             $className = $flowName.'Controller';
