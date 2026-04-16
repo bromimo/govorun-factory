@@ -43,4 +43,16 @@ class StoreBotRouteRequest extends FormRequest
             'middleware' => ['nullable', 'array'],
         ];
     }
+
+    /** Сообщения валидации.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'controller_name.unique' => 'Это имя уже используется',
+            'controller_name.regex' => 'Только латиница и цифры, начинается с буквы',
+        ];
+    }
 }
