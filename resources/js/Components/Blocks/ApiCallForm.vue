@@ -7,10 +7,14 @@ const model = defineModel({ type: Object, default: () => ({ url: '', method: 'GE
 const props = defineProps({
     allStateKeys: { type: Array, default: () => [] },
     declaredStateKeys: { type: Array, default: () => [] },
+    possiblyDeclaredStateKeys: { type: Array, default: () => [] },
 });
 
-const { uninitializedKeys, undeclaredKeys } = useStateWarnings(
-    () => model.value.url, () => props.allStateKeys, () => props.declaredStateKeys,
+const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useStateWarnings(
+    () => model.value.url,
+    () => props.allStateKeys,
+    () => props.declaredStateKeys,
+    () => props.possiblyDeclaredStateKeys,
 );
 </script>
 
@@ -19,7 +23,7 @@ const { uninitializedKeys, undeclaredKeys } = useStateWarnings(
         <div>
             <label class="block text-xs font-medium text-gray-500">URL</label>
             <input v-model="model.url" type="text" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="https://api.example.com/data" />
-            <StateWarning :uninitialized-keys="uninitializedKeys" :undeclared-keys="undeclaredKeys" />
+            <StateWarning :uninitialized-keys="uninitializedKeys" :partially-initialized-keys="partiallyInitializedKeys" :undeclared-keys="undeclaredKeys" />
             <VarsHint />
         </div>
         <div>
