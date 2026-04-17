@@ -150,22 +150,6 @@ function getOutgoingEdgeLabels(sourceId, excludeEdgeId) {
         .map(e => e.label);
 }
 
-function getAncestorIds(nodeId) {
-    const edgeList = getEdges.value;
-    const visited = new Set();
-    const queue = [nodeId];
-    while (queue.length) {
-        const current = queue.shift();
-        for (const e of edgeList) {
-            if (e.target === current && !visited.has(e.source)) {
-                visited.add(e.source);
-                queue.push(e.source);
-            }
-        }
-    }
-    return visited;
-}
-
 function getNodeStateKeys(node) {
     if (Array.isArray(node.data?.variables)) return node.data.variables.filter(v => v.key).map(v => v.key);
     if (node.data?.key) return [node.data.key];
@@ -179,10 +163,58 @@ function getAllStateKeys() {
 }
 
 function getDeclaredStateKeysBefore(nodeId) {
-    const ancestors = getAncestorIds(nodeId);
-    return getNodes.value
-        .filter(n => ancestors.has(n.id) && n.type === 'save_state')
-        .flatMap(getNodeStateKeys);
+    const nodes = getNodes.value;
+    const edges = getEdges.value;
+
+    const incoming = new Map();
+    for (const n of nodes) incoming.set(n.id, []);
+    for (const e of edges) {
+        if (incoming.has(e.target)) incoming.get(e.target).push(e.source);
+    }
+
+    const nodeById = new Map(nodes.map(n => [n.id, n]));
+    const declaresOf = id => {
+        const n = nodeById.get(id);
+        return n?.type === 'save_state' ? getNodeStateKeys(n) : [];
+    };
+
+    const allKeys = new Set(getAllStateKeys());
+    const onEntry = new Map();
+    for (const n of nodes) {
+        onEntry.set(n.id, incoming.get(n.id).length === 0 ? new Set() : new Set(allKeys));
+    }
+
+    let changed = true;
+    let iterations = 0;
+    const maxIterations = nodes.length + 2;
+    while (changed && iterations++ < maxIterations) {
+        changed = false;
+        for (const n of nodes) {
+            const preds = incoming.get(n.id);
+            if (preds.length === 0) continue;
+
+            let result = null;
+            for (const p of preds) {
+                const pOnExit = new Set(onEntry.get(p));
+                for (const k of declaresOf(p)) pOnExit.add(k);
+                if (result === null) {
+                    result = pOnExit;
+                } else {
+                    const inter = new Set();
+                    for (const k of result) if (pOnExit.has(k)) inter.add(k);
+                    result = inter;
+                }
+            }
+
+            const current = onEntry.get(n.id);
+            if (current.size !== result.size || [...result].some(k => !current.has(k))) {
+                onEntry.set(n.id, result);
+                changed = true;
+            }
+        }
+    }
+
+    return [...(onEntry.get(nodeId) ?? new Set())];
 }
 
 let clipboard = null;
