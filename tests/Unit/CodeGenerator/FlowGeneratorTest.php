@@ -23,56 +23,16 @@ test('generates step-based flow from linear graph', function () {
     $result = $generator->generate('OnboardingFlow', $graph, [], false);
 
     expect($result)->toContain('class OnboardingFlow extends Flow');
-    expect($result)->toContain("protected array \$steps = ['step1']");
+    expect($result)->toContain("protected array \$steps = ['askYourName']");
     expect($result)->toContain('use Govorun\State\Step;');
     expect($result)->toContain('use Govorun\Messaging\IncomingMessage;');
-    expect($result)->toContain('public function step1Step(Step $step): void');
+    expect($result)->toContain('public function askYourNameStep(Step $step): void');
     expect($result)->toContain("\$step->ask('Your name?')");
     expect($result)->toContain('$step->receive(function (IncomingMessage $message)');
     expect($result)->toContain("\$this->state->set('name', \$message->text)");
     expect($result)->toContain("\$this->reply('Thanks, ' . \$this->state->get('name') . '!')");
-    expect($result)->toContain('$this->nextStep()');
+    expect($result)->toContain('$this->completeFlow()');
     expect($result)->not->toContain('{{name}}');
-});
-
-test('generates flow with condition branching', function () {
-    $graph = [
-        'nodes' => [
-            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => ['text' => 'Confirm?', 'buttons' => [['label' => 'Yes', 'action' => 'yes'], ['label' => 'No', 'action' => 'no']]], 'position' => ['x' => 0, 'y' => 100]],
-            ['id' => 'check', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 200]],
-            ['id' => 'ok', 'type' => 'reply_text', 'data' => ['text' => 'Done!'], 'position' => ['x' => -100, 'y' => 300]],
-            ['id' => 'cancel', 'type' => 'reply_text', 'data' => ['text' => 'Cancelled'], 'position' => ['x' => 100, 'y' => 300]],
-            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 400]],
-        ],
-        'edges' => [
-            ['source' => 'start', 'target' => 'ask'],
-            ['source' => 'ask', 'target' => 'check'],
-            ['source' => 'check', 'target' => 'ok', 'label' => 'yes'],
-            ['source' => 'check', 'target' => 'cancel', 'label' => 'no'],
-            ['source' => 'ok', 'target' => 'end'],
-            ['source' => 'cancel', 'target' => 'end'],
-        ],
-    ];
-
-    $generator = new FlowGenerator;
-    $result = $generator->generate('ConfirmFlow', $graph, ['/cancel'], true);
-
-    expect($result)->toContain('class ConfirmFlow extends Flow');
-    expect($result)->toContain("protected array \$steps = ['step1']");
-    expect($result)->toContain('step1Step(Step $step)');
-    expect($result)->toContain("ask('Confirm?', fn () => Keyboard::make()");
-    expect($result)->toContain("->button('Yes', 'yes')");
-    expect($result)->toContain("->button('No', 'no')");
-    expect($result)->toContain('use Govorun\Messaging\Keyboard;');
-    expect($result)->toContain('match ($message->action)');
-    expect($result)->toContain("'yes' => (function ()");
-    expect($result)->toContain("'no' => (function ()");
-    expect($result)->toContain("\$this->reply('Done!')");
-    expect($result)->toContain("\$this->reply('Cancelled')");
-    expect($result)->toContain('interruptCommands');
-    expect($result)->toContain('interruptOnEvent = true');
-    expect($result)->toContain('$this->nextStep()');
 });
 
 test('generates multi-step flow', function () {
@@ -100,9 +60,9 @@ test('generates multi-step flow', function () {
     $result = $generator->generate('RegistrationFlow', $graph, [], false);
 
     expect($result)->toContain('class RegistrationFlow extends Flow');
-    expect($result)->toContain("protected array \$steps = ['step1', 'step2']");
-    expect($result)->toContain('public function step1Step(Step $step): void');
-    expect($result)->toContain('public function step2Step(Step $step): void');
+    expect($result)->toContain("protected array \$steps = ['askName', 'askAge']");
+    expect($result)->toContain('public function askNameStep(Step $step): void');
+    expect($result)->toContain('public function askAgeStep(Step $step): void');
     expect($result)->toContain("\$step->ask('Name?')");
     expect($result)->toContain("\$this->state->set('name', \$message->text)");
     expect($result)->toContain("\$step->ask('Age?')");
@@ -191,9 +151,7 @@ test('uses bot-level validation messages as defaults', function () {
     $generator = new FlowGenerator;
     $result = $generator->generate('BotDefaultsFlow', $graph, [], false, $botMessages);
 
-    // required: нет кастомного message → берёт из bot defaults
     expect($result)->toContain("->required('Заполните поле')");
-    // email: есть кастомный message → приоритет у него
     expect($result)->toContain("->email('Кастомный email')");
 });
 
@@ -240,4 +198,189 @@ test('save_state generates multiple variables with correct sources', function ()
 
     expect($result)->toContain("\$this->state->set('answer', \$message->text)");
     expect($result)->toContain("\$this->state->set('user_id', \$message->user->id)");
+});
+
+test('condition routes to named ask-steps via nextStep', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_g', 'type' => 'ask_keyboard', 'data' => [
+                'text' => 'Пол?',
+                'stepName' => 'askGender',
+                'buttons' => [['label' => 'М', 'action' => 'man'], ['label' => 'Ж', 'action' => 'woman']],
+            ], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_m', 'type' => 'ask_text', 'data' => ['text' => 'Мужской', 'stepName' => 'askMan'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_w', 'type' => 'ask_text', 'data' => ['text' => 'Женский', 'stepName' => 'askWoman'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'end_m', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'end_w', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask_g'],
+            ['source' => 'ask_g', 'target' => 'cond'],
+            ['source' => 'cond', 'target' => 'ask_m', 'label' => 'man'],
+            ['source' => 'cond', 'target' => 'ask_w', 'label' => 'woman'],
+            ['source' => 'ask_m', 'target' => 'end_m'],
+            ['source' => 'ask_w', 'target' => 'end_w'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('GenderFlow', $graph, [], false);
+
+    expect($result)->toContain("protected array \$steps = ['askGender', 'askMan', 'askWoman']");
+    expect($result)->toContain('public function askGenderStep(Step $step): void');
+    expect($result)->toContain('public function askManStep(Step $step): void');
+    expect($result)->toContain('public function askWomanStep(Step $step): void');
+    expect($result)->toContain('match ($message->action)');
+    expect($result)->toContain("'man' => (function () { \$this->nextStep('askMan'); return; })()");
+    expect($result)->toContain("'woman' => (function () { \$this->nextStep('askWoman'); return; })()");
+    expect($result)->toContain('default => null');
+    expect($result)->not->toContain("\$this->nextStep();\n");
+});
+
+test('condition branch without ask runs inline actions then completeFlow', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => ['text' => 'OK?', 'stepName' => 'askConfirm', 'buttons' => [['label' => 'Y', 'action' => 'y']]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'save', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'confirmed', 'source' => 'message.action']]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'reply', 'type' => 'reply_text', 'data' => ['text' => 'Спасибо!'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'cond'],
+            ['source' => 'cond', 'target' => 'save', 'label' => 'y'],
+            ['source' => 'save', 'target' => 'reply'],
+            ['source' => 'reply', 'target' => 'end'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('ConfirmFlow', $graph, [], false);
+
+    expect($result)->toContain("'y' => (function () {");
+    expect($result)->toContain("\$this->state->set('confirmed', \$message->action)");
+    expect($result)->toContain("\$this->reply('Спасибо!')");
+    expect($result)->toContain('$this->completeFlow(); return;');
+});
+
+test('condition branch directly to on_complete calls completeFlow', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => ['text' => 'q', 'stepName' => 'askQ', 'buttons' => [['label' => 'S', 'action' => 'stop']]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'cond'],
+            ['source' => 'cond', 'target' => 'end', 'label' => 'stop'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('StopFlow', $graph, [], false);
+
+    expect($result)->toContain("'stop' => (function () { \$this->completeFlow(); return; })()");
+});
+
+test('converging branches generate shared tail method', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_g', 'type' => 'ask_keyboard', 'data' => ['text' => 'Пол?', 'stepName' => 'askGender', 'buttons' => [['label' => 'М', 'action' => 'm'], ['label' => 'Ж', 'action' => 'w']]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_m', 'type' => 'ask_text', 'data' => ['text' => 'М?', 'stepName' => 'askMan'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_w', 'type' => 'ask_text', 'data' => ['text' => 'Ж?', 'stepName' => 'askWoman'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'common', 'type' => 'reply_text', 'data' => ['text' => 'Спасибо!'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask_g'],
+            ['source' => 'ask_g', 'target' => 'cond'],
+            ['source' => 'cond', 'target' => 'ask_m', 'label' => 'm'],
+            ['source' => 'cond', 'target' => 'ask_w', 'label' => 'w'],
+            ['source' => 'ask_m', 'target' => 'common'],
+            ['source' => 'ask_w', 'target' => 'common'],
+            ['source' => 'common', 'target' => 'end'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('ConvergeFlow', $graph, [], false);
+
+    expect($result)->toContain('private function tail1(): void');
+    expect($result)->toContain('$this->tail1(); return;');
+    expect($result)->toContain("\$this->reply('Спасибо!')");
+    expect($result)->toContain('$this->completeFlow(); return;');
+    $defCount = substr_count($result, 'private function tail1(): void');
+    expect($defCount)->toBe(1);
+});
+
+test('explicit stepName overrides autogenerated', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Введите email', 'stepName' => 'askEmailCustom'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'end'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('EmailFlow', $graph, [], false);
+
+    expect($result)->toContain("protected array \$steps = ['askEmailCustom']");
+    expect($result)->toContain('public function askEmailCustomStep(Step $step): void');
+    expect($result)->not->toContain('askVvedite');
+});
+
+test('autogenerated stepName is used when stepName is absent', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Имя?'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'end'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('NameFlow', $graph, [], false);
+
+    expect($result)->toContain("protected array \$steps = ['askImya']");
+    expect($result)->toContain('public function askImyaStep(Step $step): void');
+});
+
+test('linear flow without condition still generates valid step method', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Q'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'save', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'q', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'save'],
+            ['source' => 'save', 'target' => 'end'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('LinearFlow', $graph, [], false);
+
+    expect($result)->toContain('public function askQStep(Step $step): void');
+    expect($result)->toContain("\$this->state->set('q', \$message->text)");
+    expect($result)->toContain('$this->completeFlow();');
 });
