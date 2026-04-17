@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Bot;
+use App\Services\CodeGenerator\FlowGenerator;
 
 /** Валидатор схемы бота перед экспортом. */
 class SchemaValidator
@@ -11,8 +12,7 @@ class SchemaValidator
         private Bot $bot,
     ) {}
 
-    /** Валидировать схему бота.
-     */
+    /** Валидировать схему бота. */
     public function validate(): ValidationResult
     {
         $this->bot->load(['routes', 'flows']);
@@ -40,8 +40,25 @@ class SchemaValidator
             if (! $hasOnComplete) {
                 $errors[] = "Flow «{$flow->name}» должен содержать узел on_complete";
             }
+
+            $duplicates = $this->findDuplicateStepNames($nodes);
+            foreach ($duplicates as $name) {
+                $errors[] = "Flow «{$flow->name}»: имя шага «{$name}» используется более одного раза";
+            }
         }
 
         return new ValidationResult($errors);
+    }
+
+    /** Найти дублирующиеся имена ask-шагов (с учётом автогена).
+     * @param  array<int, array<string, mixed>>  $nodes
+     * @return array<int, string>
+     */
+    private function findDuplicateStepNames(array $nodes): array
+    {
+        $names = FlowGenerator::resolveAskStepNames($nodes);
+        $counts = array_count_values($names);
+
+        return array_keys(array_filter($counts, fn (int $c) => $c > 1));
     }
 }
