@@ -10,6 +10,76 @@ class FlowGenerator
     /** @var array<string, string> Дефолтные сообщения валидации на уровне бота. */
     private array $validationMessages = [];
 
+    /** Разрешить имена ask-steps для всех ask-нод flow.
+     * Источник имени: data.stepName (если задано и не пустое) либо автоген «ask + PascalCase(транслит(text))».
+     * Возвращает map nodeId → stepName.
+     *
+     * @param  array<int, array<string, mixed>>  $nodes
+     * @return array<string, string>
+     */
+    public static function resolveAskStepNames(array $nodes): array
+    {
+        $result = [];
+        $fallbackCounter = 1;
+
+        foreach ($nodes as $node) {
+            if (! in_array($node['type'] ?? null, ['ask_text', 'ask_keyboard'], true)) {
+                continue;
+            }
+
+            $explicit = trim((string) ($node['data']['stepName'] ?? ''));
+            if ($explicit !== '') {
+                $result[$node['id']] = $explicit;
+
+                continue;
+            }
+
+            $text = (string) ($node['data']['text'] ?? '');
+            $auto = self::autoStepName($text);
+            if ($auto === '') {
+                $auto = 'askStep'.$fallbackCounter;
+                $fallbackCounter++;
+            }
+            $result[$node['id']] = $auto;
+        }
+
+        return $result;
+    }
+
+    /** Автоген имени шага: «ask» + PascalCase(транслит(text)). Пустую строку возвращает при пустом text. */
+    private static function autoStepName(string $text): string
+    {
+        $ascii = self::transliterate($text);
+        $words = preg_split('/[^a-zA-Z0-9]+/', $ascii, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        if (empty($words)) {
+            return '';
+        }
+
+        $pascal = implode('', array_map(
+            fn (string $w) => ucfirst(strtolower($w)),
+            $words,
+        ));
+
+        return 'ask'.$pascal;
+    }
+
+    /** Транслитерация кириллицы в латиницу (ISO-9 упрощённая). */
+    private static function transliterate(string $str): string
+    {
+        $map = [
+            'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'yo', 'ж' => 'zh',
+            'з' => 'z', 'и' => 'i', 'й' => 'j', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o',
+            'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'kh', 'ц' => 'ts',
+            'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ъ' => '', 'ы' => 'y', 'ь' => '', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya',
+            'А' => 'A', 'Б' => 'B', 'В' => 'V', 'Г' => 'G', 'Д' => 'D', 'Е' => 'E', 'Ё' => 'Yo', 'Ж' => 'Zh',
+            'З' => 'Z', 'И' => 'I', 'Й' => 'J', 'К' => 'K', 'Л' => 'L', 'М' => 'M', 'Н' => 'N', 'О' => 'O',
+            'П' => 'P', 'Р' => 'R', 'С' => 'S', 'Т' => 'T', 'У' => 'U', 'Ф' => 'F', 'Х' => 'Kh', 'Ц' => 'Ts',
+            'Ч' => 'Ch', 'Ш' => 'Sh', 'Щ' => 'Shch', 'Ъ' => '', 'Ы' => 'Y', 'Ь' => '', 'Э' => 'E', 'Ю' => 'Yu', 'Я' => 'Ya',
+        ];
+
+        return strtr($str, $map);
+    }
+
     /** Сгенерировать класс Flow.
      * @param  array<string, mixed>  $graph
      * @param  array<string>  $interruptCommands
