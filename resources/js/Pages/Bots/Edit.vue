@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import Modal from '@/Components/Modal.vue';
 import SettingsForm from '@/Components/Bots/SettingsForm.vue';
 import MessengerConfigForm from '@/Components/Bots/MessengerConfigForm.vue';
 import RouteList from '@/Components/Routes/RouteList.vue';
@@ -47,10 +48,10 @@ function exportBot() {
     });
 }
 
+const confirmingDeletion = ref(false);
+
 function deleteBot() {
-    if (confirm('Удалить бота? Это действие необратимо.')) {
-        router.delete(route('bots.destroy', props.bot.id));
-    }
+    router.delete(route('bots.destroy', props.bot.id));
 }
 </script>
 
@@ -65,7 +66,7 @@ function deleteBot() {
                         class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-500">
                         Экспорт ZIP
                     </button>
-                    <button v-if="can.delete" @click="deleteBot"
+                    <button v-if="can.delete" @click="confirmingDeletion = true"
                         class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500">
                         Удалить
                     </button>
@@ -118,5 +119,26 @@ function deleteBot() {
                 </div>
             </div>
         </div>
+
+        <Modal :show="confirmingDeletion" max-width="md" @close="confirmingDeletion = false">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900">
+                    Удалить бота «{{ bot.name }}»?
+                </h2>
+                <p class="mt-2 text-sm text-gray-600">
+                    Будут удалены все маршруты, flow-диалоги и настройки. Действие необратимо.
+                </p>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button @click="confirmingDeletion = false"
+                        class="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50">
+                        Отмена
+                    </button>
+                    <button @click="deleteBot"
+                        class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500">
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        </Modal>
     </AuthenticatedLayout>
 </template>
