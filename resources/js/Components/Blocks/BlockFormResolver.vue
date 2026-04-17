@@ -14,6 +14,7 @@ const props = defineProps({
     type: String,
     allStateKeys: { type: Array, default: () => [] },
     declaredStateKeys: { type: Array, default: () => [] },
+    possiblyDeclaredStateKeys: { type: Array, default: () => [] },
     botValidationMessages: { type: Object, default: () => ({}) },
 });
 
@@ -32,6 +33,7 @@ const formComponent = computed(() => ({
 <template>
     <component v-if="formComponent" :is="formComponent" v-model="model"
         :all-state-keys="allStateKeys" :declared-state-keys="declaredStateKeys"
+        :possibly-declared-state-keys="possiblyDeclaredStateKeys"
         v-bind="['ask_text','ask_keyboard'].includes(type) ? { 'bot-validation-messages': botValidationMessages } : {}" />
     <p v-else class="text-xs text-gray-400">Нет параметров для этого типа</p>
 </template>

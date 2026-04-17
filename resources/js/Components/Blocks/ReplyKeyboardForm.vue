@@ -8,10 +8,14 @@ const model = defineModel({ type: Object, default: () => ({ text: '', buttons: [
 const props = defineProps({
     allStateKeys: { type: Array, default: () => [] },
     declaredStateKeys: { type: Array, default: () => [] },
+    possiblyDeclaredStateKeys: { type: Array, default: () => [] },
 });
 
-const { uninitializedKeys, undeclaredKeys } = useStateWarnings(
-    () => model.value.text, () => props.allStateKeys, () => props.declaredStateKeys,
+const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useStateWarnings(
+    () => model.value.text,
+    () => props.allStateKeys,
+    () => props.declaredStateKeys,
+    () => props.possiblyDeclaredStateKeys,
 );
 </script>
 
@@ -20,7 +24,7 @@ const { uninitializedKeys, undeclaredKeys } = useStateWarnings(
         <div>
             <label class="block text-xs font-medium text-gray-500">Текст сообщения</label>
             <textarea v-model="model.text" rows="2" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" />
-            <StateWarning :uninitialized-keys="uninitializedKeys" :undeclared-keys="undeclaredKeys" />
+            <StateWarning :uninitialized-keys="uninitializedKeys" :partially-initialized-keys="partiallyInitializedKeys" :undeclared-keys="undeclaredKeys" />
             <VarsHint />
         </div>
         <ButtonEditor v-model="model.buttons" />

@@ -47,6 +47,11 @@ const declaredStateKeys = computed(() => {
     if (!node || !canvasRef.value) return [];
     return canvasRef.value.getDeclaredStateKeysBefore(node.id);
 });
+const possiblyDeclaredStateKeys = computed(() => {
+    const node = selectedNode.value;
+    if (!node || !canvasRef.value) return [];
+    return canvasRef.value.getPossiblyDeclaredStateKeysBefore(node.id);
+});
 
 const botValidationMessages = computed(() => props.bot.config?.validation_messages ?? {});
 
@@ -157,6 +162,7 @@ function autoLayout() {
                     :all-node-ids="allNodeIds"
                     :all-state-keys="allStateKeys"
                     :declared-state-keys="declaredStateKeys"
+                    :possibly-declared-state-keys="possiblyDeclaredStateKeys"
                     :bot-validation-messages="botValidationMessages"
                     class="flex-1 min-w-0"
                     @update="onNodeDataUpdated"

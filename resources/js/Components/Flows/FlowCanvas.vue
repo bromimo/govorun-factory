@@ -162,7 +162,8 @@ function getAllStateKeys() {
         .flatMap(getNodeStateKeys);
 }
 
-function getDeclaredStateKeysBefore(nodeId) {
+/** Forward dataflow по ключам состояния с кастомной «перегородкой» (intersection или union). */
+function computeStateKeysOnEntry(combiner) {
     const nodes = getNodes.value;
     const edges = getEdges.value;
 
@@ -178,11 +179,8 @@ function getDeclaredStateKeysBefore(nodeId) {
         return n?.type === 'save_state' ? getNodeStateKeys(n) : [];
     };
 
-    const allKeys = new Set(getAllStateKeys());
     const onEntry = new Map();
-    for (const n of nodes) {
-        onEntry.set(n.id, incoming.get(n.id).length === 0 ? new Set() : new Set(allKeys));
-    }
+    for (const n of nodes) onEntry.set(n.id, combiner.seed(incoming.get(n.id).length === 0));
 
     let changed = true;
     let iterations = 0;
@@ -197,13 +195,7 @@ function getDeclaredStateKeysBefore(nodeId) {
             for (const p of preds) {
                 const pOnExit = new Set(onEntry.get(p));
                 for (const k of declaresOf(p)) pOnExit.add(k);
-                if (result === null) {
-                    result = pOnExit;
-                } else {
-                    const inter = new Set();
-                    for (const k of result) if (pOnExit.has(k)) inter.add(k);
-                    result = inter;
-                }
+                result = result === null ? pOnExit : combiner.combine(result, pOnExit);
             }
 
             const current = onEntry.get(n.id);
@@ -214,6 +206,33 @@ function getDeclaredStateKeysBefore(nodeId) {
         }
     }
 
+    return onEntry;
+}
+
+/** Ключи, гарантированно инициализированные к моменту входа в ноду (пересечение по путям). */
+function getDeclaredStateKeysBefore(nodeId) {
+    const allKeys = new Set(getAllStateKeys());
+    const onEntry = computeStateKeysOnEntry({
+        seed: isStart => isStart ? new Set() : new Set(allKeys),
+        combine: (a, b) => {
+            const inter = new Set();
+            for (const k of a) if (b.has(k)) inter.add(k);
+            return inter;
+        },
+    });
+    return [...(onEntry.get(nodeId) ?? new Set())];
+}
+
+/** Ключи, инициализированные хотя бы на одном пути к ноде (объединение по путям). */
+function getPossiblyDeclaredStateKeysBefore(nodeId) {
+    const onEntry = computeStateKeysOnEntry({
+        seed: () => new Set(),
+        combine: (a, b) => {
+            const union = new Set(a);
+            for (const k of b) union.add(k);
+            return union;
+        },
+    });
     return [...(onEntry.get(nodeId) ?? new Set())];
 }
 
@@ -326,7 +345,7 @@ function autoLayout() {
     setTimeout(() => fitView({ padding: 0.2 }), 50);
 }
 
-defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
+defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, getPossiblyDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
 </script>
 
 <template>
