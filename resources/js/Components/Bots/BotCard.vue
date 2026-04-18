@@ -18,7 +18,7 @@ defineProps({
         </div>
 
         <div class="mt-2 flex items-center justify-between text-xs text-gray-400">
-            <span>{{ bot.creator?.name }}</span>
+            <span>{{ bot.updater?.name ?? '—' }}</span>
             <span>{{ new Date(bot.updated_at).toLocaleDateString('ru') }}</span>
         </div>
     </Link>

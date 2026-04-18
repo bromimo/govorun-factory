@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Enums\HandlerType;
 use App\Enums\RouteType;
+use App\Observers\BotRouteObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** Модель маршрута бота. */
+#[ObservedBy(BotRouteObserver::class)]
 class BotRoute extends Model
 {
     use HasFactory;
