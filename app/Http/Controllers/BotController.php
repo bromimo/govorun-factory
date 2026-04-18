@@ -18,7 +18,7 @@ class BotController extends Controller
     public function index(Request $request)
     {
         $bots = Bot::query()
-            ->with('creator:id,name')
+            ->with('updater:id,name')
             ->withCount(['routes', 'flows'])
             ->when($request->search, fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
             ->latest('updated_at')

@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Observers\BotFlowObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** Модель flow-диалога бота. */
+#[ObservedBy(BotFlowObserver::class)]
 class BotFlow extends Model
 {
     use HasFactory;

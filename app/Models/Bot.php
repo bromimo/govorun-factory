@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Observers\BotObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** Модель бота — проект с маршрутами и flow-диалогами. */
+#[ObservedBy(BotObserver::class)]
 class Bot extends Model
 {
     use HasFactory;
@@ -18,6 +21,7 @@ class Bot extends Model
         'config',
         'messenger_config',
         'created_by',
+        'updated_by',
     ];
 
     /** Приведение атрибутов к типам.
@@ -36,6 +40,13 @@ class Bot extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /** Пользователь, последним изменивший бота или его дочерние сущности.
+     */
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /** Маршруты бота, отсортированные по порядку.
