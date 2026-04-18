@@ -128,7 +128,7 @@ function autoLayout() {
                         Авто
                     </button>
                     <button @click="fitView" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-                        Fit
+                        Вписать
                     </button>
                     <button v-if="can.update" @click="save" :disabled="saving"
                         class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
