@@ -307,7 +307,7 @@ class FlowGenerator
         $firstDownstream = $this->adjacency[$askId][0] ?? null;
         $receiveBody = $firstDownstream !== null
             ? $this->buildSequence($firstDownstream, 3)
-            : $this->indent('$this->completeFlow(); return;', 3)."\n";
+            : $this->indent('$this->completeFlow();', 3)."\n";
 
         $code = "\n    public function {$name}Step(Step \$step): void\n";
         $code .= "    {\n";
@@ -329,7 +329,7 @@ class FlowGenerator
         $next = $this->adjacency[$nodeId][0] ?? null;
         $continuation = $next !== null
             ? $this->buildSequence($next, 2)
-            : $this->indent('$this->completeFlow(); return;', 2)."\n";
+            : $this->indent('$this->completeFlow();', 2)."\n";
 
         $code = "\n    private function {$tailName}(): void\n";
         $code .= "    {\n";
@@ -371,7 +371,7 @@ class FlowGenerator
     }
 
     /** Построить код последовательности шагов графа начиная с $nodeId.
-     * Возвращает готовый блок с отступами, уже завершающийся соответствующим `return;`.
+     * Возвращает готовый блок с отступами, завершающийся вызовом-терминатором (nextStep/completeFlow/tail/onCancel/match-condition).
      */
     private function buildSequence(string $nodeId, int $indent): string
     {
@@ -381,7 +381,7 @@ class FlowGenerator
         while ($cursor !== null) {
             $node = $this->nodes->firstWhere('id', $cursor);
             if (! $node) {
-                $code .= $this->indent('$this->completeFlow(); return;', $indent)."\n";
+                $code .= $this->indent('$this->completeFlow();', $indent)."\n";
 
                 return $code;
             }
@@ -390,33 +390,32 @@ class FlowGenerator
 
             if (isset($this->tailNames[$cursor])) {
                 $tailName = $this->tailNames[$cursor];
-                $code .= $this->indent("\$this->{$tailName}(); return;", $indent)."\n";
+                $code .= $this->indent("\$this->{$tailName}();", $indent)."\n";
 
                 return $code;
             }
 
             if (in_array($type, ['ask_text', 'ask_keyboard'], true)) {
                 $stepName = $this->askStepNames[$cursor];
-                $code .= $this->indent("\$this->nextStep('{$stepName}'); return;", $indent)."\n";
+                $code .= $this->indent("\$this->nextStep('{$stepName}');", $indent)."\n";
 
                 return $code;
             }
 
             if ($type === 'on_complete') {
-                $code .= $this->indent('$this->completeFlow(); return;', $indent)."\n";
+                $code .= $this->indent('$this->completeFlow();', $indent)."\n";
 
                 return $code;
             }
 
             if ($type === 'on_cancel') {
-                $code .= $this->indent('$this->onCancel(); return;', $indent)."\n";
+                $code .= $this->indent('$this->onCancel();', $indent)."\n";
 
                 return $code;
             }
 
             if ($type === 'condition') {
                 $code .= $this->renderConditionBlock($cursor, $node['data'] ?? [], $indent);
-                $code .= $this->indent('return;', $indent)."\n";
 
                 return $code;
             }
@@ -425,7 +424,7 @@ class FlowGenerator
             $cursor = $this->adjacency[$cursor][0] ?? null;
         }
 
-        $code .= $this->indent('$this->completeFlow(); return;', $indent)."\n";
+        $code .= $this->indent('$this->completeFlow();', $indent)."\n";
 
         return $code;
     }
@@ -461,24 +460,24 @@ class FlowGenerator
     {
         $node = $this->nodes->firstWhere('id', $targetId);
         if (! $node) {
-            return '$this->completeFlow(); return;';
+            return '$this->completeFlow();';
         }
         $type = $node['type'];
 
         if (isset($this->tailNames[$targetId])) {
             $tailName = $this->tailNames[$targetId];
 
-            return "\$this->{$tailName}(); return;";
+            return "\$this->{$tailName}();";
         }
 
         if (in_array($type, ['ask_text', 'ask_keyboard'], true)) {
             $stepName = $this->askStepNames[$targetId];
 
-            return "\$this->nextStep('{$stepName}'); return;";
+            return "\$this->nextStep('{$stepName}');";
         }
 
         if ($type === 'on_complete') {
-            return '$this->completeFlow(); return;';
+            return '$this->completeFlow();';
         }
 
         $raw = $this->buildSequence($targetId, 0);
