@@ -2,6 +2,7 @@ namespace App\Flows;
 
 use Govorun\State\Flow;
 use Govorun\State\Step;
+use Govorun\Messaging\Media;
 use Govorun\Messaging\Message;
 use Govorun\Messaging\Keyboard;
 use Govorun\Messaging\IncomingMessage;

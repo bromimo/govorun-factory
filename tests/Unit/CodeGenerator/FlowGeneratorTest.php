@@ -25,6 +25,7 @@ test('generates step-based flow from linear graph', function () {
     expect($result)->toContain('class OnboardingFlow extends Flow');
     expect($result)->toContain("protected array \$steps = ['askYourName']");
     expect($result)->toContain('use Govorun\State\Step;');
+    expect($result)->toContain('use Govorun\Messaging\Media;');
     expect($result)->toContain('use Govorun\Messaging\IncomingMessage;');
     expect($result)->toContain('public function askYourNameStep(Step $step): void');
     expect($result)->toContain("\$step->ask('Your name?')");
@@ -383,4 +384,139 @@ test('linear flow without condition still generates valid step method', function
     expect($result)->toContain('public function askQStep(Step $step): void');
     expect($result)->toContain("\$this->state->set('q', \$message->text)");
     expect($result)->toContain('$this->completeFlow();');
+});
+
+test('ask_text with image generates Media::photo with caption', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Нравится?', 'image' => 'https://example.com/a.jpg'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('PhotoFlow', $graph, [], false);
+
+    expect($result)->toContain("\$step->ask(Media::photo('https://example.com/a.jpg')->caption('Нравится?'))");
+    expect($result)->not->toContain("\$step->ask('Нравится?')");
+});
+
+test('ask_text without image keeps string ask', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Возраст?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('AgeFlow', $graph, [], false);
+
+    expect($result)->toContain("\$step->ask('Возраст?')");
+    expect($result)->not->toContain('Media::photo');
+});
+
+test('ask_keyboard with image generates Media::photo with caption and keyboard', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => [
+                'text' => 'Выбор?',
+                'image' => 'https://example.com/b.jpg',
+                'buttons' => [
+                    ['label' => 'Да', 'action' => 'yes'],
+                    ['label' => 'Нет', 'action' => 'no'],
+                ],
+            ], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('ChoicePhotoFlow', $graph, [], false);
+
+    expect($result)->toContain("\$step->ask(Media::photo('https://example.com/b.jpg')->caption('Выбор?'), fn () => Keyboard::make()");
+    expect($result)->toContain("->button('Да', 'yes')");
+    expect($result)->toContain("->button('Нет', 'no')");
+});
+
+test('reply_media type=photo with caption generates Media::photo with caption', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Имя?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'save', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'name', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 200]],
+            ['id' => 'media', 'type' => 'reply_media', 'data' => ['media_type' => 'photo', 'url' => 'https://example.com/pic.jpg', 'caption' => 'Привет, {{ name }}!'], 'position' => ['x' => 0, 'y' => 300]],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 400]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'save'],
+            ['source' => 'save', 'target' => 'media'],
+            ['source' => 'media', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('GreetingFlow', $graph, [], false);
+
+    expect($result)->toContain("\$this->send(Media::photo('https://example.com/pic.jpg')->caption('Привет, ' . \$this->state->get('name') . '!'))");
+});
+
+test('reply_media type=photo without caption generates Media::photo without caption chain', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Готов?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'media', 'type' => 'reply_media', 'data' => ['media_type' => 'photo', 'url' => 'https://example.com/x.jpg', 'caption' => ''], 'position' => ['x' => 0, 'y' => 200]],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 300]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'media'],
+            ['source' => 'media', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('PhotoOnlyFlow', $graph, [], false);
+
+    expect($result)->toContain("\$this->send(Media::photo('https://example.com/x.jpg'));");
+    expect($result)->not->toContain('->caption');
+});
+
+test('reply_media non-photo type generates unsupported comment', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'OK?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'media', 'type' => 'reply_media', 'data' => ['media_type' => 'video', 'url' => 'https://example.com/v.mp4'], 'position' => ['x' => 0, 'y' => 200]],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 300]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'media'],
+            ['source' => 'media', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('VideoFlow', $graph, [], false);
+
+    expect($result)->toContain('// Unsupported media type: video');
+    expect($result)->not->toContain('Media::photo');
 });
