@@ -5,12 +5,16 @@ import { onMounted, onBeforeUnmount } from 'vue';
  *
  * @param {import('vue').Ref<HTMLElement | null>} elementRef
  * @param {(e: MouseEvent) => void} callback
+ * @param {import('vue').Ref<HTMLElement | null>} [ignoreRef] Дополнительный элемент, клики по которому не считаются «снаружи» (например, кнопка-триггер, которая сама открывает popover).
  */
-export function useClickOutside(elementRef, callback) {
+export function useClickOutside(elementRef, callback, ignoreRef = null) {
     const handler = (e) => {
-        if (elementRef.value && !elementRef.value.contains(e.target)) {
-            callback(e);
-        }
+        const el = elementRef.value;
+        const ignore = ignoreRef?.value;
+        if (!el) return;
+        if (el.contains(e.target)) return;
+        if (ignore && ignore.contains(e.target)) return;
+        callback(e);
     };
     onMounted(() => document.addEventListener('mousedown', handler));
     onBeforeUnmount(() => document.removeEventListener('mousedown', handler));
