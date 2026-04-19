@@ -18,11 +18,11 @@ class CodeHelper
             return "'".addslashes($text)."'";
         }
 
-        $parts = preg_split('/(\{\{[\w.]+\}\})/', $text, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        $parts = preg_split('/(\{\{\s*[\w.]+\s*\}\})/', $text, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
         $segments = [];
         foreach ($parts as $part) {
-            if (preg_match('/^\{\{([\w.]+)\}\}$/', $part, $m)) {
+            if (preg_match('/^\{\{\s*([\w.]+)\s*\}\}$/', $part, $m)) {
                 $segments[] = self::renderVariable($m[1]);
             } else {
                 $segments[] = "'".addslashes($part)."'";

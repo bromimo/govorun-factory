@@ -5,7 +5,7 @@ const BUILT_IN = ['user', 'message'];
 function readUsedKeys(textInput) {
     const val = typeof textInput === 'function' ? textInput() : textInput?.value;
     if (!val) return [];
-    const used = [...val.matchAll(/\{\{(\w+)\}\}/g)].map(m => m[1]);
+    const used = [...val.matchAll(/\{\{\s*(\w+)\s*\}\}/g)].map(m => m[1]);
     return [...new Set(used)].filter(k => !BUILT_IN.some(b => k.startsWith(b)));
 }
 

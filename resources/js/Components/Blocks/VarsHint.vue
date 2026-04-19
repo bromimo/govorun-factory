@@ -1,6 +1,6 @@
 <script setup>
-const example1 = '{{user.firstName}}';
-const example2 = '{{name}}';
+const example1 = '{{ user.firstName }}';
+const example2 = '{{ name }}';
 </script>
 
 <template>
