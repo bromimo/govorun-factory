@@ -491,9 +491,27 @@ class FlowGenerator
             'save_state' => $this->renderSaveState($data, $pad),
             'reply_text' => "{$pad}\$this->reply(".$this->renderText($data['text'] ?? '').");\n",
             'reply_keyboard' => $this->renderReplyKeyboard($data, $pad),
+            'reply_media' => $this->renderReplyMedia($data, $pad),
             'api_call' => "{$pad}\$response = \$this->apiCall('".($data['method'] ?? 'GET')."', '".addslashes($data['url'] ?? '')."');\n",
             default => "{$pad}// Unknown block: {$type}\n",
         };
+    }
+
+    /** Отрендерить reply_media — поддерживается только photo. */
+    private function renderReplyMedia(array $data, string $pad): string
+    {
+        $type = $data['media_type'] ?? 'photo';
+        if ($type !== 'photo') {
+            return "{$pad}// Unsupported media type: {$type}\n";
+        }
+
+        $url = "'".addslashes($data['url'] ?? '')."'";
+        $caption = trim((string) ($data['caption'] ?? ''));
+        $captionChain = $caption !== ''
+            ? '->caption('.$this->renderText($caption).')'
+            : '';
+
+        return "{$pad}\$this->send(Media::photo({$url}){$captionChain});\n";
     }
 
     /** Отрендерить reply_keyboard. */
