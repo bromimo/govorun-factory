@@ -4,6 +4,7 @@ import VarsHint from './VarsHint.vue';
 import StateWarning from './StateWarning.vue';
 import ButtonEditor from './ButtonEditor.vue';
 import ValidationEditor from './ValidationEditor.vue';
+import InsertToolbar from './InsertToolbar.vue';
 import { useStateWarnings } from './useStateWarnings.js';
 import { toCamelCase, sanitizeIdentifier, identifierWarning } from '@/utils/translit';
 
@@ -21,6 +22,8 @@ const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useState
     () => props.declaredStateKeys,
     () => props.possiblyDeclaredStateKeys,
 );
+
+const textareaRef = ref(null);
 
 const stepNameWarning = ref('');
 let stepNameWarningTimer = null;
@@ -51,8 +54,11 @@ function onStepNameInput(e) {
 <template>
     <div class="space-y-3">
         <div>
-            <label class="block text-xs font-medium text-gray-500">Текст вопроса</label>
-            <textarea v-model="model.text" rows="2" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" />
+            <div class="flex items-center justify-between">
+                <label class="block text-xs font-medium text-gray-500">Текст вопроса</label>
+                <InsertToolbar :target="textareaRef" :declared-keys="declaredStateKeys" />
+            </div>
+            <textarea ref="textareaRef" v-model="model.text" rows="2" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" />
             <StateWarning :uninitialized-keys="uninitializedKeys" :partially-initialized-keys="partiallyInitializedKeys" :undeclared-keys="undeclaredKeys" />
             <VarsHint />
         </div>
@@ -60,7 +66,7 @@ function onStepNameInput(e) {
             <label class="block text-xs font-medium text-gray-500">Картинка (URL)</label>
             <input v-model="model.image" type="url" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="https://example.com/image.jpg" />
         </div>
-        <ButtonEditor v-model="model.buttons" />
+        <ButtonEditor v-model="model.buttons" :declared-state-keys="declaredStateKeys" />
         <div>
             <label class="block text-xs font-medium text-gray-500">Имя шага</label>
             <div class="mt-1 flex gap-2">

@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import VarsHint from './VarsHint.vue';
 import StateWarning from './StateWarning.vue';
 import ValidationEditor from './ValidationEditor.vue';
+import InsertToolbar from './InsertToolbar.vue';
 import { useStateWarnings } from './useStateWarnings.js';
 import { toCamelCase, sanitizeIdentifier, identifierWarning } from '@/utils/translit';
 
@@ -20,6 +21,8 @@ const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useState
     () => props.declaredStateKeys,
     () => props.possiblyDeclaredStateKeys,
 );
+
+const textareaRef = ref(null);
 
 const stepNameWarning = ref('');
 let stepNameWarningTimer = null;
@@ -49,8 +52,11 @@ function onStepNameInput(e) {
 
 <template>
     <div>
-        <label class="block text-xs font-medium text-gray-500">Текст вопроса</label>
-        <textarea v-model="model.text" rows="3" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="Как вас зовут?" />
+        <div class="flex items-center justify-between">
+            <label class="block text-xs font-medium text-gray-500">Текст вопроса</label>
+            <InsertToolbar :target="textareaRef" :declared-keys="declaredStateKeys" />
+        </div>
+        <textarea ref="textareaRef" v-model="model.text" rows="3" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="Как вас зовут?" />
         <StateWarning :uninitialized-keys="uninitializedKeys" :partially-initialized-keys="partiallyInitializedKeys" :undeclared-keys="undeclaredKeys" />
         <VarsHint />
         <div class="mt-3">

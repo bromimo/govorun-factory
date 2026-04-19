@@ -24,6 +24,9 @@ export default defineConfig({
                     base: null,
                     includeAbsolute: false,
                 },
+                compilerOptions: {
+                    isCustomElement: tag => tag === 'emoji-picker',
+                },
             },
         }),
     ],
