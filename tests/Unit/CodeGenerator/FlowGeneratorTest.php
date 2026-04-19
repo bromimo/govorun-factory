@@ -25,6 +25,7 @@ test('generates step-based flow from linear graph', function () {
     expect($result)->toContain('class OnboardingFlow extends Flow');
     expect($result)->toContain("protected array \$steps = ['askYourName']");
     expect($result)->toContain('use Govorun\State\Step;');
+    expect($result)->toContain('use Govorun\Messaging\Media;');
     expect($result)->toContain('use Govorun\Messaging\IncomingMessage;');
     expect($result)->toContain('public function askYourNameStep(Step $step): void');
     expect($result)->toContain("\$step->ask('Your name?')");
