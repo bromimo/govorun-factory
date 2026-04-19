@@ -1,6 +1,8 @@
 <script setup>
+import { ref } from 'vue';
 import VarsHint from './VarsHint.vue';
 import StateWarning from './StateWarning.vue';
+import InsertToolbar from './InsertToolbar.vue';
 import { useStateWarnings } from './useStateWarnings.js';
 
 const model = defineModel({ type: Object, default: () => ({ media_type: 'photo', url: '', caption: '' }) });
@@ -9,6 +11,8 @@ const props = defineProps({
     declaredStateKeys: { type: Array, default: () => [] },
     possiblyDeclaredStateKeys: { type: Array, default: () => [] },
 });
+
+const captionRef = ref(null);
 
 const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useStateWarnings(
     () => `${model.value.url} ${model.value.caption}`,
@@ -35,8 +39,11 @@ const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useState
             <input v-model="model.url" type="text" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="https://example.com/image.jpg" />
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-500">Подпись</label>
-            <textarea v-model="model.caption" rows="2" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="Необязательно" />
+            <div class="flex items-center justify-between">
+                <label class="block text-xs font-medium text-gray-500">Подпись</label>
+                <InsertToolbar :target="captionRef" :declared-keys="declaredStateKeys" />
+            </div>
+            <textarea ref="captionRef" v-model="model.caption" rows="2" class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400" placeholder="Необязательно" />
             <StateWarning :uninitialized-keys="uninitializedKeys" :partially-initialized-keys="partiallyInitializedKeys" :undeclared-keys="undeclaredKeys" />
             <VarsHint />
         </div>
