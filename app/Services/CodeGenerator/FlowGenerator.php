@@ -71,6 +71,8 @@ class FlowGenerator
             ? $this->renderLifecycleMethod('onCancel', $this->buildLifecycleBody($onCancelStart))
             : '';
 
+        $imports = $this->detectRequiredImports();
+
         return "<?php\n\n".view('stubs.flow', [
             'className' => $className,
             'interruptCommands' => $interruptCommands,
@@ -79,7 +81,47 @@ class FlowGenerator
             'stepMethods' => $stepMethods.$tailMethods,
             'onCompleteMethod' => $onCompleteMethod,
             'onCancelMethod' => $onCancelMethod,
+            'useMedia' => $imports['media'],
+            'useMessage' => $imports['message'],
+            'useKeyboard' => $imports['keyboard'],
         ])->render();
+    }
+
+    /** Определить, какие use-импорты нужны в сгенерированном Flow-классе.
+     * Flow/Step/IncomingMessage импортируются всегда (базовые типы).
+     *
+     * @return array{media: bool, message: bool, keyboard: bool}
+     */
+    private function detectRequiredImports(): array
+    {
+        $useMedia = false;
+        $useMessage = false;
+        $useKeyboard = false;
+
+        foreach ($this->nodes as $node) {
+            $type = $node['type'] ?? '';
+            $data = $node['data'] ?? [];
+
+            if (in_array($type, ['ask_keyboard', 'reply_keyboard'], true)) {
+                $useKeyboard = true;
+            }
+
+            if ($type === 'reply_keyboard') {
+                $useMessage = true;
+            }
+
+            if (in_array($type, ['ask_text', 'ask_keyboard'], true)
+                && trim((string) ($data['image'] ?? '')) !== ''
+            ) {
+                $useMedia = true;
+            }
+
+            if ($type === 'reply_media' && ($data['media_type'] ?? 'photo') === 'photo') {
+                $useMedia = true;
+            }
+        }
+
+        return ['media' => $useMedia, 'message' => $useMessage, 'keyboard' => $useKeyboard];
     }
 
     /** Разрешить имена ask-steps для всех ask-нод flow.
