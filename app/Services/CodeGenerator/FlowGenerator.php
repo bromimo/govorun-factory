@@ -46,9 +46,12 @@ class FlowGenerator
 
         [$orderedAskIds, $onCompleteStart, $onCancelStart] = $this->analyzeStructure();
 
-        $stepsList = collect($orderedAskIds)
+        $quoted = collect($orderedAskIds)
             ->map(fn (string $id) => "'{$this->askStepNames[$id]}'")
-            ->implode(', ');
+            ->all();
+        $stepsList = count($quoted) > 1
+            ? "\n        ".implode(",\n        ", $quoted).",\n    "
+            : implode(', ', $quoted);
 
         $stepMethods = '';
         foreach ($orderedAskIds as $askId) {

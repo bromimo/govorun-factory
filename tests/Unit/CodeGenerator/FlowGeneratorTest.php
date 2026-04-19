@@ -61,7 +61,7 @@ test('generates multi-step flow', function () {
     $result = $generator->generate('RegistrationFlow', $graph, [], false);
 
     expect($result)->toContain('class RegistrationFlow extends Flow');
-    expect($result)->toContain("protected array \$steps = ['askName', 'askAge']");
+    expect($result)->toContain("protected array \$steps = [\n        'askName',\n        'askAge',\n    ];");
     expect($result)->toContain('public function askNameStep(Step $step): void');
     expect($result)->toContain('public function askAgeStep(Step $step): void');
     expect($result)->toContain("\$step->ask('Name?')");
@@ -229,7 +229,7 @@ test('condition routes to named ask-steps via nextStep', function () {
     $generator = new FlowGenerator;
     $result = $generator->generate('GenderFlow', $graph, [], false);
 
-    expect($result)->toContain("protected array \$steps = ['askGender', 'askMan', 'askWoman']");
+    expect($result)->toContain("protected array \$steps = [\n        'askGender',\n        'askMan',\n        'askWoman',\n    ];");
     expect($result)->toContain('public function askGenderStep(Step $step): void');
     expect($result)->toContain('public function askManStep(Step $step): void');
     expect($result)->toContain('public function askWomanStep(Step $step): void');
