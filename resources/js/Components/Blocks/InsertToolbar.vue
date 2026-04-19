@@ -9,6 +9,7 @@ const props = defineProps({
     declaredKeys: { type: Array, default: () => [] },
 });
 
+const toolbarRef = ref(null);
 const emojiOpen = ref(false);
 const varsOpen = ref(false);
 
@@ -28,31 +29,33 @@ function onEmoji(emoji) {
 }
 
 function onVar(key) {
-    insertAtCursor(props.target, `{{${key}}}`);
+    insertAtCursor(props.target, `{{ ${key} }}`);
     varsOpen.value = false;
 }
 </script>
 
 <template>
-    <div class="relative inline-flex items-center gap-1">
+    <div ref="toolbarRef" class="relative inline-flex items-center gap-1">
         <button type="button" :disabled="!target"
             @click="toggle('emoji')"
             title="Вставить эмодзи"
             aria-label="Вставить эмодзи"
-            class="text-base leading-none text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-40">
+            class="inline-flex h-6 w-6 items-center justify-center text-base text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-40">
             😀
         </button>
         <button type="button" :disabled="!target"
             @click="toggle('vars')"
             title="Вставить переменную"
             aria-label="Вставить переменную"
-            class="font-mono text-sm leading-none text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-40">
+            class="inline-flex h-6 w-6 items-center justify-center font-mono text-sm text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-40">
             {…}
         </button>
         <EmojiPickerPopover v-if="emojiOpen"
+            :anchor="toolbarRef"
             @select="onEmoji"
             @close="emojiOpen = false" />
         <VariablePickerPopover v-if="varsOpen"
+            :anchor="toolbarRef"
             :declared-keys="declaredKeys"
             @select="onVar"
             @close="varsOpen = false" />
