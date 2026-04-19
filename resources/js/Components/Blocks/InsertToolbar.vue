@@ -5,7 +5,7 @@ import VariablePickerPopover from './VariablePickerPopover.vue';
 import { insertAtCursor } from '@/utils/insertAtCursor';
 
 const props = defineProps({
-    target: { type: [Object, null], default: null },
+    target: { type: Object, default: null },
     declaredKeys: { type: Array, default: () => [] },
 });
 
@@ -38,12 +38,14 @@ function onVar(key) {
         <button type="button" :disabled="!target"
             @click="toggle('emoji')"
             title="Вставить эмодзи"
+            aria-label="Вставить эмодзи"
             class="text-base leading-none text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-40">
             😀
         </button>
         <button type="button" :disabled="!target"
             @click="toggle('vars')"
             title="Вставить переменную"
+            aria-label="Вставить переменную"
             class="font-mono text-sm leading-none text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-40">
             {…}
         </button>
