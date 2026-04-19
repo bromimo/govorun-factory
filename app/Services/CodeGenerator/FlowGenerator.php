@@ -449,15 +449,26 @@ class FlowGenerator
 
         if ($type === 'ask_text') {
             $text = $this->renderText($data['text'] ?? '');
+            $image = trim((string) ($data['image'] ?? ''));
+            if ($image !== '') {
+                $url = "'".addslashes($image)."'";
+
+                return "        \$step->ask(Media::photo({$url})->caption({$text}));\n";
+            }
 
             return "        \$step->ask({$text});\n";
         }
 
         if ($type === 'ask_keyboard') {
             $text = $this->renderText($data['text'] ?? '');
+            $image = trim((string) ($data['image'] ?? ''));
             $buttons = $data['buttons'] ?? [];
 
-            $code = "        \$step->ask({$text}, fn () => Keyboard::make()\n";
+            $messageExpr = $image !== ''
+                ? "Media::photo('".addslashes($image)."')->caption({$text})"
+                : $text;
+
+            $code = "        \$step->ask({$messageExpr}, fn () => Keyboard::make()\n";
             foreach ($buttons as $button) {
                 $label = addslashes($button['label'] ?? '');
                 $action = addslashes($button['action'] ?? '');

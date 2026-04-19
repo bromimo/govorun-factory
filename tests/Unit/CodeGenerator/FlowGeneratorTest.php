@@ -385,3 +385,71 @@ test('linear flow without condition still generates valid step method', function
     expect($result)->toContain("\$this->state->set('q', \$message->text)");
     expect($result)->toContain('$this->completeFlow();');
 });
+
+test('ask_text with image generates Media::photo with caption', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Нравится?', 'image' => 'https://example.com/a.jpg'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('PhotoFlow', $graph, [], false);
+
+    expect($result)->toContain("\$step->ask(Media::photo('https://example.com/a.jpg')->caption('Нравится?'))");
+    expect($result)->not->toContain("\$step->ask('Нравится?')");
+});
+
+test('ask_text without image keeps string ask', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Возраст?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('AgeFlow', $graph, [], false);
+
+    expect($result)->toContain("\$step->ask('Возраст?')");
+    expect($result)->not->toContain('Media::photo');
+});
+
+test('ask_keyboard with image generates Media::photo with caption and keyboard', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => [
+                'text' => 'Выбор?',
+                'image' => 'https://example.com/b.jpg',
+                'buttons' => [
+                    ['label' => 'Да', 'action' => 'yes'],
+                    ['label' => 'Нет', 'action' => 'no'],
+                ],
+            ], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('ChoicePhotoFlow', $graph, [], false);
+
+    expect($result)->toContain("\$step->ask(Media::photo('https://example.com/b.jpg')->caption('Выбор?'), fn () => Keyboard::make()");
+    expect($result)->toContain("->button('Да', 'yes')");
+    expect($result)->toContain("->button('Нет', 'no')");
+});
