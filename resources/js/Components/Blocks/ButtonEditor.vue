@@ -1,5 +1,17 @@
 <script setup>
+import { ref } from 'vue';
+import InsertToolbar from './InsertToolbar.vue';
+
 const model = defineModel({ type: Array, default: () => [] });
+defineProps({
+    declaredStateKeys: { type: Array, default: () => [] },
+});
+
+const labelRefs = ref({});
+
+function setLabelRef(index, el) {
+    labelRefs.value[index] = el;
+}
 
 function addButton() {
     model.value = [...model.value, { label: '', action: '' }];
@@ -7,6 +19,7 @@ function addButton() {
 
 function removeButton(index) {
     model.value = model.value.filter((_, i) => i !== index);
+    delete labelRefs.value[index];
 }
 
 function updateButton(index, field, value) {
@@ -24,8 +37,13 @@ function updateButton(index, field, value) {
                 <span class="text-xs text-gray-400">Кнопка {{ i + 1 }}</span>
                 <button type="button" @click="removeButton(i)" class="text-red-400 hover:text-red-600 text-sm">x</button>
             </div>
-            <input :value="btn.label" @input="updateButton(i, 'label', $event.target.value)"
-                placeholder="Текст" class="w-full rounded border-gray-300 text-sm placeholder-gray-400" />
+            <div class="flex items-center gap-1">
+                <input :ref="el => setLabelRef(i, el)" :value="btn.label"
+                    @input="updateButton(i, 'label', $event.target.value)"
+                    placeholder="Текст"
+                    class="flex-1 rounded border-gray-300 text-sm placeholder-gray-400" />
+                <InsertToolbar :target="labelRefs[i]" :declared-keys="declaredStateKeys" />
+            </div>
             <input :value="btn.action" @input="updateButton(i, 'action', $event.target.value)"
                 placeholder="Action" class="w-full rounded border-gray-300 text-sm placeholder-gray-400" />
         </div>
