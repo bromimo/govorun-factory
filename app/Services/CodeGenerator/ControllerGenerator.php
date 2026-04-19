@@ -20,9 +20,13 @@ class ControllerGenerator
             $blockCode .= $this->indentBlock($this->renderBlock($block['type'], $block['params'] ?? []));
         }
 
+        $imports = $this->detectRequiredImports($blocks);
+
         return "<?php\n\n".view('stubs.controller', [
             'className' => $className,
             'blockCode' => $blockCode,
+            'useMedia' => $imports['media'],
+            'useMessage' => $imports['message'],
         ])->render();
     }
 
@@ -32,9 +36,11 @@ class ControllerGenerator
     public function generateWithMethods(string $className, array $methods): string
     {
         $methodsCode = '';
+        $allBlocks = [];
 
         foreach ($methods as $method) {
             $blocks = $method['schema']['blocks'] ?? [];
+            $allBlocks = array_merge($allBlocks, $blocks);
             $blockCode = '';
             foreach ($blocks as $block) {
                 $blockCode .= $this->indentBlock($this->renderBlock($block['type'], $block['params'] ?? []));
@@ -47,10 +53,41 @@ class ControllerGenerator
             $methodsCode .= '    '.$rendered;
         }
 
+        $imports = $this->detectRequiredImports($allBlocks);
+
         return "<?php\n\n".view('stubs.controller_multi', [
             'className' => $className,
             'methodsCode' => $methodsCode,
+            'useMedia' => $imports['media'],
+            'useMessage' => $imports['message'],
         ])->render();
+    }
+
+    /** Определить, какие use-импорты нужны в сгенерированном контроллере.
+     * Message/Routing — всегда (базовые типы Controller). Media/Message — опционально.
+     *
+     * @param  array<int, array{type: string, params?: array}>  $blocks
+     * @return array{media: bool, message: bool}
+     */
+    private function detectRequiredImports(array $blocks): array
+    {
+        $useMedia = false;
+        $useMessage = false;
+
+        foreach ($blocks as $block) {
+            $type = $block['type'] ?? '';
+            $params = $block['params'] ?? [];
+
+            if (in_array($type, ['ask_keyboard', 'reply_keyboard'], true)) {
+                $useMessage = true;
+            }
+
+            if ($type === 'reply_media' && ($params['media_type'] ?? 'photo') === 'photo') {
+                $useMedia = true;
+            }
+        }
+
+        return ['media' => $useMedia, 'message' => $useMessage];
     }
 
     /** Отрендерить один блок в PHP-код.

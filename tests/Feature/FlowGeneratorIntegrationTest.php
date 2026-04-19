@@ -41,17 +41,17 @@ test('spec example: flow 2 (Gender branching) generates expected structure', fun
     expect($result)->toContain('public function askNameStep(Step $step): void');
     expect($result)->toContain("\$this->state->set('name', \$message->text)");
     expect($result)->toContain("\$this->state->set('user_id', \$message->user->id)");
-    expect($result)->toContain("\$this->nextStep('askGender'); return;");
+    expect($result)->toContain("\$this->nextStep('askGender');");
 
     expect($result)->toContain('public function askGenderStep(Step $step): void');
     expect($result)->toContain('match ($message->action)');
-    expect($result)->toContain("'man' => (function () { \$this->nextStep('askManAnswer'); return; })()");
-    expect($result)->toContain("'woman' => (function () { \$this->nextStep('askWomanAnswer'); return; })()");
+    expect($result)->toContain("'man' => (function () { \$this->nextStep('askManAnswer'); })()");
+    expect($result)->toContain("'woman' => (function () { \$this->nextStep('askWomanAnswer'); })()");
     expect($result)->toContain('default => null');
 
     expect($result)->toContain('public function askManAnswerStep(Step $step): void');
     expect($result)->toContain("\$this->state->set('answer', \$message->text)");
-    expect($result)->toContain('$this->completeFlow(); return;');
+    expect($result)->toContain('$this->completeFlow();');
 
     expect($result)->toContain('public function askWomanAnswerStep(Step $step): void');
 });

@@ -20,6 +20,7 @@ test('controller renders reply_media type=photo via Media::photo with caption', 
     $result = $generator->generate('TestController', $schema);
 
     expect($result)->toContain("use Govorun\\Messaging\\Media;");
+    expect($result)->not->toContain("use Govorun\\Messaging\\Message;");
     expect($result)->toContain("        \$this->send(\n            Media::photo('https://example.com/a.jpg')\n                ->caption('Hi, ' . \$this->state->get('name') . '!')\n        );");
 });
 

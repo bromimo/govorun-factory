@@ -25,8 +25,10 @@ test('generates step-based flow from linear graph', function () {
     expect($result)->toContain('class OnboardingFlow extends Flow');
     expect($result)->toContain("protected array \$steps = ['askYourName']");
     expect($result)->toContain('use Govorun\State\Step;');
-    expect($result)->toContain('use Govorun\Messaging\Media;');
     expect($result)->toContain('use Govorun\Messaging\IncomingMessage;');
+    expect($result)->not->toContain('use Govorun\Messaging\Media;');
+    expect($result)->not->toContain('use Govorun\Messaging\Message;');
+    expect($result)->not->toContain('use Govorun\Messaging\Keyboard;');
     expect($result)->toContain('public function askYourNameStep(Step $step): void');
     expect($result)->toContain("\$step->ask('Your name?')");
     expect($result)->toContain('$step->receive(function (IncomingMessage $message)');
@@ -234,8 +236,8 @@ test('condition routes to named ask-steps via nextStep', function () {
     expect($result)->toContain('public function askManStep(Step $step): void');
     expect($result)->toContain('public function askWomanStep(Step $step): void');
     expect($result)->toContain('match ($message->action)');
-    expect($result)->toContain("'man' => (function () { \$this->nextStep('askMan'); return; })()");
-    expect($result)->toContain("'woman' => (function () { \$this->nextStep('askWoman'); return; })()");
+    expect($result)->toContain("'man' => (function () { \$this->nextStep('askMan'); })()");
+    expect($result)->toContain("'woman' => (function () { \$this->nextStep('askWoman'); })()");
     expect($result)->toContain('default => null');
     expect($result)->not->toContain("\$this->nextStep();\n");
 });
@@ -265,7 +267,7 @@ test('condition branch without ask runs inline actions then completeFlow', funct
     expect($result)->toContain("'y' => (function () {");
     expect($result)->toContain("\$this->state->set('confirmed', \$message->action)");
     expect($result)->toContain("\$this->reply('Спасибо!')");
-    expect($result)->toContain('$this->completeFlow(); return;');
+    expect($result)->toContain('$this->completeFlow();');
 });
 
 test('condition branch directly to on_complete calls completeFlow', function () {
@@ -286,7 +288,8 @@ test('condition branch directly to on_complete calls completeFlow', function () 
     $generator = new FlowGenerator;
     $result = $generator->generate('StopFlow', $graph, [], false);
 
-    expect($result)->toContain("'stop' => (function () { \$this->completeFlow(); return; })()");
+    expect($result)->toContain("'stop' => (function () { \$this->completeFlow(); })()");
+
 });
 
 test('converging branches generate shared tail method', function () {
@@ -315,9 +318,9 @@ test('converging branches generate shared tail method', function () {
     $result = $generator->generate('ConvergeFlow', $graph, [], false);
 
     expect($result)->toContain('private function tail1(): void');
-    expect($result)->toContain('$this->tail1(); return;');
+    expect($result)->toContain('$this->tail1();');
     expect($result)->toContain("\$this->reply('Спасибо!')");
-    expect($result)->toContain('$this->completeFlow(); return;');
+    expect($result)->toContain('$this->completeFlow();');
     $defCount = substr_count($result, 'private function tail1(): void');
     expect($defCount)->toBe(1);
 });
