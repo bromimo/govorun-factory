@@ -453,7 +453,10 @@ class FlowGenerator
             if ($image !== '') {
                 $url = "'".addslashes($image)."'";
 
-                return "        \$step->ask(Media::photo({$url})->caption({$text}));\n";
+                return "        \$step->ask(\n"
+                    ."            Media::photo({$url})\n"
+                    ."                ->caption({$text})\n"
+                    ."        );\n";
             }
 
             return "        \$step->ask({$text});\n";
@@ -464,11 +467,23 @@ class FlowGenerator
             $image = trim((string) ($data['image'] ?? ''));
             $buttons = $data['buttons'] ?? [];
 
-            $messageExpr = $image !== ''
-                ? "Media::photo('".addslashes($image)."')->caption({$text})"
-                : $text;
+            if ($image !== '') {
+                $url = "'".addslashes($image)."'";
+                $code = "        \$step->ask(\n"
+                    ."            Media::photo({$url})\n"
+                    ."                ->caption({$text}),\n"
+                    ."            fn () => Keyboard::make()\n";
+                foreach ($buttons as $button) {
+                    $label = addslashes($button['label'] ?? '');
+                    $action = addslashes($button['action'] ?? '');
+                    $code .= "                ->button('{$label}', '{$action}')\n";
+                }
+                $code .= "        );\n";
 
-            $code = "        \$step->ask({$messageExpr}, fn () => Keyboard::make()\n";
+                return $code;
+            }
+
+            $code = "        \$step->ask({$text}, fn () => Keyboard::make()\n";
             foreach ($buttons as $button) {
                 $label = addslashes($button['label'] ?? '');
                 $action = addslashes($button['action'] ?? '');
@@ -497,7 +512,9 @@ class FlowGenerator
         };
     }
 
-    /** Отрендерить reply_media — поддерживается только photo. */
+    /** Отрендерить reply_media — поддерживается только photo.
+     * При наличии caption разбивает Media-цепочку на строки (ширина ≤ 120).
+     */
     private function renderReplyMedia(array $data, string $pad): string
     {
         $type = $data['media_type'] ?? 'photo';
@@ -507,11 +524,18 @@ class FlowGenerator
 
         $url = "'".addslashes($data['url'] ?? '')."'";
         $caption = trim((string) ($data['caption'] ?? ''));
-        $captionChain = $caption !== ''
-            ? '->caption('.$this->renderText($caption).')'
-            : '';
 
-        return "{$pad}\$this->send(Media::photo({$url}){$captionChain});\n";
+        if ($caption === '') {
+            return "{$pad}\$this->send(Media::photo({$url}));\n";
+        }
+
+        $inner = $pad.'    ';
+        $chain = $inner.'    ';
+
+        return "{$pad}\$this->send(\n"
+            ."{$inner}Media::photo({$url})\n"
+            ."{$chain}->caption(".$this->renderText($caption).")\n"
+            ."{$pad});\n";
     }
 
     /** Отрендерить reply_keyboard. */

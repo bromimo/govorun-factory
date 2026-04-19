@@ -402,8 +402,9 @@ test('ask_text with image generates Media::photo with caption', function () {
     $generator = new FlowGenerator;
     $result = $generator->generate('PhotoFlow', $graph, [], false);
 
-    expect($result)->toContain("\$step->ask(Media::photo('https://example.com/a.jpg')->caption('Нравится?'))");
+    expect($result)->toContain("        \$step->ask(\n            Media::photo('https://example.com/a.jpg')\n                ->caption('Нравится?')\n        );");
     expect($result)->not->toContain("\$step->ask('Нравится?')");
+    expect($result)->not->toContain("Media::photo('https://example.com/a.jpg')->caption(");
 });
 
 test('ask_text without image keeps string ask', function () {
@@ -449,9 +450,9 @@ test('ask_keyboard with image generates Media::photo with caption and keyboard',
     $generator = new FlowGenerator;
     $result = $generator->generate('ChoicePhotoFlow', $graph, [], false);
 
-    expect($result)->toContain("\$step->ask(Media::photo('https://example.com/b.jpg')->caption('Выбор?'), fn () => Keyboard::make()");
-    expect($result)->toContain("->button('Да', 'yes')");
-    expect($result)->toContain("->button('Нет', 'no')");
+    expect($result)->toContain("        \$step->ask(\n            Media::photo('https://example.com/b.jpg')\n                ->caption('Выбор?'),\n            fn () => Keyboard::make()\n");
+    expect($result)->toContain("                ->button('Да', 'yes')");
+    expect($result)->toContain("                ->button('Нет', 'no')");
 });
 
 test('reply_media type=photo with caption generates Media::photo with caption', function () {
@@ -474,7 +475,7 @@ test('reply_media type=photo with caption generates Media::photo with caption', 
     $generator = new FlowGenerator;
     $result = $generator->generate('GreetingFlow', $graph, [], false);
 
-    expect($result)->toContain("\$this->send(Media::photo('https://example.com/pic.jpg')->caption('Привет, ' . \$this->state->get('name') . '!'))");
+    expect($result)->toContain("            \$this->send(\n                Media::photo('https://example.com/pic.jpg')\n                    ->caption('Привет, ' . \$this->state->get('name') . '!')\n            );");
 });
 
 test('reply_media type=photo without caption generates Media::photo without caption chain', function () {
