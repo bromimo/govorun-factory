@@ -19,7 +19,8 @@ test('controller renders reply_media type=photo via Media::photo with caption', 
 
     $result = $generator->generate('TestController', $schema);
 
-    expect($result)->toContain("\$this->send(\\Govorun\\Messaging\\Media::photo('https://example.com/a.jpg')->caption('Hi, ' . \$this->state->get('name') . '!'));");
+    expect($result)->toContain("use Govorun\\Messaging\\Media;");
+    expect($result)->toContain("        \$this->send(\n            Media::photo('https://example.com/a.jpg')\n                ->caption('Hi, ' . \$this->state->get('name') . '!')\n        );");
 });
 
 test('controller renders reply_media type=photo without caption', function () {
@@ -39,7 +40,7 @@ test('controller renders reply_media type=photo without caption', function () {
 
     $result = $generator->generate('TestController', $schema);
 
-    expect($result)->toContain("\$this->send(\\Govorun\\Messaging\\Media::photo('https://example.com/b.jpg'));");
+    expect($result)->toContain("\$this->send(Media::photo('https://example.com/b.jpg'));");
     expect($result)->not->toContain('->caption');
 });
 

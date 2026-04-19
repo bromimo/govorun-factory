@@ -36,7 +36,7 @@ test('spec example: flow 2 (Gender branching) generates expected structure', fun
     $generator = new FlowGenerator;
     $result = $generator->generate('GenderFlow', $graph, [], false);
 
-    expect($result)->toContain("protected array \$steps = ['askName', 'askGender', 'askManAnswer', 'askWomanAnswer']");
+    expect($result)->toContain("protected array \$steps = [\n        'askName',\n        'askGender',\n        'askManAnswer',\n        'askWomanAnswer',\n    ];");
 
     expect($result)->toContain('public function askNameStep(Step $step): void');
     expect($result)->toContain("\$this->state->set('name', \$message->text)");
