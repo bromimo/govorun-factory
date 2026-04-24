@@ -22,12 +22,14 @@ class ControllerGenerator
 
         $imports = $this->detectRequiredImports($blocks);
 
-        return "<?php\n\n".view('stubs.controller', [
+        $code = "<?php\n\n".view('stubs.controller', [
             'className' => $className,
             'blockCode' => $blockCode,
             'useMedia' => $imports['media'],
             'useMessage' => $imports['message'],
         ])->render();
+
+        return CodeHelper::wrapLongLines($code);
     }
 
     /** Сгенерировать класс контроллера с несколькими методами.
@@ -55,12 +57,14 @@ class ControllerGenerator
 
         $imports = $this->detectRequiredImports($allBlocks);
 
-        return "<?php\n\n".view('stubs.controller_multi', [
+        $code = "<?php\n\n".view('stubs.controller_multi', [
             'className' => $className,
             'methodsCode' => $methodsCode,
             'useMedia' => $imports['media'],
             'useMessage' => $imports['message'],
         ])->render();
+
+        return CodeHelper::wrapLongLines($code);
     }
 
     /** Определить, какие use-импорты нужны в сгенерированном контроллере.
