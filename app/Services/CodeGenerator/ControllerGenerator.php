@@ -27,6 +27,8 @@ class ControllerGenerator
             'blockCode' => $blockCode,
             'useMedia' => $imports['media'],
             'useMessage' => $imports['message'],
+            'useKeyboard' => $imports['keyboard'],
+            'useButton' => $imports['button'],
         ])->render();
 
         return CodeHelper::wrapLongLines($code);
@@ -62,21 +64,25 @@ class ControllerGenerator
             'methodsCode' => $methodsCode,
             'useMedia' => $imports['media'],
             'useMessage' => $imports['message'],
+            'useKeyboard' => $imports['keyboard'],
+            'useButton' => $imports['button'],
         ])->render();
 
         return CodeHelper::wrapLongLines($code);
     }
 
     /** Определить, какие use-импорты нужны в сгенерированном контроллере.
-     * Message/Routing — всегда (базовые типы Controller). Media/Message — опционально.
+     * Routing — всегда (базовый Controller). Media/Message/Keyboard/Button — опционально.
      *
      * @param  array<int, array{type: string, params?: array}>  $blocks
-     * @return array{media: bool, message: bool}
+     * @return array{media: bool, message: bool, keyboard: bool, button: bool}
      */
     private function detectRequiredImports(array $blocks): array
     {
         $useMedia = false;
         $useMessage = false;
+        $useKeyboard = false;
+        $useButton = false;
 
         foreach ($blocks as $block) {
             $type = $block['type'] ?? '';
@@ -84,6 +90,8 @@ class ControllerGenerator
 
             if (in_array($type, ['ask_keyboard', 'reply_keyboard'], true)) {
                 $useMessage = true;
+                $useKeyboard = true;
+                $useButton = true;
             }
 
             if ($type === 'reply_media' && ($params['media_type'] ?? 'photo') === 'photo') {
@@ -91,7 +99,12 @@ class ControllerGenerator
             }
         }
 
-        return ['media' => $useMedia, 'message' => $useMessage];
+        return [
+            'media' => $useMedia,
+            'message' => $useMessage,
+            'keyboard' => $useKeyboard,
+            'button' => $useButton,
+        ];
     }
 
     /** Отрендерить один блок в PHP-код.
