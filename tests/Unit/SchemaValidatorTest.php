@@ -178,3 +178,95 @@ test('passes with unique stepNames', function () {
 
     expect($result->isValid())->toBeTrue();
 });
+
+test('устаревший плоский формат кнопок в ноде flow даёт ошибку', function () {
+    $admin = User::factory()->admin()->create();
+    $bot = Bot::factory()->for($admin, 'creator')->create([
+        'messenger_config' => ['telegram'],
+    ]);
+    BotRoute::factory()->for($bot)->create();
+    $bot->flows()->create([
+        'name' => 'Main',
+        'graph' => [
+            'nodes' => [
+                ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+                ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => [
+                    'text' => 'Привет',
+                    'buttons' => [
+                        ['label' => 'A', 'action' => 'a'],
+                        ['label' => 'B', 'action' => 'b'],
+                    ],
+                ], 'position' => ['x' => 0, 'y' => 0]],
+                ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ],
+            'edges' => [
+                ['source' => 'start', 'target' => 'ask'],
+                ['source' => 'ask', 'target' => 'done'],
+            ],
+        ],
+    ]);
+
+    $validator = new SchemaValidator($bot);
+    $result = $validator->validate();
+
+    expect($result->isValid())->toBeFalse();
+    expect(implode("\n", $result->errors))->toContain('Клавиатура в ноде «ask» flow «Main» в устаревшем формате');
+});
+
+test('новый матричный формат кнопок в ноде flow проходит валидацию', function () {
+    $admin = User::factory()->admin()->create();
+    $bot = Bot::factory()->for($admin, 'creator')->create([
+        'messenger_config' => ['telegram'],
+    ]);
+    BotRoute::factory()->for($bot)->create();
+    $bot->flows()->create([
+        'name' => 'Main',
+        'graph' => [
+            'nodes' => [
+                ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+                ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => [
+                    'text' => 'Привет',
+                    'buttons' => [
+                        [['type' => 'action', 'label' => 'A', 'action' => 'a']],
+                    ],
+                ], 'position' => ['x' => 0, 'y' => 0]],
+                ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ],
+            'edges' => [
+                ['source' => 'start', 'target' => 'ask'],
+                ['source' => 'ask', 'target' => 'done'],
+            ],
+        ],
+    ]);
+
+    $validator = new SchemaValidator($bot);
+    $result = $validator->validate();
+
+    expect($result->isValid())->toBeTrue();
+});
+
+test('устаревший плоский формат кнопок в блоке маршрута даёт ошибку', function () {
+    $admin = User::factory()->admin()->create();
+    $bot = Bot::factory()->for($admin, 'creator')->create([
+        'messenger_config' => ['telegram'],
+    ]);
+    BotRoute::factory()->for($bot)->create([
+        'match' => '/menu',
+        'handler_schema' => [
+            'blocks' => [
+                ['type' => 'reply_keyboard', 'params' => [
+                    'text' => 'Меню',
+                    'buttons' => [
+                        ['label' => 'A', 'action' => 'a'],
+                    ],
+                ]],
+            ],
+        ],
+    ]);
+
+    $validator = new SchemaValidator($bot);
+    $result = $validator->validate();
+
+    expect($result->isValid())->toBeFalse();
+    expect(implode("\n", $result->errors))->toContain('Клавиатура в блоке #1 маршрута «/menu» в устаревшем формате');
+});
