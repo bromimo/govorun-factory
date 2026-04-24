@@ -92,3 +92,48 @@ test('wrapLongLines обрабатывает многострочный код: 
     expect($outLines[0])->toBe($short);
     expect($outLines[count($outLines) - 1])->toBe($short);
 });
+
+test('renderButton type=action без param', function () {
+    $btn = ['type' => 'action', 'label' => 'Маникюр', 'action' => 'manicure'];
+    expect(CodeHelper::renderButton($btn))->toBe("Button::make('Маникюр')->action('manicure')");
+});
+
+test('renderButton type=action с param', function () {
+    $btn = [
+        'type' => 'action',
+        'label' => 'Выбрать',
+        'action' => 'pick',
+        'param' => ['id' => 42, 'name' => 'test'],
+    ];
+    expect(CodeHelper::renderButton($btn))
+        ->toBe("Button::make('Выбрать')->action('pick', ['id' => 42, 'name' => 'test'])");
+});
+
+test('renderButton type=url', function () {
+    $btn = ['type' => 'url', 'label' => 'Сайт', 'url' => 'https://example.com'];
+    expect(CodeHelper::renderButton($btn))
+        ->toBe("Button::make('Сайт')->url('https://example.com')");
+});
+
+test('renderButton type=contact', function () {
+    $btn = ['type' => 'contact', 'label' => 'Поделиться номером'];
+    expect(CodeHelper::renderButton($btn))
+        ->toBe("Button::make('Поделиться номером')->requestContact()");
+});
+
+test('renderButton type=location', function () {
+    $btn = ['type' => 'location', 'label' => 'Прислать геопозицию'];
+    expect(CodeHelper::renderButton($btn))
+        ->toBe("Button::make('Прислать геопозицию')->requestLocation()");
+});
+
+test('renderButton экранирует одинарные кавычки в label', function () {
+    $btn = ['type' => 'action', 'label' => "It's me", 'action' => 'me'];
+    expect(CodeHelper::renderButton($btn))
+        ->toBe("Button::make('It\\'s me')->action('me')");
+});
+
+test('renderButton type по умолчанию action', function () {
+    $btn = ['label' => 'Да', 'action' => 'yes'];
+    expect(CodeHelper::renderButton($btn))->toBe("Button::make('Да')->action('yes')");
+});

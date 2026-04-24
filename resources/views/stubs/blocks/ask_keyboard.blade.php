@@ -1,8 +1,12 @@
         $this->ask(
-            Message::make({!! \App\Services\CodeGenerator\CodeHelper::renderText($params['text']) !!})
-                ->keyboard([
-@foreach($params['buttons'] as $button)
-                    ['label' => '{!! addslashes($button['label']) !!}', 'action' => '{!! addslashes($button['action']) !!}'],
+            {!! \App\Services\CodeGenerator\CodeHelper::renderText($params['text']) !!},
+            Keyboard::make()->buttons([
+@foreach($params['buttons'] as $row)
+                [
+@foreach($row as $btn)
+                    {!! \App\Services\CodeGenerator\CodeHelper::renderButton($btn) !!},
 @endforeach
-                ])
+                ],
+@endforeach
+            ]),
         );

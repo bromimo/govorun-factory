@@ -9,8 +9,10 @@ test('generates controller class from handler schema', function () {
             ['type' => 'reply_keyboard', 'params' => [
                 'text' => 'Choose:',
                 'buttons' => [
-                    ['label' => 'Option A', 'action' => 'a'],
-                    ['label' => 'Option B', 'action' => 'b'],
+                    [
+                        ['type' => 'action', 'label' => 'Option A', 'action' => 'a'],
+                        ['type' => 'action', 'label' => 'Option B', 'action' => 'b'],
+                    ],
                 ],
             ]],
         ],
@@ -22,7 +24,9 @@ test('generates controller class from handler schema', function () {
     expect($result)->toContain('class StartController extends Controller');
     expect($result)->toContain("\$this->reply('Hello!')");
     expect($result)->toContain("Message::make('Choose:')");
-    expect($result)->toContain("'label' => 'Option A'");
+    expect($result)->toContain("Button::make('Option A')->action('a')");
+    expect($result)->toContain('use Govorun\Messaging\Button;');
+    expect($result)->toContain('use Govorun\Messaging\Keyboard;');
 });
 
 test('generates controller with save_state block', function () {

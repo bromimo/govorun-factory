@@ -9,7 +9,7 @@ test('spec example: flow 2 (Gender branching) generates expected structure', fun
             ['id' => 'ask_name', 'type' => 'ask_text', 'data' => ['text' => 'Как вас зовут?', 'stepName' => 'askName'], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'save_name', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'name', 'source' => 'message.text'], ['key' => 'user_id', 'source' => 'user.id']]], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'reply_hi', 'type' => 'reply_text', 'data' => ['text' => 'Привет, {{name}} {{message.user.firstName}}!'], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_g', 'type' => 'ask_keyboard', 'data' => ['text' => 'Выберите свой пол', 'stepName' => 'askGender', 'buttons' => [['label' => 'мужской', 'action' => 'man'], ['label' => 'женский', 'action' => 'woman']]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_g', 'type' => 'ask_keyboard', 'data' => ['text' => 'Выберите свой пол', 'stepName' => 'askGender', 'buttons' => [[['type' => 'action', 'label' => 'мужской', 'action' => 'man'], ['type' => 'action', 'label' => 'женский', 'action' => 'woman']]]], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'ask_m', 'type' => 'ask_text', 'data' => ['text' => 'Мужской вопрос', 'stepName' => 'askManAnswer'], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'save_ans', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'answer', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 0]],
@@ -66,8 +66,10 @@ test('bot with image-in-ask, image-in-ask-keyboard and reply_media photo generat
                 'text' => 'Выбор?',
                 'image' => 'https://example.com/choose.jpg',
                 'buttons' => [
-                    ['label' => 'A', 'action' => 'a'],
-                    ['label' => 'B', 'action' => 'b'],
+                    [
+                        ['type' => 'action', 'label' => 'A', 'action' => 'a'],
+                        ['type' => 'action', 'label' => 'B', 'action' => 'b'],
+                    ],
                 ],
             ], 'position' => ['x' => 0, 'y' => 300]],
             ['id' => 'save2', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'choice', 'source' => 'message.action']]], 'position' => ['x' => 0, 'y' => 400]],

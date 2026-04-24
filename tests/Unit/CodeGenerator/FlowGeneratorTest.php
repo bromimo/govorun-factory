@@ -210,7 +210,12 @@ test('condition routes to named ask-steps via nextStep', function () {
             ['id' => 'ask_g', 'type' => 'ask_keyboard', 'data' => [
                 'text' => 'Пол?',
                 'stepName' => 'askGender',
-                'buttons' => [['label' => 'М', 'action' => 'man'], ['label' => 'Ж', 'action' => 'woman']],
+                'buttons' => [
+                    [
+                        ['type' => 'action', 'label' => 'М', 'action' => 'man'],
+                        ['type' => 'action', 'label' => 'Ж', 'action' => 'woman'],
+                    ],
+                ],
             ], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'ask_m', 'type' => 'ask_text', 'data' => ['text' => 'Мужской', 'stepName' => 'askMan'], 'position' => ['x' => 0, 'y' => 0]],
@@ -246,7 +251,7 @@ test('condition branch without ask runs inline actions then completeFlow', funct
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => ['text' => 'OK?', 'stepName' => 'askConfirm', 'buttons' => [['label' => 'Y', 'action' => 'y']]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => ['text' => 'OK?', 'stepName' => 'askConfirm', 'buttons' => [[['type' => 'action', 'label' => 'Y', 'action' => 'y']]]], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'save', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'confirmed', 'source' => 'message.action']]], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'reply', 'type' => 'reply_text', 'data' => ['text' => 'Спасибо!'], 'position' => ['x' => 0, 'y' => 0]],
@@ -274,7 +279,7 @@ test('condition branch directly to on_complete calls completeFlow', function () 
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => ['text' => 'q', 'stepName' => 'askQ', 'buttons' => [['label' => 'S', 'action' => 'stop']]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => ['text' => 'q', 'stepName' => 'askQ', 'buttons' => [[['type' => 'action', 'label' => 'S', 'action' => 'stop']]]], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
         ],
@@ -296,7 +301,7 @@ test('converging branches generate shared tail method', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_g', 'type' => 'ask_keyboard', 'data' => ['text' => 'Пол?', 'stepName' => 'askGender', 'buttons' => [['label' => 'М', 'action' => 'm'], ['label' => 'Ж', 'action' => 'w']]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_g', 'type' => 'ask_keyboard', 'data' => ['text' => 'Пол?', 'stepName' => 'askGender', 'buttons' => [[['type' => 'action', 'label' => 'М', 'action' => 'm'], ['type' => 'action', 'label' => 'Ж', 'action' => 'w']]]], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'ask_m', 'type' => 'ask_text', 'data' => ['text' => 'М?', 'stepName' => 'askMan'], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'ask_w', 'type' => 'ask_text', 'data' => ['text' => 'Ж?', 'stepName' => 'askWoman'], 'position' => ['x' => 0, 'y' => 0]],
@@ -438,8 +443,10 @@ test('ask_keyboard with image generates Media::photo with caption and keyboard',
                 'text' => 'Выбор?',
                 'image' => 'https://example.com/b.jpg',
                 'buttons' => [
-                    ['label' => 'Да', 'action' => 'yes'],
-                    ['label' => 'Нет', 'action' => 'no'],
+                    [
+                        ['type' => 'action', 'label' => 'Да', 'action' => 'yes'],
+                        ['type' => 'action', 'label' => 'Нет', 'action' => 'no'],
+                    ],
                 ],
             ], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
@@ -453,9 +460,10 @@ test('ask_keyboard with image generates Media::photo with caption and keyboard',
     $generator = new FlowGenerator;
     $result = $generator->generate('ChoicePhotoFlow', $graph, [], false);
 
-    expect($result)->toContain("        \$step->ask(\n            Media::photo('https://example.com/b.jpg')\n                ->caption('Выбор?'),\n            fn () => Keyboard::make()\n");
-    expect($result)->toContain("                ->button('Да', 'yes')");
-    expect($result)->toContain("                ->button('Нет', 'no')");
+    expect($result)->toContain("        \$step->ask(\n            Media::photo('https://example.com/b.jpg')\n                ->caption('Выбор?'),\n            Keyboard::make()->buttons([\n");
+    expect($result)->toContain("Button::make('Да')->action('yes')");
+    expect($result)->toContain("Button::make('Нет')->action('no')");
+    expect($result)->toContain('use Govorun\Messaging\Button;');
 });
 
 test('reply_media type=photo with caption generates Media::photo with caption', function () {
@@ -557,4 +565,120 @@ test('reply_media non-photo type generates unsupported comment', function () {
 
     expect($result)->toContain('// Unsupported media type: video');
     expect($result)->not->toContain('Media::photo');
+});
+
+test('ask_keyboard с двумя рядами разных размеров', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            [
+                'id' => 'ask',
+                'type' => 'ask_keyboard',
+                'data' => [
+                    'text' => 'Выберите услугу',
+                    'buttons' => [
+                        [
+                            ['type' => 'action', 'label' => '💅 маникюр', 'action' => 'manicure'],
+                            ['type' => 'action', 'label' => '🦶 педикюр', 'action' => 'pedicure'],
+                        ],
+                        [
+                            ['type' => 'action', 'label' => '🤚 наращивание', 'action' => 'nails'],
+                        ],
+                    ],
+                ],
+                'position' => ['x' => 0, 'y' => 100],
+            ],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('ServiceFlow', $graph, [], false);
+
+    expect($result)->toContain('use Govorun\Messaging\Button;');
+    expect($result)->toContain('use Govorun\Messaging\Keyboard;');
+    expect($result)->toContain("Button::make('💅 маникюр')->action('manicure')");
+    expect($result)->toContain("Button::make('🤚 наращивание')->action('nails')");
+    expect($result)->toContain('$step->ask(');
+    expect($result)->toContain('Keyboard::make()->buttons([');
+});
+
+test('reply_keyboard со всеми типами кнопок', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            [
+                'id' => 'ask',
+                'type' => 'ask_text',
+                'data' => ['text' => 'Имя?'],
+                'position' => ['x' => 0, 'y' => 100],
+            ],
+            [
+                'id' => 'reply',
+                'type' => 'reply_keyboard',
+                'data' => [
+                    'text' => 'Меню',
+                    'buttons' => [
+                        [
+                            ['type' => 'action', 'label' => 'Записаться', 'action' => 'book'],
+                            ['type' => 'url', 'label' => 'Сайт', 'url' => 'https://example.com'],
+                        ],
+                        [
+                            ['type' => 'contact', 'label' => 'Мой номер'],
+                            ['type' => 'location', 'label' => 'Где я'],
+                        ],
+                    ],
+                ],
+                'position' => ['x' => 0, 'y' => 200],
+            ],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 300]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'reply'],
+            ['source' => 'reply', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('MenuFlow', $graph, [], false);
+
+    expect($result)->toContain("Button::make('Записаться')->action('book')");
+    expect($result)->toContain("Button::make('Сайт')->url('https://example.com')");
+    expect($result)->toContain("Button::make('Мой номер')->requestContact()");
+    expect($result)->toContain("Button::make('Где я')->requestLocation()");
+    expect($result)->toContain('use Govorun\Messaging\Button;');
+});
+
+test('action с param рендерится со вторым аргументом', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            [
+                'id' => 'ask',
+                'type' => 'ask_keyboard',
+                'data' => [
+                    'text' => 'Выбор',
+                    'buttons' => [[
+                        ['type' => 'action', 'label' => 'A', 'action' => 'pick', 'param' => ['id' => 1]],
+                    ]],
+                ],
+                'position' => ['x' => 0, 'y' => 100],
+            ],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('ParamFlow', $graph, [], false);
+
+    expect($result)->toContain("Button::make('A')->action('pick', ['id' => 1])");
 });
