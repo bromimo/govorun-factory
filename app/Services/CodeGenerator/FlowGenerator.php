@@ -84,6 +84,7 @@ class FlowGenerator
             'useMedia' => $imports['media'],
             'useMessage' => $imports['message'],
             'useKeyboard' => $imports['keyboard'],
+            'useButton' => $imports['button'],
         ])->render();
 
         return CodeHelper::wrapLongLines($code);
@@ -92,13 +93,14 @@ class FlowGenerator
     /** Определить, какие use-импорты нужны в сгенерированном Flow-классе.
      * Flow/Step/IncomingMessage импортируются всегда (базовые типы).
      *
-     * @return array{media: bool, message: bool, keyboard: bool}
+     * @return array{media: bool, message: bool, keyboard: bool, button: bool}
      */
     private function detectRequiredImports(): array
     {
         $useMedia = false;
         $useMessage = false;
         $useKeyboard = false;
+        $useButton = false;
 
         foreach ($this->nodes as $node) {
             $type = $node['type'] ?? '';
@@ -106,6 +108,7 @@ class FlowGenerator
 
             if (in_array($type, ['ask_keyboard', 'reply_keyboard'], true)) {
                 $useKeyboard = true;
+                $useButton = true;
             }
 
             if ($type === 'reply_keyboard') {
@@ -123,7 +126,12 @@ class FlowGenerator
             }
         }
 
-        return ['media' => $useMedia, 'message' => $useMessage, 'keyboard' => $useKeyboard];
+        return [
+            'media' => $useMedia,
+            'message' => $useMessage,
+            'keyboard' => $useKeyboard,
+            'button' => $useButton,
+        ];
     }
 
     /** Разрешить имена ask-steps для всех ask-нод flow.
@@ -513,34 +521,54 @@ class FlowGenerator
             $image = trim((string) ($data['image'] ?? ''));
             $buttons = $data['buttons'] ?? [];
 
+            $kbBody = $this->renderKeyboardBody($buttons, '            ');
+
             if ($image !== '') {
                 $url = "'".addslashes($image)."'";
-                $code = "        \$step->ask(\n"
+
+                return "        \$step->ask(\n"
                     ."            Media::photo({$url})\n"
                     ."                ->caption({$text}),\n"
-                    ."            fn () => Keyboard::make()\n";
-                foreach ($buttons as $button) {
-                    $label = addslashes($button['label'] ?? '');
-                    $action = addslashes($button['action'] ?? '');
-                    $code .= "                ->button('{$label}', '{$action}')\n";
-                }
-                $code .= "        );\n";
-
-                return $code;
+                    ."            {$kbBody},\n"
+                    ."        );\n";
             }
 
-            $code = "        \$step->ask({$text}, fn () => Keyboard::make()\n";
-            foreach ($buttons as $button) {
-                $label = addslashes($button['label'] ?? '');
-                $action = addslashes($button['action'] ?? '');
-                $code .= "            ->button('{$label}', '{$action}')\n";
-            }
-            $code .= "        );\n";
-
-            return $code;
+            return "        \$step->ask(\n"
+                ."            {$text},\n"
+                ."            {$kbBody},\n"
+                ."        );\n";
         }
 
         return '';
+    }
+
+    /** Отрендерить тело Keyboard::make()->buttons([…]) с отступом $pad
+     * для открывающей строки, $pad+4 для строки-ряда, $pad+8 для строки-кнопки.
+     *
+     * @param  array<int, array<int, array<string, mixed>>>  $rows
+     * @return string
+     */
+    private function renderKeyboardBody(array $rows, string $pad): string
+    {
+        $rowIndent = $pad.'    ';
+        $btnIndent = $pad.'        ';
+
+        $rowsRendered = array_map(function (array $row) use ($rowIndent, $btnIndent) {
+            if (empty($row)) {
+                return "{$rowIndent}[],";
+            }
+
+            $buttons = array_map(
+                fn (array $btn) => $btnIndent.CodeHelper::renderButton($btn).',',
+                $row,
+            );
+
+            return "{$rowIndent}[\n".implode("\n", $buttons)."\n{$rowIndent}],";
+        }, $rows);
+
+        $rowsCode = implode("\n", $rowsRendered);
+
+        return "Keyboard::make()->buttons([\n{$rowsCode}\n{$pad}])";
     }
 
     /** Отрендерить action-блок с указанным уровнем отступа. */
@@ -584,24 +612,20 @@ class FlowGenerator
             ."{$pad});\n";
     }
 
-    /** Отрендерить reply_keyboard. */
+    /** Отрендерить reply_keyboard через Message::make()->keyboard(Keyboard::make()->buttons([…])). */
     private function renderReplyKeyboard(array $data, string $pad): string
     {
         $text = $this->renderText($data['text'] ?? '');
         $buttons = $data['buttons'] ?? [];
 
-        $code = "{$pad}\$this->send(\n";
-        $code .= "{$pad}    Message::make({$text})\n";
-        $code .= "{$pad}        ->keyboard(Keyboard::make()\n";
-        foreach ($buttons as $button) {
-            $label = addslashes($button['label'] ?? '');
-            $action = addslashes($button['action'] ?? '');
-            $code .= "{$pad}            ->button('{$label}', '{$action}')\n";
-        }
-        $code .= "{$pad}        )\n";
-        $code .= "{$pad});\n";
+        $kbBody = $this->renderKeyboardBody($buttons, $pad.'            ');
 
-        return $code;
+        return "{$pad}\$this->send(\n"
+            ."{$pad}    Message::make({$text})\n"
+            ."{$pad}        ->keyboard(\n"
+            ."{$pad}            {$kbBody}\n"
+            ."{$pad}        )\n"
+            ."{$pad});\n";
     }
 
     /** Отрендерить save_state — одну или несколько переменных. */

@@ -8,6 +8,9 @@ use Govorun\Messaging\Media;
 @if($useMessage)
 use Govorun\Messaging\Message;
 @endif
+@if($useButton)
+use Govorun\Messaging\Button;
+@endif
 @if($useKeyboard)
 use Govorun\Messaging\Keyboard;
 @endif
