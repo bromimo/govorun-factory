@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "require": {
         "php": ">=8.3",
-        "govorun/framework": "^2.0"
+        "govorun/framework": "^3.0"
     },
     "autoload": {
         "psr-4": {
