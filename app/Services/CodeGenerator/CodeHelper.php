@@ -393,4 +393,98 @@ class CodeHelper
     {
         return mb_strlen($line);
     }
+
+    /** Отрендерить один Button с fluent-вызовами по полю type.
+     * Поля: label (обязательно), type ∈ {action, url, contact, location}, по умолчанию action.
+     * Для action — action (обязательно), param (опционально, массив).
+     * Для url — url (обязательно).
+     * Для contact/location — только label.
+     *
+     * @param  array<string, mixed>  $btn
+     * @return string
+     */
+    public static function renderButton(array $btn): string
+    {
+        $label = "'".addslashes($btn['label'] ?? '')."'";
+        $type = $btn['type'] ?? 'action';
+
+        return match ($type) {
+            'action' => "Button::make({$label})".self::renderActionCall($btn),
+            'url' => "Button::make({$label})->url('".addslashes($btn['url'] ?? '')."')",
+            'contact' => "Button::make({$label})->requestContact()",
+            'location' => "Button::make({$label})->requestLocation()",
+            default => "Button::make({$label})",
+        };
+    }
+
+    /** Отрендерить вызов ->action(...) с опциональным param-массивом.
+     *
+     * @param  array<string, mixed>  $btn
+     * @return string
+     */
+    private static function renderActionCall(array $btn): string
+    {
+        $action = "'".addslashes($btn['action'] ?? '')."'";
+
+        $param = $btn['param'] ?? null;
+
+        if ($param === null || (is_array($param) && empty($param))) {
+            return "->action({$action})";
+        }
+
+        $paramLiteral = self::phpArrayLiteral($param);
+
+        return "->action({$action}, {$paramLiteral})";
+    }
+
+    /** Преобразовать PHP-массив в литерал вида ['key' => 'value', 'num' => 42].
+     * Поддерживает только скалярные значения и вложенные массивы тех же типов.
+     *
+     * @param  array<string|int, mixed>  $arr
+     * @return string
+     */
+    private static function phpArrayLiteral(array $arr): string
+    {
+        $isList = array_is_list($arr);
+
+        $pairs = array_map(function ($value, $key) use ($isList) {
+            $rendered = self::phpScalarLiteral($value);
+
+            if ($isList) {
+                return $rendered;
+            }
+
+            $keyLiteral = is_int($key) ? $key : "'".addslashes((string) $key)."'";
+
+            return "{$keyLiteral} => {$rendered}";
+        }, $arr, array_keys($arr));
+
+        return '['.implode(', ', $pairs).']';
+    }
+
+    /** Отрендерить скалярное значение или массив как PHP-литерал.
+     *
+     * @param  mixed  $value
+     * @return string
+     */
+    private static function phpScalarLiteral(mixed $value): string
+    {
+        if (is_array($value)) {
+            return self::phpArrayLiteral($value);
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+
+        if ($value === null) {
+            return 'null';
+        }
+
+        return "'".addslashes((string) $value)."'";
+    }
 }
