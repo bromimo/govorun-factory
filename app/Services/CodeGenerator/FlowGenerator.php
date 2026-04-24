@@ -73,7 +73,7 @@ class FlowGenerator
 
         $imports = $this->detectRequiredImports();
 
-        return "<?php\n\n".view('stubs.flow', [
+        $code = "<?php\n\n".view('stubs.flow', [
             'className' => $className,
             'interruptCommands' => $interruptCommands,
             'interruptOnEvent' => $interruptOnEvent,
@@ -85,6 +85,8 @@ class FlowGenerator
             'useMessage' => $imports['message'],
             'useKeyboard' => $imports['keyboard'],
         ])->render();
+
+        return CodeHelper::wrapLongLines($code);
     }
 
     /** Определить, какие use-импорты нужны в сгенерированном Flow-классе.

@@ -25,7 +25,9 @@ class RouteGenerator
         $imports = array_unique($imports);
         usort($imports, fn ($a, $b) => strlen($a) <=> strlen($b));
 
-        return "<?php\n\n".view('stubs.routes_messenger', compact('routes', 'imports'))->render();
+        $code = "<?php\n\n".view('stubs.routes_messenger', compact('routes', 'imports'))->render();
+
+        return CodeHelper::wrapLongLines($code);
     }
 
     /** Построить массив данных маршрута для шаблона.

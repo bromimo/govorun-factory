@@ -46,6 +46,12 @@ class CodeGeneratorService
         $this->generateComposer($bot, $outputPath);
     }
 
+    /** Записать PHP-файл, применив пост-процессор переноса длинных строк. */
+    private function putPhp(string $path, string $code): void
+    {
+        File::put($path, CodeHelper::wrapLongLines($code));
+    }
+
     /** Построить уникальные имена классов для всех flow.
      */
     private function buildFlowClassNames(Bot $bot): void
@@ -87,9 +93,9 @@ class CodeGeneratorService
 
         File::ensureDirectoryExists("{$outputPath}/config");
 
-        File::put("{$outputPath}/config/app.php", $this->config->generateAppConfig($bot->name, $config));
-        File::put("{$outputPath}/config/messenger.php", $this->config->generateMessengerConfig($drivers));
-        File::put("{$outputPath}/config/database.php", $this->config->generateDatabaseConfig());
+        $this->putPhp("{$outputPath}/config/app.php", $this->config->generateAppConfig($bot->name, $config));
+        $this->putPhp("{$outputPath}/config/messenger.php", $this->config->generateMessengerConfig($drivers));
+        $this->putPhp("{$outputPath}/config/database.php", $this->config->generateDatabaseConfig());
         File::put("{$outputPath}/.env.example", $this->config->generateEnvExample(
             $bot->name,
             $drivers,
@@ -101,7 +107,7 @@ class CodeGeneratorService
     private function generateRoutes(Bot $bot, string $outputPath): void
     {
         File::ensureDirectoryExists("{$outputPath}/routes");
-        File::put("{$outputPath}/routes/messenger.php", $this->routes->generate($bot, $this->flowClassNames));
+        $this->putPhp("{$outputPath}/routes/messenger.php", $this->routes->generate($bot, $this->flowClassNames));
     }
 
     /** Сгенерировать контроллеры.
@@ -120,13 +126,13 @@ class CodeGeneratorService
                     ? $route->controller_name.'Controller'
                     : Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
                 $code = $this->controller->generate($className, $route->handler_schema ?? ['blocks' => []]);
-                File::put("{$outputPath}/app/Controllers/{$className}.php", $code);
+                $this->putPhp("{$outputPath}/app/Controllers/{$className}.php", $code);
             } elseif ($route->handler_type->value === 'flow' && $route->flow_id) {
                 $flowClass = $this->flowClassNames[$route->flow_id] ?? null;
                 if ($flowClass) {
                     $className = $flowClass.'Controller';
                     $code = "<?php\n\n".view('stubs.flow_controller', compact('className', 'flowClass'))->render();
-                    File::put("{$outputPath}/app/Controllers/{$className}.php", $code);
+                    $this->putPhp("{$outputPath}/app/Controllers/{$className}.php", $code);
                 }
             }
         }
@@ -148,7 +154,7 @@ class CodeGeneratorService
         }
 
         $code = $this->controller->generateWithMethods($className, $methods);
-        File::put("{$outputPath}/app/Controllers/{$className}.php", $code);
+        $this->putPhp("{$outputPath}/app/Controllers/{$className}.php", $code);
     }
 
     /** Сгенерировать Flow-классы.
@@ -168,7 +174,7 @@ class CodeGeneratorService
                 $flow->interrupt_on_event ?? false,
                 $validationMessages,
             );
-            File::put("{$outputPath}/app/Flows/{$className}.php", $code);
+            $this->putPhp("{$outputPath}/app/Flows/{$className}.php", $code);
         }
     }
 

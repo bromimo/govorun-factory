@@ -503,6 +503,40 @@ test('reply_media type=photo without caption generates Media::photo without capt
     expect($result)->not->toContain('->caption');
 });
 
+test('длинный текст в reply_text разбивается по конкатенации/пробелу при генерации', function () {
+    $longText = str_repeat('очень длинное приветственное слово ', 10);
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Имя?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'save', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'name', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 200]],
+            ['id' => 'reply', 'type' => 'reply_text', 'data' => ['text' => $longText.'{{name}}!'], 'position' => ['x' => 0, 'y' => 300]],
+            ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 400]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'save'],
+            ['source' => 'save', 'target' => 'reply'],
+            ['source' => 'reply', 'target' => 'done'],
+        ],
+    ];
+
+    $generator = new FlowGenerator;
+    $result = $generator->generate('LongTextFlow', $graph, [], false);
+
+    foreach (explode("\n", $result) as $line) {
+        expect(mb_strlen($line))->toBeLessThanOrEqual(120, "строка длиннее 120: {$line}");
+    }
+
+    $tmp = tempnam(sys_get_temp_dir(), 'flow_long_').'.php';
+    file_put_contents($tmp, $result);
+    exec('php -l '.escapeshellarg($tmp).' 2>&1', $out, $exit);
+    unlink($tmp);
+    expect($exit)->toBe(0, 'php -l failed: '.implode("\n", $out));
+
+    expect($result)->toContain("\$this->state->get('name')");
+});
+
 test('reply_media non-photo type generates unsupported comment', function () {
     $graph = [
         'nodes' => [

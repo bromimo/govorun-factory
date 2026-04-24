@@ -143,7 +143,7 @@ const typeColors = {
         </div>
         <p v-if="!localRoutes.length" class="text-sm text-gray-500">Нет маршрутов</p>
 
-        <button v-if="canUpdate" @click="openCreate"
+        <button v-if="canUpdate" @click="openCreate()"
             class="mt-4 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500">
             Добавить маршрут
         </button>
