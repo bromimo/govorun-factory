@@ -5,6 +5,9 @@
 !/storage/logs/.gitkeep
 /storage/state/*.json
 !/storage/state/.gitkeep
+/storage/exports/*.zip
+!/storage/exports/.gitkeep
+/.htaccess
 
 # Development tooling — not part of the skeleton template
 /.claude/
