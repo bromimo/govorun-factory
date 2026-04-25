@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bot;
-use App\Models\BotRoute;
 use App\Enums\RouteType;
+use App\Models\BotRoute;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreBotRouteRequest;

@@ -3,8 +3,8 @@
 namespace App\Http\Requests;
 
 use Closure;
-use App\Models\BotRoute;
 use App\Enums\RouteType;
+use App\Models\BotRoute;
 use App\Enums\HandlerType;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
