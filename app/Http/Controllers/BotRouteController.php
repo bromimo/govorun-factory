@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ReorderBotRoutesRequest;
-use App\Http\Requests\StoreBotRouteRequest;
-use App\Http\Requests\UpdateBotRouteRequest;
 use App\Models\Bot;
 use App\Models\BotRoute;
+use App\Enums\RouteType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\StoreBotRouteRequest;
+use App\Http\Requests\UpdateBotRouteRequest;
+use App\Http\Requests\ReorderBotRoutesRequest;
 
 class BotRouteController extends Controller
 {
@@ -84,6 +85,28 @@ class BotRouteController extends Controller
             $bot->routes()->where('id', $id)->update(['sort_order' => $index]);
         }
 
+        $this->pinFallbackToEnd($bot);
+
         return response()->json(['ok' => true]);
+    }
+
+    /** Поставить fallback верхнего уровня в конец списка маршрутов. */
+    private function pinFallbackToEnd(Bot $bot): void
+    {
+        $fallback = $bot->routes()
+            ->whereNull('parent_id')
+            ->where('type', RouteType::Fallback->value)
+            ->first();
+
+        if ($fallback === null) {
+            return;
+        }
+
+        $maxOrder = $bot->routes()
+            ->whereNull('parent_id')
+            ->where('id', '!=', $fallback->id)
+            ->max('sort_order');
+
+        $fallback->update(['sort_order' => ($maxOrder ?? -1) + 1]);
     }
 }

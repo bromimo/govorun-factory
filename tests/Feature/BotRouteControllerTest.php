@@ -230,4 +230,18 @@ class BotRouteControllerTest extends TestCase
             'middleware' => [],
         ])->assertSessionHasErrors(['type']);
     }
+
+    public function test_reorder_pins_fallback_to_end(): void
+    {
+        $r1 = BotRoute::factory()->for($this->bot)->create(['type' => 'command', 'sort_order' => 0]);
+        $fallback = BotRoute::factory()->for($this->bot)->create(['type' => 'fallback', 'sort_order' => 1]);
+        $r3 = BotRoute::factory()->for($this->bot)->create(['type' => 'command', 'sort_order' => 2]);
+
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes/reorder", [
+            'ids' => [$fallback->id, $r1->id, $r3->id],
+        ])->assertOk();
+
+        $sorted = $this->bot->routes()->whereNull('parent_id')->orderBy('sort_order')->get();
+        $this->assertSame($fallback->id, $sorted->last()->id);
+    }
 }
