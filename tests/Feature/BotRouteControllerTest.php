@@ -218,4 +218,16 @@ class BotRouteControllerTest extends TestCase
             'middleware' => [],
         ])->assertSessionHasErrors(['type']);
     }
+
+    public function test_cannot_change_non_fallback_to_fallback(): void
+    {
+        $route = BotRoute::factory()->for($this->bot)->create(['type' => 'command', 'match' => '/start']);
+
+        $this->actingAs($this->admin)->put("/bots/{$this->bot->id}/routes/{$route->id}", [
+            'type' => 'fallback',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertSessionHasErrors(['type']);
+    }
 }
