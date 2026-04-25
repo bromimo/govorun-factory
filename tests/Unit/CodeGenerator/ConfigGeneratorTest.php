@@ -83,6 +83,20 @@ test('generates .env.example with correct env var names', function () {
     expect($result)->toContain('TELEGRAM_WEBHOOK_SECRET=');
 });
 
+test('env example includes section headers', function () {
+    $drivers = [
+        'telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET'],
+    ];
+
+    $result = (new ConfigGenerator)->generateEnvExample('Test Bot', $drivers);
+
+    expect($result)
+        ->toContain('# Приложение')
+        ->toContain('# Мессенджер')
+        ->toContain('# Telegram')
+        ->toContain('# База данных');
+});
+
 test('resolves driver fields from list format', function () {
     $generator = new ConfigGenerator;
 
