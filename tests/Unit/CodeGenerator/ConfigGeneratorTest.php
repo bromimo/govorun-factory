@@ -64,6 +64,14 @@ test('messenger config includes banners for default, drivers and each driver blo
         ->toContain('| ВКонтакте');
 });
 
+test('database config includes banners for driver and connection', function () {
+    $result = (new ConfigGenerator)->generateDatabaseConfig();
+
+    expect($result)
+        ->toContain('| Драйвер базы данных')
+        ->toContain('| Подключение');
+});
+
 test('generates .env.example with correct env var names', function () {
     $drivers = ['telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET']];
 
