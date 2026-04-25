@@ -244,4 +244,20 @@ class BotRouteControllerTest extends TestCase
         $sorted = $this->bot->routes()->whereNull('parent_id')->orderBy('sort_order')->get();
         $this->assertSame($fallback->id, $sorted->last()->id);
     }
+
+    public function test_creating_route_after_fallback_keeps_fallback_last(): void
+    {
+        $fallback = BotRoute::factory()->for($this->bot)->create(['type' => 'fallback', 'sort_order' => 0]);
+
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
+            'type' => 'command',
+            'match' => '/start',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertRedirect();
+
+        $sorted = $this->bot->routes()->whereNull('parent_id')->orderBy('sort_order')->get();
+        $this->assertSame($fallback->id, $sorted->last()->id);
+    }
 }

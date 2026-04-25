@@ -25,6 +25,8 @@ class BotRouteController extends Controller
             'sort_order' => $maxOrder + 1,
         ]);
 
+        $this->pinFallbackToEnd($bot);
+
         return redirect()->route('bots.edit', $bot);
     }
 
