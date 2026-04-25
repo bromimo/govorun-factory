@@ -61,3 +61,13 @@ test('resolves driver fields ignores unknown drivers', function () {
 
     expect($result)->toBe([]);
 });
+
+test('exposes driver descriptions for known drivers', function () {
+    expect(ConfigGenerator::DRIVER_DESCRIPTIONS)
+        ->toHaveKey('telegram')
+        ->toHaveKey('vk');
+
+    expect(ConfigGenerator::DRIVER_DESCRIPTIONS['telegram'])
+        ->toHaveKey('title')
+        ->toHaveKey('description');
+});
