@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\HandlerType;
+use Closure;
+use App\Models\BotRoute;
 use App\Enums\RouteType;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\HandlerType;
 use Illuminate\Validation\Rule;
+use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBotRouteRequest extends FormRequest
 {
@@ -35,7 +37,7 @@ class StoreBotRouteRequest extends FormRequest
             'type' => [
                 'required', 'string',
                 Rule::in(array_column(RouteType::cases(), 'value')),
-                function (string $attribute, mixed $value, \Closure $fail) use ($botId, $parentId) {
+                function (string $attribute, mixed $value, Closure $fail) use ($botId, $parentId) {
                     if ($value !== RouteType::Fallback->value) {
                         return;
                     }
@@ -46,7 +48,7 @@ class StoreBotRouteRequest extends FormRequest
                         return;
                     }
 
-                    $exists = \App\Models\BotRoute::query()
+                    $exists = BotRoute::query()
                         ->where('bot_id', $botId)
                         ->where('type', RouteType::Fallback->value)
                         ->exists();
