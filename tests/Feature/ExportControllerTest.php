@@ -55,3 +55,36 @@ test('viewer cannot export', function () {
 
     $this->actingAs($viewer)->get("/bots/{$bot->id}/export")->assertForbidden();
 });
+
+test('stale archives older than threshold are cleaned up before export', function () {
+    $admin = User::factory()->admin()->create();
+    $bot = Bot::factory()->for($admin, 'creator')->create([
+        'messenger_config' => ['telegram'],
+    ]);
+    BotRoute::factory()->for($bot)->create();
+
+    $exportsDir = storage_path('exports');
+    if (! is_dir($exportsDir)) {
+        mkdir($exportsDir, 0777, true);
+    }
+
+    $stalePath = $exportsDir.'/stale-leftover-bot-20200101-000000.zip';
+    file_put_contents($stalePath, 'fake zip');
+    touch($stalePath, time() - 3600);
+
+    $freshPath = $exportsDir.'/fresh-leftover-bot-99999999-999999.zip';
+    file_put_contents($freshPath, 'fake zip');
+    touch($freshPath, time() - 60);
+
+    try {
+        $response = $this->actingAs($admin)->get("/bots/{$bot->id}/export");
+        $response->assertOk();
+        $response->streamedContent();
+
+        expect(file_exists($stalePath))->toBeFalse();
+        expect(file_exists($freshPath))->toBeTrue();
+    } finally {
+        @unlink($stalePath);
+        @unlink($freshPath);
+    }
+});
