@@ -49,6 +49,21 @@ test('generates messenger config with correct env vars', function () {
     expect($result)->toContain("'drivers'");
 });
 
+test('messenger config includes banners for default, drivers and each driver block', function () {
+    $drivers = [
+        'telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET'],
+        'vk' => ['token' => 'VK_BOT_TOKEN', 'secret' => 'VK_SECRET', 'confirmation' => 'VK_CONFIRMATION'],
+    ];
+
+    $result = (new ConfigGenerator)->generateMessengerConfig($drivers);
+
+    expect($result)
+        ->toContain('| Драйвер мессенджера по умолчанию')
+        ->toContain('| Активные драйверы')
+        ->toContain('| Telegram')
+        ->toContain('| ВКонтакте');
+});
+
 test('generates .env.example with correct env var names', function () {
     $drivers = ['telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET']];
 
