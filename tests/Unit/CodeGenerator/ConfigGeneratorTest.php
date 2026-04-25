@@ -18,6 +18,23 @@ test('generates app config from bot settings', function () {
     expect($result)->toContain("'state_storage' => 'database'");
 });
 
+test('app config includes laravel-style banners for each key', function () {
+    $config = [
+        'environment' => 'production',
+        'debug' => false,
+        'state_storage' => 'database',
+    ];
+
+    $result = (new ConfigGenerator)->generateAppConfig('My Bot', $config);
+
+    expect($result)
+        ->toContain('| Имя приложения')
+        ->toContain('| URL приложения')
+        ->toContain('| Окружение')
+        ->toContain('| Режим отладки')
+        ->toContain('| Хранилище состояния');
+});
+
 test('generates messenger config with correct env vars', function () {
     $drivers = [
         'telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET'],
