@@ -39,6 +39,10 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClick));
             <div class="flex justify-between"><span>Удалить выделенное</span><kbd class="ml-3 rounded bg-gray-100 px-1.5 py-0.5 font-mono">Delete / Backspace</kbd></div>
             <div class="flex justify-between"><span>Масштаб</span><kbd class="ml-3 rounded bg-gray-100 px-1.5 py-0.5 font-mono">Ctrl + scroll</kbd></div>
             <div class="flex justify-between"><span>Перемещение холста</span><kbd class="ml-3 rounded bg-gray-100 px-1.5 py-0.5 font-mono">drag по фону</kbd></div>
+            <div class="mt-2 pt-2 border-t border-gray-200 font-medium text-gray-700">Точки на связи</div>
+            <div class="flex justify-between"><span>Добавить точку</span><kbd class="ml-3 rounded bg-gray-100 px-1.5 py-0.5 font-mono">2x click на связи</kbd></div>
+            <div class="flex justify-between"><span>Удалить точку</span><kbd class="ml-3 rounded bg-gray-100 px-1.5 py-0.5 font-mono">2x click на точке</kbd></div>
+            <div class="flex justify-between"><span>Переместить точку</span><kbd class="ml-3 rounded bg-gray-100 px-1.5 py-0.5 font-mono">drag точки</kbd></div>
         </div>
     </div>
 </template>
