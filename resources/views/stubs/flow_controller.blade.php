@@ -1,4 +1,4 @@
-namespace App\Controllers;
+namespace {{ $controllerNamespace }};
 
 use App\Flows\{{ $flowClass }};
 use Govorun\Routing\Controller;

@@ -131,7 +131,8 @@ class CodeGeneratorService
                 $flowClass = $this->flowClassNames[$route->flow_id] ?? null;
                 if ($flowClass) {
                     $className = $flowClass.'Controller';
-                    $code = "<?php\n\n".view('stubs.flow_controller', compact('className', 'flowClass'))->render();
+                    $controllerNamespace = 'App\\Controllers';
+                    $code = "<?php\n\n".view('stubs.flow_controller', compact('className', 'flowClass', 'controllerNamespace'))->render();
                     $this->putPhp("{$outputPath}/app/Controllers/{$className}.php", $code);
                 }
             }
