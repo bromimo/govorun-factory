@@ -18,6 +18,23 @@ test('generates app config from bot settings', function () {
     expect($result)->toContain("'state_storage' => 'database'");
 });
 
+test('app config includes laravel-style banners for each key', function () {
+    $config = [
+        'environment' => 'production',
+        'debug' => false,
+        'state_storage' => 'database',
+    ];
+
+    $result = (new ConfigGenerator)->generateAppConfig('My Bot', $config);
+
+    expect($result)
+        ->toContain('| Имя приложения')
+        ->toContain('| URL приложения')
+        ->toContain('| Окружение')
+        ->toContain('| Режим отладки')
+        ->toContain('| Хранилище состояния');
+});
+
 test('generates messenger config with correct env vars', function () {
     $drivers = [
         'telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET'],
@@ -32,6 +49,29 @@ test('generates messenger config with correct env vars', function () {
     expect($result)->toContain("'drivers'");
 });
 
+test('messenger config includes banners for default, drivers and each driver block', function () {
+    $drivers = [
+        'telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET'],
+        'vk' => ['token' => 'VK_BOT_TOKEN', 'secret' => 'VK_SECRET', 'confirmation' => 'VK_CONFIRMATION'],
+    ];
+
+    $result = (new ConfigGenerator)->generateMessengerConfig($drivers);
+
+    expect($result)
+        ->toContain('| Драйвер мессенджера по умолчанию')
+        ->toContain('| Активные драйверы')
+        ->toContain('| Telegram')
+        ->toContain('| ВКонтакте');
+});
+
+test('database config includes banners for driver and connection', function () {
+    $result = (new ConfigGenerator)->generateDatabaseConfig();
+
+    expect($result)
+        ->toContain('| Драйвер базы данных')
+        ->toContain('| Подключение');
+});
+
 test('generates .env.example with correct env var names', function () {
     $drivers = ['telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET']];
 
@@ -41,6 +81,20 @@ test('generates .env.example with correct env var names', function () {
     expect($result)->toContain('APP_NAME="Test Bot"');
     expect($result)->toContain('TELEGRAM_BOT_TOKEN=');
     expect($result)->toContain('TELEGRAM_WEBHOOK_SECRET=');
+});
+
+test('env example includes section headers', function () {
+    $drivers = [
+        'telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET'],
+    ];
+
+    $result = (new ConfigGenerator)->generateEnvExample('Test Bot', $drivers);
+
+    expect($result)
+        ->toContain('# Приложение')
+        ->toContain('# Мессенджер')
+        ->toContain('# Telegram')
+        ->toContain('# База данных');
 });
 
 test('resolves driver fields from list format', function () {
@@ -60,4 +114,14 @@ test('resolves driver fields ignores unknown drivers', function () {
     $result = $generator->resolveDriverFields(['unknown']);
 
     expect($result)->toBe([]);
+});
+
+test('exposes driver descriptions for known drivers', function () {
+    expect(ConfigGenerator::DRIVER_DESCRIPTIONS)
+        ->toHaveKey('telegram')
+        ->toHaveKey('vk');
+
+    expect(ConfigGenerator::DRIVER_DESCRIPTIONS['telegram'])
+        ->toHaveKey('title')
+        ->toHaveKey('description');
 });
