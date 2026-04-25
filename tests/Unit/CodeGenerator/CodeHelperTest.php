@@ -137,3 +137,28 @@ test('renderButton type по умолчанию action', function () {
     $btn = ['label' => 'Да', 'action' => 'yes'];
     expect(CodeHelper::renderButton($btn))->toBe("Button::make('Да')->action('yes')");
 });
+
+test('controllerSubdir returns plural studly for non-fallback types', function () {
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('command'))->toBe('Commands');
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('phrase'))->toBe('Phrases');
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('pattern'))->toBe('Patterns');
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('action'))->toBe('Actions');
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('event'))->toBe('Events');
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('media'))->toBe('Media');
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('location'))->toBe('Locations');
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('contact'))->toBe('Contacts');
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('referral'))->toBe('Referrals');
+});
+
+test('controllerSubdir returns null for fallback', function () {
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('fallback'))->toBeNull();
+});
+
+test('controllerNamespace returns subdirectory namespace for non-fallback', function () {
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerNamespace('command'))->toBe('App\\Controllers\\Commands');
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerNamespace('media'))->toBe('App\\Controllers\\Media');
+});
+
+test('controllerNamespace returns root namespace for fallback', function () {
+    expect(\App\Services\CodeGenerator\CodeHelper::controllerNamespace('fallback'))->toBe('App\\Controllers');
+});
