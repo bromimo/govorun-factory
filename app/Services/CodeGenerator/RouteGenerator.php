@@ -50,7 +50,7 @@ class RouteGenerator
         if ($route->children->isNotEmpty()) {
             $className = ($route->controller_name ?? Str::studly(Str::slug($route->match ?? 'handler', '_'))).'Controller';
             $entry['controller_class'] = $className;
-            $imports[] = "App\\Controllers\\{$className}";
+            $imports[] = CodeHelper::controllerNamespace($route->type->value).'\\'.$className;
 
             foreach ($route->children as $child) {
                 $method = $child->controller_name ?: Str::camel(Str::slug($child->match ?: 'handle', '_'));
@@ -74,7 +74,7 @@ class RouteGenerator
         }
 
         $entry['controller_class'] = $className;
-        $imports[] = "App\\Controllers\\{$className}";
+        $imports[] = CodeHelper::controllerNamespace($route->type->value).'\\'.$className;
 
         return $entry;
     }

@@ -52,3 +52,24 @@ test('does not generate alias for non-phrase routes', function () {
     expect($result)->toContain("Route::command('/start',");
     expect($result)->not->toContain('::class)->alias(');
 });
+
+test('imports controllers from subdirectories matching route types', function () {
+    $bot = Bot::factory()->for(User::factory()->admin(), 'creator')->create();
+    BotRoute::factory()->for($bot)->create([
+        'type' => 'command',
+        'match' => '/start',
+        'controller_name' => 'Start',
+        'handler_type' => 'controller',
+    ]);
+    BotRoute::factory()->for($bot)->create([
+        'type' => 'fallback',
+        'controller_name' => 'Fallback',
+        'handler_type' => 'controller',
+    ]);
+
+    $generator = new RouteGenerator;
+    $result = $generator->generate($bot);
+
+    expect($result)->toContain('use App\\Controllers\\Commands\\StartController;');
+    expect($result)->toContain('use App\\Controllers\\FallbackController;');
+});
