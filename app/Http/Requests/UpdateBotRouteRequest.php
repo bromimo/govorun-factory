@@ -2,10 +2,11 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\HandlerType;
+use Closure;
 use App\Enums\RouteType;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\HandlerType;
 use Illuminate\Validation\Rule;
+use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBotRouteRequest extends FormRequest
 {
@@ -32,7 +33,22 @@ class UpdateBotRouteRequest extends FormRequest
             ->ignore($routeModel);
 
         return [
-            'type' => ['required', 'string', Rule::in(array_column(RouteType::cases(), 'value'))],
+            'type' => [
+                'required', 'string',
+                Rule::in(array_column(RouteType::cases(), 'value')),
+                function (string $attribute, mixed $value, Closure $fail) use ($routeModel) {
+                    $currentIsFallback = $routeModel->type === RouteType::Fallback;
+                    $newIsFallback = $value === RouteType::Fallback->value;
+
+                    if ($currentIsFallback && ! $newIsFallback) {
+                        $fail('Тип fallback нельзя изменить');
+                    }
+
+                    if (! $currentIsFallback && $newIsFallback) {
+                        $fail('Существующий маршрут нельзя сделать fallback — создайте новый');
+                    }
+                },
+            ],
             'match' => ['nullable', 'string', 'max:255'],
             'aliases' => ['nullable', 'array'],
             'aliases.*' => ['nullable', 'string', 'max:255'],

@@ -180,4 +180,84 @@ class BotRouteControllerTest extends TestCase
         $route = $this->bot->routes()->where('match', 'hello')->first();
         $this->assertEquals(['hi', 'hey'], $route->aliases);
     }
+
+    public function test_cannot_create_second_fallback_route(): void
+    {
+        BotRoute::factory()->for($this->bot)->create(['type' => 'fallback']);
+
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
+            'type' => 'fallback',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertSessionHasErrors(['type']);
+    }
+
+    public function test_cannot_create_nested_fallback_route(): void
+    {
+        $parent = BotRoute::factory()->for($this->bot)->create(['type' => 'phrase']);
+
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
+            'parent_id' => $parent->id,
+            'type' => 'fallback',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertSessionHasErrors(['type']);
+    }
+
+    public function test_cannot_change_fallback_to_other_type(): void
+    {
+        $route = BotRoute::factory()->for($this->bot)->create(['type' => 'fallback']);
+
+        $this->actingAs($this->admin)->put("/bots/{$this->bot->id}/routes/{$route->id}", [
+            'type' => 'command',
+            'match' => '/start',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertSessionHasErrors(['type']);
+    }
+
+    public function test_cannot_change_non_fallback_to_fallback(): void
+    {
+        $route = BotRoute::factory()->for($this->bot)->create(['type' => 'command', 'match' => '/start']);
+
+        $this->actingAs($this->admin)->put("/bots/{$this->bot->id}/routes/{$route->id}", [
+            'type' => 'fallback',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertSessionHasErrors(['type']);
+    }
+
+    public function test_reorder_pins_fallback_to_end(): void
+    {
+        $r1 = BotRoute::factory()->for($this->bot)->create(['type' => 'command', 'sort_order' => 0]);
+        $fallback = BotRoute::factory()->for($this->bot)->create(['type' => 'fallback', 'sort_order' => 1]);
+        $r3 = BotRoute::factory()->for($this->bot)->create(['type' => 'command', 'sort_order' => 2]);
+
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes/reorder", [
+            'ids' => [$fallback->id, $r1->id, $r3->id],
+        ])->assertOk();
+
+        $sorted = $this->bot->routes()->whereNull('parent_id')->orderBy('sort_order')->get();
+        $this->assertSame($fallback->id, $sorted->last()->id);
+    }
+
+    public function test_creating_route_after_fallback_keeps_fallback_last(): void
+    {
+        $fallback = BotRoute::factory()->for($this->bot)->create(['type' => 'fallback', 'sort_order' => 0]);
+
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
+            'type' => 'command',
+            'match' => '/start',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertRedirect();
+
+        $sorted = $this->bot->routes()->whereNull('parent_id')->orderBy('sort_order')->get();
+        $this->assertSame($fallback->id, $sorted->last()->id);
+    }
 }

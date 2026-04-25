@@ -9,6 +9,7 @@ const props = defineProps({
     route: { type: Object, default: null },
     parentId: { type: Number, default: null },
     hasChildren: { type: Boolean, default: false },
+    hasFallback: { type: Boolean, default: false },
     flows: { type: Array, default: () => [] },
 });
 
@@ -19,18 +20,38 @@ const isNested = computed(() => !!props.parentId);
 const isParentPhrase = computed(() => props.hasChildren);
 const showHandler = computed(() => !isParentPhrase.value);
 
-const routeTypes = [
-    { value: 'command', label: 'Command' },
-    { value: 'phrase', label: 'Phrase' },
-    { value: 'pattern', label: 'Pattern' },
-    { value: 'action', label: 'Action' },
-    { value: 'event', label: 'Event' },
-    { value: 'media', label: 'Media' },
-    { value: 'location', label: 'Location' },
-    { value: 'contact', label: 'Contact' },
-    { value: 'referral', label: 'Referral' },
-    { value: 'fallback', label: 'Fallback' },
-];
+const isFallback = computed(() => props.route?.type === 'fallback');
+
+const routeTypes = computed(() => {
+    const items = [
+        { value: 'command', label: 'Command' },
+        { value: 'phrase', label: 'Phrase' },
+        { value: 'pattern', label: 'Pattern' },
+        { value: 'action', label: 'Action' },
+        { value: 'event', label: 'Event' },
+        { value: 'media', label: 'Media' },
+        { value: 'location', label: 'Location' },
+        { value: 'contact', label: 'Contact' },
+        { value: 'referral', label: 'Referral' },
+        { value: 'fallback', label: 'Fallback' },
+    ];
+
+    return items.map(item => {
+        if (item.value !== 'fallback') {
+            return { ...item, disabled: isFallback.value };
+        }
+
+        const disabled = isEditing.value
+            ? ! isFallback.value
+            : props.hasFallback;
+
+        return {
+            ...item,
+            disabled,
+            label: disabled && props.hasFallback && ! isFallback.value ? 'Fallback (уже есть)' : item.label,
+        };
+    });
+});
 
 const form = useForm({
     parent_id: props.parentId,
@@ -113,7 +134,7 @@ function submit() {
                 <div v-if="!isNested">
                     <label class="block text-sm font-medium text-gray-700">Тип маршрута</label>
                     <select v-model="form.type" class="mt-1 w-full rounded-md border-gray-300 text-sm">
-                        <option v-for="rt in routeTypes" :key="rt.value" :value="rt.value">{{ rt.label }}</option>
+                        <option v-for="rt in routeTypes" :key="rt.value" :value="rt.value" :disabled="rt.disabled">{{ rt.label }}</option>
                     </select>
                 </div>
 
