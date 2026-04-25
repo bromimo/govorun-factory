@@ -180,4 +180,16 @@ class BotRouteControllerTest extends TestCase
         $route = $this->bot->routes()->where('match', 'hello')->first();
         $this->assertEquals(['hi', 'hey'], $route->aliases);
     }
+
+    public function test_cannot_create_second_fallback_route(): void
+    {
+        BotRoute::factory()->for($this->bot)->create(['type' => 'fallback']);
+
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
+            'type' => 'fallback',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertSessionHasErrors(['type']);
+    }
 }

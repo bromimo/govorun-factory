@@ -32,7 +32,30 @@ class StoreBotRouteRequest extends FormRequest
 
         return [
             'parent_id' => ['nullable', 'integer', 'exists:bot_routes,id'],
-            'type' => ['required', 'string', Rule::in(array_column(RouteType::cases(), 'value'))],
+            'type' => [
+                'required', 'string',
+                Rule::in(array_column(RouteType::cases(), 'value')),
+                function (string $attribute, mixed $value, \Closure $fail) use ($botId, $parentId) {
+                    if ($value !== RouteType::Fallback->value) {
+                        return;
+                    }
+
+                    if ($parentId !== null) {
+                        $fail('Fallback не может быть вложенным маршрутом');
+
+                        return;
+                    }
+
+                    $exists = \App\Models\BotRoute::query()
+                        ->where('bot_id', $botId)
+                        ->where('type', RouteType::Fallback->value)
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('У бота уже есть fallback-маршрут');
+                    }
+                },
+            ],
             'match' => ['nullable', 'string', 'max:255'],
             'aliases' => ['nullable', 'array'],
             'aliases.*' => ['nullable', 'string', 'max:255'],
