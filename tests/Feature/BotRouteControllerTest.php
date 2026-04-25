@@ -192,4 +192,17 @@ class BotRouteControllerTest extends TestCase
             'middleware' => [],
         ])->assertSessionHasErrors(['type']);
     }
+
+    public function test_cannot_create_nested_fallback_route(): void
+    {
+        $parent = BotRoute::factory()->for($this->bot)->create(['type' => 'phrase']);
+
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
+            'parent_id' => $parent->id,
+            'type' => 'fallback',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertSessionHasErrors(['type']);
+    }
 }
