@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { colorClasses } from '../Blocks/blockTypes.js';
 import RouteEditor from './RouteEditor.vue';
@@ -17,6 +17,17 @@ const editorParentId = ref(null);
 const localRoutes = ref(props.routes ? [...props.routes] : []);
 const dragIndex = ref(null);
 const overIndex = ref(null);
+
+const sortedRoutes = computed(() => {
+    const list = [...localRoutes.value];
+    const idx = list.findIndex(r => r.type === 'fallback');
+    if (idx === -1) return list;
+    const [fb] = list.splice(idx, 1);
+    list.push(fb);
+    return list;
+});
+
+const hasFallback = computed(() => localRoutes.value.some(r => r.type === 'fallback'));
 
 watch(() => props.routes, (val) => { localRoutes.value = [...val]; });
 
@@ -50,6 +61,7 @@ function onDragStart(e, index) {
 }
 
 function onDragOver(e, index) {
+    if (sortedRoutes.value[index]?.type === 'fallback') return;
     e.preventDefault();
     overIndex.value = index;
 }
@@ -57,9 +69,16 @@ function onDragOver(e, index) {
 function onDrop() {
     if (dragIndex.value === null || overIndex.value === null || dragIndex.value === overIndex.value) return;
 
-    const list = [...localRoutes.value];
+    const list = [...sortedRoutes.value];
+    if (list[dragIndex.value]?.type === 'fallback') return;
     const [moved] = list.splice(dragIndex.value, 1);
     list.splice(overIndex.value, 0, moved);
+
+    const fbIdx = list.findIndex(r => r.type === 'fallback');
+    if (fbIdx !== -1 && fbIdx !== list.length - 1) {
+        const [fb] = list.splice(fbIdx, 1);
+        list.push(fb);
+    }
     localRoutes.value = list;
 
     const ids = list.map(r => r.id);
@@ -80,11 +99,11 @@ const typeColors = {
 
 <template>
     <div>
-        <div v-if="localRoutes.length" class="divide-y divide-gray-100">
-            <template v-for="(r, index) in localRoutes" :key="r.id">
+        <div v-if="sortedRoutes.length" class="divide-y divide-gray-100">
+            <template v-for="(r, index) in sortedRoutes" :key="r.id">
                 <div class="flex items-center gap-3 py-3 transition-colors"
                     :class="{ 'border-t-2 border-indigo-400': overIndex === index && dragIndex !== index }"
-                    :draggable="canUpdate"
+                    :draggable="canUpdate && r.type !== 'fallback'"
                     @dragstart="onDragStart($event, index)"
                     @dragover="onDragOver($event, index)"
                     @drop="onDrop"
@@ -141,7 +160,7 @@ const typeColors = {
                 </div>
             </template>
         </div>
-        <p v-if="!localRoutes.length" class="text-sm text-gray-500">Нет маршрутов</p>
+        <p v-if="!sortedRoutes.length" class="text-sm text-gray-500">Нет маршрутов</p>
 
         <button v-if="canUpdate" @click="openCreate()"
             class="mt-4 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500">
@@ -149,6 +168,6 @@ const typeColors = {
         </button>
 
         <RouteEditor v-if="showEditor" :bot-id="botId" :route="editingRoute" :parent-id="editorParentId"
-            :has-children="!!editingRoute?.children?.length" :flows="flows" @close="closeEditor" />
+            :has-children="!!editingRoute?.children?.length" :has-fallback="hasFallback" :flows="flows" @close="closeEditor" />
     </div>
 </template>
