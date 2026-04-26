@@ -90,8 +90,8 @@ test('stale archives older than threshold are cleaned up before export', functio
 });
 
 test('export includes bot_profile when telegram enabled', function () {
-    $admin = \App\Models\User::factory()->admin()->create();
-    $bot = \App\Models\Bot::factory()->for($admin, 'creator')->create([
+    $admin = User::factory()->admin()->create();
+    $bot = Bot::factory()->for($admin, 'creator')->create([
         'messenger_config' => [
             'telegram' => [
                 'enabled' => true,
@@ -104,7 +104,7 @@ test('export includes bot_profile when telegram enabled', function () {
             ],
         ],
     ]);
-    \App\Models\BotRoute::factory()->for($bot)->create();
+    BotRoute::factory()->for($bot)->create();
 
     $response = $this->actingAs($admin)->get(route('bots.export', $bot));
 
@@ -113,7 +113,7 @@ test('export includes bot_profile when telegram enabled', function () {
     $tmp = tempnam(sys_get_temp_dir(), 'zip');
     file_put_contents($tmp, $response->streamedContent());
 
-    $zip = new \ZipArchive();
+    $zip = new ZipArchive;
     $zip->open($tmp);
     $found = false;
     for ($i = 0; $i < $zip->numFiles; $i++) {
