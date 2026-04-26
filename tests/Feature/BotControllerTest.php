@@ -127,4 +127,96 @@ class BotControllerTest extends TestCase
         $this->actingAs($admin)->post('/bots', [])
             ->assertSessionHasErrors(['name']);
     }
+
+    public function test_can_save_telegram_profile(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create([
+            'messenger_config' => ['telegram' => ['enabled' => true]],
+        ]);
+
+        $response = $this->actingAs($admin)->put(route('bots.update', $bot), [
+            'messenger_config' => [
+                'telegram' => [
+                    'enabled' => true,
+                    'profile' => [
+                        'name' => 'Govorun',
+                        'short_description' => 'About',
+                        'description' => 'Long description',
+                        'commands' => [
+                            ['command' => 'start', 'description' => 'Старт'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect();
+        $bot->refresh();
+        $this->assertSame('Govorun', $bot->messenger_config['telegram']['profile']['name']);
+    }
+
+    public function test_validation_rejects_too_long_name(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create([
+            'messenger_config' => ['telegram' => ['enabled' => true]],
+        ]);
+
+        $response = $this->actingAs($admin)->put(route('bots.update', $bot), [
+            'messenger_config' => [
+                'telegram' => [
+                    'enabled' => true,
+                    'profile' => ['name' => str_repeat('a', 65)],
+                ],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors('messenger_config.telegram.profile.name');
+    }
+
+    public function test_validation_rejects_invalid_command_format(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create([
+            'messenger_config' => ['telegram' => ['enabled' => true]],
+        ]);
+
+        $response = $this->actingAs($admin)->put(route('bots.update', $bot), [
+            'messenger_config' => [
+                'telegram' => [
+                    'enabled' => true,
+                    'profile' => [
+                        'commands' => [['command' => 'BAD!', 'description' => 'Х']],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors('messenger_config.telegram.profile.commands.0.command');
+    }
+
+    public function test_validation_rejects_duplicate_commands(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create([
+            'messenger_config' => ['telegram' => ['enabled' => true]],
+        ]);
+
+        $response = $this->actingAs($admin)->put(route('bots.update', $bot), [
+            'messenger_config' => [
+                'telegram' => [
+                    'enabled' => true,
+                    'profile' => [
+                        'commands' => [
+                            ['command' => 'start', 'description' => 'A'],
+                            ['command' => 'start', 'description' => 'B'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors('messenger_config.telegram.profile.commands.1.command');
+    }
 }

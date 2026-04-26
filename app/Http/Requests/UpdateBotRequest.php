@@ -4,10 +4,11 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/** Запрос обновления настроек бота. */
 class UpdateBotRequest extends FormRequest
 {
     /** Проверка авторизации для обновления бота.
-     *
+     * @return bool
      */
     public function authorize(): bool
     {
@@ -15,7 +16,6 @@ class UpdateBotRequest extends FormRequest
     }
 
     /** Правила валидации для обновления бота.
-     *
      * @return array<string, mixed>
      */
     public function rules(): array
@@ -29,7 +29,28 @@ class UpdateBotRequest extends FormRequest
             'config.state_storage' => ['nullable', 'string', 'in:file,database,cache'],
             'config.validation_messages' => ['nullable', 'array'],
             'config.validation_messages.*' => ['nullable', 'string', 'max:500'],
+
             'messenger_config' => ['sometimes', 'nullable', 'array'],
+            'messenger_config.*' => ['nullable', 'array'],
+            'messenger_config.*.enabled' => ['nullable', 'boolean'],
+
+            'messenger_config.telegram.profile' => ['nullable', 'array'],
+            'messenger_config.telegram.profile.name' => ['nullable', 'string', 'max:64'],
+            'messenger_config.telegram.profile.short_description' => ['nullable', 'string', 'max:120'],
+            'messenger_config.telegram.profile.description' => ['nullable', 'string', 'max:512'],
+            'messenger_config.telegram.profile.photo_path' => ['nullable', 'string', 'max:512'],
+            'messenger_config.telegram.profile.commands' => ['nullable', 'array', 'max:100'],
+            'messenger_config.telegram.profile.commands.*.command' => [
+                'required_with:messenger_config.telegram.profile.commands.*.description',
+                'string',
+                'regex:/^[a-z0-9_]{1,32}$/',
+                'distinct',
+            ],
+            'messenger_config.telegram.profile.commands.*.description' => [
+                'required_with:messenger_config.telegram.profile.commands.*.command',
+                'string',
+                'max:256',
+            ],
         ];
     }
 }
