@@ -11,7 +11,7 @@ class ControllerGenerator
     /** Сгенерировать класс контроллера с одним методом handle().
      * @param  array<string, mixed>  $handlerSchema
      */
-    public function generate(string $className, array $handlerSchema): string
+    public function generate(string $className, array $handlerSchema, string $namespace): string
     {
         $blocks = $handlerSchema['blocks'] ?? [];
         $blockCode = '';
@@ -24,6 +24,7 @@ class ControllerGenerator
 
         $code = "<?php\n\n".view('stubs.controller', [
             'className' => $className,
+            'controllerNamespace' => $namespace,
             'blockCode' => $blockCode,
             'useMedia' => $imports['media'],
             'useMessage' => $imports['message'],
@@ -37,7 +38,7 @@ class ControllerGenerator
     /** Сгенерировать класс контроллера с несколькими методами.
      * @param  array<int, array{name: string, schema: array}> $methods
      */
-    public function generateWithMethods(string $className, array $methods): string
+    public function generateWithMethods(string $className, array $methods, string $namespace): string
     {
         $methodsCode = '';
         $allBlocks = [];
@@ -61,6 +62,7 @@ class ControllerGenerator
 
         $code = "<?php\n\n".view('stubs.controller_multi', [
             'className' => $className,
+            'controllerNamespace' => $namespace,
             'methodsCode' => $methodsCode,
             'useMedia' => $imports['media'],
             'useMessage' => $imports['message'],

@@ -46,7 +46,7 @@ class BotRouteController extends Controller
      */
     private function sanitizeAliases(array $data): array
     {
-        if (empty($data['controller_name'])) {
+        if (empty($data['controller_name']) || ($data['type'] ?? '') === 'fallback') {
             $data['controller_name'] = null;
         }
 

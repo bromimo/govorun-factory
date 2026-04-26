@@ -19,8 +19,9 @@ test('generates controller class from handler schema', function () {
     ];
 
     $generator = new ControllerGenerator;
-    $result = $generator->generate('StartController', $schema);
+    $result = $generator->generate('StartController', $schema, 'App\\Controllers\\Commands');
 
+    expect($result)->toContain('namespace App\\Controllers\\Commands;');
     expect($result)->toContain('class StartController extends Controller');
     expect($result)->toContain("\$this->reply('Hello!')");
     expect($result)->toContain("Message::make('Choose:')");
@@ -37,7 +38,8 @@ test('generates controller with save_state block', function () {
     ];
 
     $generator = new ControllerGenerator;
-    $result = $generator->generate('SaveController', $schema);
+    $result = $generator->generate('SaveController', $schema, 'App\\Controllers');
 
+    expect($result)->toContain('namespace App\\Controllers;');
     expect($result)->toContain("\$this->state->set('name', \$this->message->text)");
 });

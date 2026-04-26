@@ -2,6 +2,8 @@
 
 namespace App\Services\CodeGenerator;
 
+use Illuminate\Support\Str;
+
 /** Вспомогательные методы для генерации PHP-кода. */
 class CodeHelper
 {
@@ -486,5 +488,31 @@ class CodeHelper
         }
 
         return "'".addslashes((string) $value)."'";
+    }
+
+    /** Подпапка для контроллеров маршрута данного типа.
+     * Возвращает null для fallback — он живёт в корне `app/Controllers/`.
+     */
+    public static function controllerSubdir(string $routeType): ?string
+    {
+        if ($routeType === 'fallback') {
+            return null;
+        }
+
+        return Str::studly(Str::plural($routeType));
+    }
+
+    /** Namespace для контроллеров маршрута данного типа.
+     * Для fallback — `App\Controllers`, иначе — `App\Controllers\<Subdir>`.
+     */
+    public static function controllerNamespace(string $routeType): string
+    {
+        $subdir = self::controllerSubdir($routeType);
+
+        if ($subdir === null) {
+            return 'App\\Controllers';
+        }
+
+        return 'App\\Controllers\\'.$subdir;
     }
 }

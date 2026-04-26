@@ -3,10 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Bot;
-use App\Models\BotRoute;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\BotRoute;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class BotRouteControllerTest extends TestCase
 {
@@ -259,5 +259,38 @@ class BotRouteControllerTest extends TestCase
 
         $sorted = $this->bot->routes()->whereNull('parent_id')->orderBy('sort_order')->get();
         $this->assertSame($fallback->id, $sorted->last()->id);
+    }
+
+    public function test_store_nullifies_controller_name_for_fallback_route(): void
+    {
+        $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
+            'type' => 'fallback',
+            'controller_name' => 'CustomName',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertRedirect();
+
+        $route = $this->bot->routes()->where('type', 'fallback')->first();
+        $this->assertNotNull($route);
+        $this->assertNull($route->controller_name);
+    }
+
+    public function test_update_nullifies_controller_name_for_fallback_route(): void
+    {
+        $route = BotRoute::factory()->for($this->bot)->create([
+            'type' => 'fallback',
+            'controller_name' => 'OldName',
+        ]);
+
+        $this->actingAs($this->admin)->put("/bots/{$this->bot->id}/routes/{$route->id}", [
+            'type' => 'fallback',
+            'controller_name' => 'NewName',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'middleware' => [],
+        ])->assertRedirect();
+
+        $this->assertNull($route->fresh()->controller_name);
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Services\CodeGenerator;
 
 use App\Models\Bot;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 
 /** Оркестратор генерации полного проекта из схемы бота. */
 class CodeGeneratorService
@@ -122,20 +122,47 @@ class CodeGeneratorService
             if ($route->children->isNotEmpty()) {
                 $this->generateGroupController($route, $outputPath);
             } elseif ($route->handler_type->value === 'controller') {
-                $className = $route->controller_name
-                    ? $route->controller_name.'Controller'
-                    : Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
-                $code = $this->controller->generate($className, $route->handler_schema ?? ['blocks' => []]);
-                $this->putPhp("{$outputPath}/app/Controllers/{$className}.php", $code);
+                $className = $this->resolveControllerClassName($route);
+                $namespace = CodeHelper::controllerNamespace($route->type->value);
+                $code = $this->controller->generate($className, $route->handler_schema ?? ['blocks' => []], $namespace);
+                $this->putControllerFile($outputPath, $route->type->value, $className, $code);
             } elseif ($route->handler_type->value === 'flow' && $route->flow_id) {
                 $flowClass = $this->flowClassNames[$route->flow_id] ?? null;
                 if ($flowClass) {
-                    $className = $flowClass.'Controller';
-                    $code = "<?php\n\n".view('stubs.flow_controller', compact('className', 'flowClass'))->render();
-                    $this->putPhp("{$outputPath}/app/Controllers/{$className}.php", $code);
+                    $className = $route->type->value === 'fallback' ? 'FallbackController' : $flowClass.'Controller';
+                    $controllerNamespace = CodeHelper::controllerNamespace($route->type->value);
+                    $code = "<?php\n\n".view('stubs.flow_controller', compact('className', 'flowClass', 'controllerNamespace'))->render();
+                    $this->putControllerFile($outputPath, $route->type->value, $className, $code);
                 }
             }
         }
+    }
+
+    /** Определить имя класса controller-обработчика для маршрута без детей.
+     * Для fallback — всегда FallbackController, controller_name игнорируется.
+     */
+    private function resolveControllerClassName($route): string
+    {
+        if ($route->type->value === 'fallback') {
+            return 'FallbackController';
+        }
+
+        return $route->controller_name
+            ? $route->controller_name.'Controller'
+            : Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
+    }
+
+    /** Записать файл контроллера в подпапку, соответствующую типу маршрута.
+     */
+    private function putControllerFile(string $outputPath, string $routeType, string $className, string $code): void
+    {
+        $subdir = CodeHelper::controllerSubdir($routeType);
+        $dir = $subdir === null
+            ? "{$outputPath}/app/Controllers"
+            : "{$outputPath}/app/Controllers/{$subdir}";
+
+        File::ensureDirectoryExists($dir);
+        $this->putPhp("{$dir}/{$className}.php", $code);
     }
 
     /** Сгенерировать контроллер группы (родительская phrase с дочерними методами).
@@ -153,8 +180,9 @@ class CodeGeneratorService
             ];
         }
 
-        $code = $this->controller->generateWithMethods($className, $methods);
-        $this->putPhp("{$outputPath}/app/Controllers/{$className}.php", $code);
+        $namespace = CodeHelper::controllerNamespace($parentRoute->type->value);
+        $code = $this->controller->generateWithMethods($className, $methods, $namespace);
+        $this->putControllerFile($outputPath, $parentRoute->type->value, $className, $code);
     }
 
     /** Сгенерировать Flow-классы.

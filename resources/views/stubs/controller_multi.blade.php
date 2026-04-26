@@ -1,4 +1,4 @@
-namespace App\Controllers;
+namespace {{ $controllerNamespace }};
 
 @if($useMedia)
 use Govorun\Messaging\Media;
