@@ -122,22 +122,34 @@ class CodeGeneratorService
             if ($route->children->isNotEmpty()) {
                 $this->generateGroupController($route, $outputPath);
             } elseif ($route->handler_type->value === 'controller') {
-                $className = $route->controller_name
-                    ? $route->controller_name.'Controller'
-                    : Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
+                $className = $this->resolveControllerClassName($route);
                 $namespace = CodeHelper::controllerNamespace($route->type->value);
                 $code = $this->controller->generate($className, $route->handler_schema ?? ['blocks' => []], $namespace);
                 $this->putControllerFile($outputPath, $route->type->value, $className, $code);
             } elseif ($route->handler_type->value === 'flow' && $route->flow_id) {
                 $flowClass = $this->flowClassNames[$route->flow_id] ?? null;
                 if ($flowClass) {
-                    $className = $flowClass.'Controller';
+                    $className = $route->type->value === 'fallback' ? 'FallbackController' : $flowClass.'Controller';
                     $controllerNamespace = CodeHelper::controllerNamespace($route->type->value);
                     $code = "<?php\n\n".view('stubs.flow_controller', compact('className', 'flowClass', 'controllerNamespace'))->render();
                     $this->putControllerFile($outputPath, $route->type->value, $className, $code);
                 }
             }
         }
+    }
+
+    /** Определить имя класса controller-обработчика для маршрута без детей.
+     * Для fallback — всегда FallbackController, controller_name игнорируется.
+     */
+    private function resolveControllerClassName($route): string
+    {
+        if ($route->type->value === 'fallback') {
+            return 'FallbackController';
+        }
+
+        return $route->controller_name
+            ? $route->controller_name.'Controller'
+            : Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
     }
 
     /** Записать файл контроллера в подпапку, соответствующую типу маршрута.

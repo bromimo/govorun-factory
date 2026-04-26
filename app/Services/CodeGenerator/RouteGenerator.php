@@ -3,6 +3,7 @@
 namespace App\Services\CodeGenerator;
 
 use App\Models\Bot;
+use App\Models\BotRoute;
 use Illuminate\Support\Str;
 
 /** Генератор файла маршрутов мессенджера. */
@@ -13,16 +14,20 @@ class RouteGenerator
      */
     public function generate(Bot $bot, array $flowClassNames = []): string
     {
-        $imports = ['Govorun\Routing\Route'];
+        $importsFqcn = ['Govorun\Routing\Route'];
 
         $topRoutes = $bot->routes()->whereNull('parent_id')->orderBy('sort_order')->with('children')->get();
 
-        $routes = [];
+        $entries = [];
         foreach ($topRoutes as $route) {
-            $routes[] = $this->buildEntry($route, $flowClassNames, $imports);
+            $entries[] = $this->buildEntry($route, $flowClassNames, $importsFqcn);
         }
 
-        $imports = array_unique($imports);
+        $importsFqcn = array_values(array_unique($importsFqcn));
+        $aliasMap = $this->resolveAliasMap($importsFqcn);
+
+        $routes = $this->applyAliases($entries, $aliasMap);
+        $imports = $this->formatImports($importsFqcn, $aliasMap);
         usort($imports, fn ($a, $b) => strlen($a) <=> strlen($b));
 
         $code = "<?php\n\n".view('stubs.routes_messenger', compact('routes', 'imports'))->render();
@@ -31,7 +36,7 @@ class RouteGenerator
     }
 
     /** Построить массив данных маршрута для шаблона.
-     * @param  \App\Models\BotRoute  $route
+     * @param  BotRoute  $route
      * @param  array<int, string>  $flowClassNames
      * @param  array<int, string>  $imports
      * @return array<string, mixed>
@@ -49,8 +54,10 @@ class RouteGenerator
 
         if ($route->children->isNotEmpty()) {
             $className = ($route->controller_name ?? Str::studly(Str::slug($route->match ?? 'handler', '_'))).'Controller';
+            $fqcn = CodeHelper::controllerNamespace($route->type->value).'\\'.$className;
             $entry['controller_class'] = $className;
-            $imports[] = CodeHelper::controllerNamespace($route->type->value).'\\'.$className;
+            $entry['controller_fqcn'] = $fqcn;
+            $imports[] = $fqcn;
 
             foreach ($route->children as $child) {
                 $method = $child->controller_name ?: Str::camel(Str::slug($child->match ?: 'handle', '_'));
@@ -64,7 +71,9 @@ class RouteGenerator
             return $entry;
         }
 
-        if ($route->controller_name) {
+        if ($route->type->value === 'fallback') {
+            $className = 'FallbackController';
+        } elseif ($route->controller_name) {
             $className = $route->controller_name.'Controller';
         } elseif ($route->handler_type->value === 'controller') {
             $className = Str::studly($route->type->value.'_'.Str::slug($route->match ?? 'handler', '_')).'Controller';
@@ -73,9 +82,83 @@ class RouteGenerator
             $className = $flowName.'Controller';
         }
 
+        $fqcn = CodeHelper::controllerNamespace($route->type->value).'\\'.$className;
         $entry['controller_class'] = $className;
-        $imports[] = CodeHelper::controllerNamespace($route->type->value).'\\'.$className;
+        $entry['controller_fqcn'] = $fqcn;
+        $imports[] = $fqcn;
 
         return $entry;
+    }
+
+    /** Построить карту FQCN → алиас для тех контроллеров, чьи короткие имена коллизируют.
+     * Алиас формируется как «предпоследний сегмент namespace + короткое имя».
+     *
+     * @param  array<int, string>  $fqcns
+     * @return array<string, string>
+     */
+    private function resolveAliasMap(array $fqcns): array
+    {
+        $byShort = [];
+        foreach ($fqcns as $fqcn) {
+            $byShort[$this->shortName($fqcn)][] = $fqcn;
+        }
+
+        $aliases = [];
+        foreach ($byShort as $short => $candidates) {
+            if (count($candidates) <= 1) {
+                continue;
+            }
+            foreach ($candidates as $fqcn) {
+                $parts = explode('\\', $fqcn);
+                $parent = $parts[count($parts) - 2] ?? '';
+                $aliases[$fqcn] = $parent.$short;
+            }
+        }
+
+        return $aliases;
+    }
+
+    /** Подставить алиасы в записи маршрутов, удалить служебное поле controller_fqcn.
+     *
+     * @param  array<int, array<string, mixed>>  $entries
+     * @param  array<string, string>  $aliasMap
+     * @return array<int, array<string, mixed>>
+     */
+    private function applyAliases(array $entries, array $aliasMap): array
+    {
+        return array_map(function ($entry) use ($aliasMap) {
+            $fqcn = $entry['controller_fqcn'] ?? null;
+            if ($fqcn !== null && isset($aliasMap[$fqcn])) {
+                $entry['controller_class'] = $aliasMap[$fqcn];
+            }
+            unset($entry['controller_fqcn']);
+
+            return $entry;
+        }, $entries);
+    }
+
+    /** Сформировать строки use-импортов с алиасами для коллизирующих имён.
+     *
+     * @param  array<int, string>  $fqcns
+     * @param  array<string, string>  $aliasMap
+     * @return array<int, string>
+     */
+    private function formatImports(array $fqcns, array $aliasMap): array
+    {
+        return array_map(
+            fn (string $fqcn) => isset($aliasMap[$fqcn])
+                ? $fqcn.' as '.$aliasMap[$fqcn]
+                : $fqcn,
+            $fqcns,
+        );
+    }
+
+    /** Извлечь короткое имя класса из FQCN.
+     */
+    private function shortName(string $fqcn): string
+    {
+        $pos = strrpos($fqcn, '\\');
+
+        return $pos === false ? $fqcn : substr($fqcn, $pos + 1);
     }
 }

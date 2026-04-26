@@ -41,7 +41,7 @@ test('fallback-controller stays in root Controllers directory', function () {
     $bot = Bot::factory()->for(User::factory()->admin(), 'creator')->create();
     BotRoute::factory()->for($bot)->create([
         'type' => 'fallback',
-        'controller_name' => 'Fallback',
+        'controller_name' => null,
         'handler_type' => 'controller',
         'handler_schema' => ['blocks' => []],
     ]);
@@ -52,6 +52,46 @@ test('fallback-controller stays in root Controllers directory', function () {
     expect(File::get("{$dir}/app/Controllers/FallbackController.php"))
         ->toContain('namespace App\\Controllers;')
         ->not->toContain('namespace App\\Controllers\\Fallback');
+
+    File::deleteDirectory($dir);
+});
+
+test('fallback-controller is always FallbackController regardless of controller_name', function () {
+    $bot = Bot::factory()->for(User::factory()->admin(), 'creator')->create();
+    BotRoute::factory()->for($bot)->create([
+        'type' => 'fallback',
+        'controller_name' => 'CustomName',
+        'handler_type' => 'controller',
+        'handler_schema' => ['blocks' => []],
+    ]);
+
+    $dir = generateBotToTempDir($bot);
+
+    expect(File::exists("{$dir}/app/Controllers/FallbackController.php"))->toBeTrue();
+    expect(File::exists("{$dir}/app/Controllers/CustomNameController.php"))->toBeFalse();
+    expect(File::get("{$dir}/app/Controllers/FallbackController.php"))
+        ->toContain('class FallbackController extends Controller');
+
+    File::deleteDirectory($dir);
+});
+
+test('fallback-flow controller is always named FallbackController', function () {
+    $bot = Bot::factory()->for(User::factory()->admin(), 'creator')->create();
+    $flow = $bot->flows()->create(['name' => 'Greet', 'graph' => ['nodes' => [], 'edges' => []]]);
+    BotRoute::factory()->for($bot)->create([
+        'type' => 'fallback',
+        'controller_name' => null,
+        'handler_type' => 'flow',
+        'flow_id' => $flow->id,
+    ]);
+
+    $dir = generateBotToTempDir($bot);
+
+    expect(File::exists("{$dir}/app/Controllers/FallbackController.php"))->toBeTrue();
+    expect(File::exists("{$dir}/app/Controllers/GreetController.php"))->toBeFalse();
+    expect(File::get("{$dir}/app/Controllers/FallbackController.php"))
+        ->toContain('class FallbackController extends Controller')
+        ->toContain('$this->startFlow(Greet::class);');
 
     File::deleteDirectory($dir);
 });

@@ -70,7 +70,13 @@ const showMatch = computed(() => ['command', 'phrase', 'pattern', 'action', 'ref
 const showAliases = computed(() => form.type === 'phrase');
 
 const longMatch = computed(() => (form.match?.length ?? 0) > 20);
-const showControllerName = computed(() => isParentPhrase.value || isNested.value || (showHandler.value && form.handler_type === 'controller'));
+const showControllerName = computed(() => {
+    if (form.type === 'fallback') {
+        return false;
+    }
+
+    return isParentPhrase.value || isNested.value || (showHandler.value && form.handler_type === 'controller');
+});
 
 const autoControllerName = computed(() => {
     const match = form.match?.trim();
@@ -100,6 +106,10 @@ function onControllerNameInput(e) {
 watch(() => form.type, (newType) => {
     if (newType !== 'phrase') {
         form.aliases = [];
+    }
+
+    if (newType === 'fallback') {
+        form.controller_name = '';
     }
 });
 
