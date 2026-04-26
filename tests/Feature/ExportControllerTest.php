@@ -88,3 +88,44 @@ test('stale archives older than threshold are cleaned up before export', functio
         @unlink($freshPath);
     }
 });
+
+test('export includes bot_profile when telegram enabled', function () {
+    $admin = \App\Models\User::factory()->admin()->create();
+    $bot = \App\Models\Bot::factory()->for($admin, 'creator')->create([
+        'messenger_config' => [
+            'telegram' => [
+                'enabled' => true,
+                'profile' => [
+                    'name' => 'Z',
+                    'short_description' => 'A',
+                    'description' => 'D',
+                    'commands' => [['command' => 'start', 'description' => 'X']],
+                ],
+            ],
+        ],
+    ]);
+    \App\Models\BotRoute::factory()->for($bot)->create();
+
+    $response = $this->actingAs($admin)->get(route('bots.export', $bot));
+
+    $response->assertOk();
+
+    $tmp = tempnam(sys_get_temp_dir(), 'zip');
+    file_put_contents($tmp, $response->streamedContent());
+
+    $zip = new \ZipArchive();
+    $zip->open($tmp);
+    $found = false;
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $name = $zip->getNameIndex($i);
+        if (str_ends_with($name, '/config/bot_profile.php')) {
+            $content = $zip->getFromIndex($i);
+            expect($content)->toContain("'name' => 'Z'");
+            $found = true;
+        }
+    }
+    $zip->close();
+    unlink($tmp);
+
+    expect($found)->toBeTrue('config/bot_profile.php not found in ZIP');
+});
