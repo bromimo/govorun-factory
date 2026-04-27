@@ -39,18 +39,6 @@ class UpdateBotRequest extends FormRequest
             'messenger_config.telegram.profile.short_description' => ['nullable', 'string', 'max:120'],
             'messenger_config.telegram.profile.description' => ['nullable', 'string', 'max:512'],
             'messenger_config.telegram.profile.photo_path' => ['nullable', 'string', 'max:512'],
-            'messenger_config.telegram.profile.commands' => ['nullable', 'array', 'max:100'],
-            'messenger_config.telegram.profile.commands.*.command' => [
-                'required_with:messenger_config.telegram.profile.commands.*.description',
-                'string',
-                'regex:/^[a-z0-9_]{1,32}$/',
-                'distinct',
-            ],
-            'messenger_config.telegram.profile.commands.*.description' => [
-                'required_with:messenger_config.telegram.profile.commands.*.command',
-                'string',
-                'max:256',
-            ],
         ];
     }
 }

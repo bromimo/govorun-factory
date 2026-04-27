@@ -57,6 +57,7 @@ const form = useForm({
     parent_id: props.parentId,
     type: props.parentId ? 'phrase' : (props.route?.type ?? 'command'),
     match: props.route?.match ?? '',
+    description: props.route?.description ?? '',
     aliases: props.route?.aliases ?? [],
     controller_name: props.route?.controller_name ?? '',
     handler_type: props.route?.handler_type ?? 'controller',
@@ -152,6 +153,21 @@ function submit() {
                     <label class="block text-sm font-medium text-gray-700">Match</label>
                     <input v-model="form.match" type="text" class="mt-1 w-full rounded-md border-gray-300 text-sm"
                         :placeholder="form.type === 'command' ? '/start' : 'hello'" />
+                </div>
+
+                <div v-if="form.type === 'command'">
+                    <label class="block text-sm font-medium text-gray-700">
+                        Описание для меню Telegram
+                    </label>
+                    <input v-model="form.description" type="text" maxlength="256"
+                        class="mt-1 w-full rounded-md border-gray-300 text-sm"
+                        placeholder="Запустить бота" />
+                    <p class="mt-1 text-xs text-gray-400">
+                        Если пусто — команда не попадёт в меню при <code>bot:profile-sync</code>.
+                    </p>
+                    <p v-if="form.errors.description" class="mt-1 text-xs text-red-600">
+                        {{ form.errors.description }}
+                    </p>
                 </div>
 
                 <div v-if="showAliases">

@@ -3,6 +3,8 @@
 namespace App\Services\CodeGenerator;
 
 use App\Models\Bot;
+use App\Enums\RouteType;
+use Illuminate\Support\Facades\Storage;
 
 /** Генератор Telegram-профиля бота: config/bot_profile.php + бинарь фото. */
 class BotProfileGenerator
@@ -23,7 +25,7 @@ class BotProfileGenerator
             'name' => $profile['name'] ?? '',
             'shortDescription' => $profile['short_description'] ?? '',
             'description' => $profile['description'] ?? '',
-            'commands' => $profile['commands'] ?? [],
+            'commands' => $this->buildCommands($bot),
         ])->render();
     }
 
@@ -38,7 +40,7 @@ class BotProfileGenerator
             return null;
         }
 
-        $absolute = storage_path('app/' . $relativePath);
+        $absolute = Storage::disk('local')->path($relativePath);
         if (! is_file($absolute)) {
             return null;
         }
@@ -49,5 +51,26 @@ class BotProfileGenerator
             'source_absolute_path' => $absolute,
             'zip_relative_path' => "storage/app/bot-profile.{$extension}",
         ];
+    }
+
+    /** Собрать массив команд для меню Telegram из маршрутов типа command с непустым description.
+     * @param Bot $bot
+     * @return array<int, array{command: string, description: string}>
+     */
+    private function buildCommands(Bot $bot): array
+    {
+        return $bot->routes()
+            ->where('type', RouteType::Command->value)
+            ->whereNotNull('description')
+            ->where('description', '!=', '')
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn ($route) => [
+                'command' => ltrim((string) $route->match, '/'),
+                'description' => (string) $route->description,
+            ])
+            ->filter(fn ($cmd) => $cmd['command'] !== '')
+            ->values()
+            ->all();
     }
 }

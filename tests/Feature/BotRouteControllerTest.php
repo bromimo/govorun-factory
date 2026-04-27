@@ -28,6 +28,7 @@ class BotRouteControllerTest extends TestCase
         $response = $this->actingAs($this->admin)->post("/bots/{$this->bot->id}/routes", [
             'type' => 'command',
             'match' => '/start',
+            'description' => 'Запустить бота',
             'handler_type' => 'controller',
             'handler_schema' => ['blocks' => [['type' => 'reply_text', 'params' => ['text' => 'Hello']]]],
             'middleware' => [],
@@ -38,6 +39,7 @@ class BotRouteControllerTest extends TestCase
             'bot_id' => $this->bot->id,
             'type' => 'command',
             'match' => '/start',
+            'description' => 'Запустить бота',
         ]);
     }
 

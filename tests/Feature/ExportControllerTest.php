@@ -99,12 +99,15 @@ test('export includes bot_profile when telegram enabled', function () {
                     'name' => 'Z',
                     'short_description' => 'A',
                     'description' => 'D',
-                    'commands' => [['command' => 'start', 'description' => 'X']],
                 ],
             ],
         ],
     ]);
-    BotRoute::factory()->for($bot)->create();
+    BotRoute::factory()->for($bot)->create([
+        'type' => 'command',
+        'match' => '/start',
+        'description' => 'X',
+    ]);
 
     $response = $this->actingAs($admin)->get(route('bots.export', $bot));
 
@@ -121,6 +124,8 @@ test('export includes bot_profile when telegram enabled', function () {
         if (str_ends_with($name, '/config/bot_profile.php')) {
             $content = $zip->getFromIndex($i);
             expect($content)->toContain("'name' => 'Z'");
+            expect($content)->toContain("'command' => 'start'");
+            expect($content)->toContain("'description' => 'X'");
             $found = true;
         }
     }
