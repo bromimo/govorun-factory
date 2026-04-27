@@ -11,7 +11,9 @@ use App\Http\Requests\StoreBotRequest;
 use App\Http\Requests\UpdateBotRequest;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UploadBotPhotoRequest;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use App\Services\TelegramProfileVideoConverter;
 
 class BotController extends Controller
 {
@@ -90,11 +92,15 @@ class BotController extends Controller
         return redirect()->route('dashboard');
     }
 
-    /** Загрузить аватар бота: PNG конвертится в JPG, MP4 — как есть.
+    /** Загрузить аватар бота: PNG конвертится в JPG, MP4 — нормализуется под спеку Telegram.
      * @return RedirectResponse
+     * @throws ValidationException Если конвертация видео провалилась.
      */
-    public function uploadProfilePhoto(UploadBotPhotoRequest $request, Bot $bot): RedirectResponse
-    {
+    public function uploadProfilePhoto(
+        UploadBotPhotoRequest $request,
+        Bot $bot,
+        TelegramProfileVideoConverter $videoConverter,
+    ): RedirectResponse {
         $file = $request->file('file');
         $mime = $file->getMimeType();
 
@@ -106,7 +112,17 @@ class BotController extends Controller
         }
 
         if ($mime === 'video/mp4') {
-            $relativePath = $disk->putFileAs($dir, $file, 'profile.mp4');
+            $relativePath = "{$dir}/profile.mp4";
+            $tmpDest = tempnam(sys_get_temp_dir(), 'tg-mp4-').'.mp4';
+
+            try {
+                $videoConverter->convert($file->getRealPath(), $tmpDest);
+                $disk->put($relativePath, file_get_contents($tmpDest));
+            } catch (\RuntimeException $e) {
+                throw ValidationException::withMessages(['file' => $e->getMessage()]);
+            } finally {
+                @unlink($tmpDest);
+            }
         } else {
             $relativePath = "{$dir}/profile.jpg";
             $jpgBinary = $this->encodeAsJpeg($file->getRealPath(), $mime);

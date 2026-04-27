@@ -24,10 +24,21 @@ class UploadBotPhotoRequest extends FormRequest
             'file' => [
                 'required',
                 'file',
-                'max:2048',
+                'max:10240',
                 'mimes:jpeg,jpg,png,mp4',
                 'mimetypes:image/jpeg,image/png,video/mp4',
             ],
+        ];
+    }
+
+    /** Сообщения валидации.
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'file.max' => 'Размер файла не должен превышать 10 MB.',
+            'file.mimetypes' => 'Поддерживаются только JPG, PNG и MP4.',
         ];
     }
 }

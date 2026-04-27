@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Services\TelegramProfileVideoConverter;
 
 /** Тесты загрузки/показа/удаления аватара Telegram-бота. */
 class BotProfilePhotoTest extends TestCase
@@ -61,11 +62,64 @@ class BotProfilePhotoTest extends TestCase
             'messenger_config' => ['telegram' => ['enabled' => true]],
         ]);
 
-        $file = UploadedFile::fake()->create('big.jpg', 3000, 'image/jpeg'); // 3 MB
+        $file = UploadedFile::fake()->create('big.jpg', 11000, 'image/jpeg'); // 11 MB > 10 MB
 
         $this->actingAs($admin)
             ->post(route('bots.profile-photo.upload', $bot), ['file' => $file])
             ->assertSessionHasErrors('file');
+    }
+
+    public function test_mp4_upload_runs_through_video_converter(): void
+    {
+        Storage::fake('local');
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create([
+            'messenger_config' => ['telegram' => ['enabled' => true]],
+        ]);
+
+        $converterMock = $this->createMock(TelegramProfileVideoConverter::class);
+        $converterMock->expects($this->once())
+            ->method('convert')
+            ->willReturnCallback(function (string $src, string $dest) {
+                file_put_contents($dest, 'normalized-mp4-bytes');
+            });
+        $this->app->instance(TelegramProfileVideoConverter::class, $converterMock);
+
+        $file = UploadedFile::fake()->create('avatar.mp4', 200, 'video/mp4');
+
+        $this->actingAs($admin)
+            ->post(route('bots.profile-photo.upload', $bot), ['file' => $file])
+            ->assertRedirect();
+
+        $bot->refresh();
+        $path = $bot->messenger_config['telegram']['profile']['photo_path'];
+        $this->assertStringEndsWith('.mp4', $path);
+        $this->assertSame('normalized-mp4-bytes', Storage::disk('local')->get($path));
+    }
+
+    public function test_mp4_upload_returns_422_when_converter_fails(): void
+    {
+        Storage::fake('local');
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create([
+            'messenger_config' => ['telegram' => ['enabled' => true]],
+        ]);
+
+        $converterMock = $this->createMock(TelegramProfileVideoConverter::class);
+        $converterMock->expects($this->once())
+            ->method('convert')
+            ->willThrowException(new \RuntimeException('ffmpeg не смог обработать видео.'));
+        $this->app->instance(TelegramProfileVideoConverter::class, $converterMock);
+
+        $file = UploadedFile::fake()->create('avatar.mp4', 200, 'video/mp4');
+
+        $this->actingAs($admin)
+            ->post(route('bots.profile-photo.upload', $bot), ['file' => $file])
+            ->assertSessionHasErrors('file');
+
+        $bot->refresh();
+        $this->assertArrayNotHasKey('photo_path', $bot->messenger_config['telegram']['profile'] ?? []);
+        Storage::disk('local')->assertMissing("bot-profiles/{$bot->id}/profile.mp4");
     }
 
     public function test_viewer_cannot_upload_photo(): void
