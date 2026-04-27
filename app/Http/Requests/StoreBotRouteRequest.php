@@ -59,6 +59,7 @@ class StoreBotRouteRequest extends FormRequest
                 },
             ],
             'match' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:256'],
             'aliases' => ['nullable', 'array'],
             'aliases.*' => ['nullable', 'string', 'max:255'],
             'controller_name' => ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z][a-zA-Z0-9]*$/', $uniqueRule],

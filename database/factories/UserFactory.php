@@ -55,4 +55,12 @@ class UserFactory extends Factory
     {
         return $this->state(fn () => ['role' => UserRole::Editor->value]);
     }
+
+    /** Создать пользователя с ролью наблюдателя.
+     *
+     */
+    public function viewer(): static
+    {
+        return $this->state(fn () => ['role' => UserRole::Viewer->value]);
+    }
 }

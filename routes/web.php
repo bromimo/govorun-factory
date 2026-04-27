@@ -17,6 +17,12 @@ Route::middleware('auth')->group(function () {
         Route::get('{bot}/edit', [BotController::class, 'edit'])->name('bots.edit');
         Route::put('{bot}', [BotController::class, 'update'])->name('bots.update');
         Route::delete('{bot}', [BotController::class, 'destroy'])->name('bots.destroy');
+        Route::post('{bot}/profile-photo', [BotController::class, 'uploadProfilePhoto'])
+            ->name('bots.profile-photo.upload');
+        Route::get('{bot}/profile-photo', [BotController::class, 'showProfilePhoto'])
+            ->name('bots.profile-photo.show');
+        Route::delete('{bot}/profile-photo', [BotController::class, 'deleteProfilePhoto'])
+            ->name('bots.profile-photo.delete');
 
         Route::prefix('{bot}/routes')->group(function () {
             Route::post('', [BotRouteController::class, 'store'])->name('bot-routes.store');

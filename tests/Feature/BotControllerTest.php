@@ -127,4 +127,48 @@ class BotControllerTest extends TestCase
         $this->actingAs($admin)->post('/bots', [])
             ->assertSessionHasErrors(['name']);
     }
+
+    public function test_can_save_telegram_profile(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create([
+            'messenger_config' => ['telegram' => ['enabled' => true]],
+        ]);
+
+        $response = $this->actingAs($admin)->put(route('bots.update', $bot), [
+            'messenger_config' => [
+                'telegram' => [
+                    'enabled' => true,
+                    'profile' => [
+                        'name' => 'Govorun',
+                        'short_description' => 'About',
+                        'description' => 'Long description',
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect();
+        $bot->refresh();
+        $this->assertSame('Govorun', $bot->messenger_config['telegram']['profile']['name']);
+    }
+
+    public function test_validation_rejects_too_long_name(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create([
+            'messenger_config' => ['telegram' => ['enabled' => true]],
+        ]);
+
+        $response = $this->actingAs($admin)->put(route('bots.update', $bot), [
+            'messenger_config' => [
+                'telegram' => [
+                    'enabled' => true,
+                    'profile' => ['name' => str_repeat('a', 65)],
+                ],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors('messenger_config.telegram.profile.name');
+    }
 }

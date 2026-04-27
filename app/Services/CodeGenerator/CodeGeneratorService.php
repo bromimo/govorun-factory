@@ -19,6 +19,8 @@ class CodeGeneratorService
 
     private ComposerGenerator $composer;
 
+    private BotProfileGenerator $botProfile;
+
     /** @var array<int, string> Маппинг flow_id → имя класса. */
     private array $flowClassNames = [];
 
@@ -29,6 +31,7 @@ class CodeGeneratorService
         $this->controller = new ControllerGenerator;
         $this->flow = new FlowGenerator;
         $this->composer = new ComposerGenerator;
+        $this->botProfile = new BotProfileGenerator;
     }
 
     /** Сгенерировать полный проект в указанную директорию.
@@ -40,6 +43,7 @@ class CodeGeneratorService
         $this->buildFlowClassNames($bot);
         $this->copySkeletonTo($outputPath);
         $this->generateConfigs($bot, $outputPath);
+        $this->generateBotProfile($bot, $outputPath);
         $this->generateRoutes($bot, $outputPath);
         $this->generateControllers($bot, $outputPath);
         $this->generateFlows($bot, $outputPath);
@@ -211,5 +215,31 @@ class CodeGeneratorService
     private function generateComposer(Bot $bot, string $outputPath): void
     {
         File::put("{$outputPath}/composer.json", $this->composer->generate($bot->name));
+    }
+
+    /** Сгенерировать config/bot_profile.php и (если есть) скопировать фото-бинарь.
+     * @param Bot $bot
+     * @param string $outputPath
+     * @return void
+     */
+    private function generateBotProfile(Bot $bot, string $outputPath): void
+    {
+        $configPhp = $this->botProfile->renderConfig($bot);
+        if ($configPhp === null) {
+            return;
+        }
+
+        $configPath = "{$outputPath}/config/bot_profile.php";
+        File::ensureDirectoryExists(dirname($configPath));
+        $this->putPhp($configPath, $configPhp);
+
+        $photo = $this->botProfile->resolvePhoto($bot);
+        if ($photo === null) {
+            return;
+        }
+
+        $photoTargetPath = "{$outputPath}/{$photo['zip_relative_path']}";
+        File::ensureDirectoryExists(dirname($photoTargetPath));
+        File::copy($photo['source_absolute_path'], $photoTargetPath);
     }
 }
