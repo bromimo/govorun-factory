@@ -6,15 +6,37 @@ test('spec example: flow 2 (Gender branching) generates expected structure', fun
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_name', 'type' => 'ask_text', 'data' => ['text' => 'Как вас зовут?', 'stepName' => 'askName'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_name', 'type' => 'ask', 'data' => [
+                'mode' => 'text', 'stepName' => 'askName', 'text' => 'Как вас зовут?',
+                'media' => null, 'validation' => [], 'keyboard' => null,
+            ], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'save_name', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'name', 'source' => 'message.text'], ['key' => 'user_id', 'source' => 'user.id']]], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'reply_hi', 'type' => 'reply_text', 'data' => ['text' => 'Привет, {{name}} {{message.user.firstName}}!'], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_g', 'type' => 'ask_keyboard', 'data' => ['text' => 'Выберите свой пол', 'stepName' => 'askGender', 'buttons' => [[['type' => 'action', 'label' => 'мужской', 'action' => 'man'], ['type' => 'action', 'label' => 'женский', 'action' => 'woman']]]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'reply_hi', 'type' => 'reply', 'data' => [
+                'text' => 'Привет, {{name}} {{message.user.firstName}}!',
+                'media' => null, 'keyboard' => null,
+            ], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_g', 'type' => 'ask', 'data' => [
+                'mode' => 'callback', 'stepName' => 'askGender', 'text' => 'Выберите свой пол',
+                'media' => null, 'validation' => [],
+                'keyboard' => ['type' => 'inline', 'buttons' => [[
+                    ['type' => 'action', 'label' => 'мужской', 'action' => 'man'],
+                    ['type' => 'action', 'label' => 'женский', 'action' => 'woman'],
+                ]]],
+            ], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_m', 'type' => 'ask_text', 'data' => ['text' => 'Мужской вопрос', 'stepName' => 'askManAnswer'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_m', 'type' => 'ask', 'data' => [
+                'mode' => 'text', 'stepName' => 'askManAnswer', 'text' => 'Мужской вопрос',
+                'media' => null, 'validation' => [], 'keyboard' => null,
+            ], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'save_ans', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'answer', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'reply_ans', 'type' => 'reply_text', 'data' => ['text' => '{{name}}, вы ответили {{answer}}'], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_w', 'type' => 'ask_text', 'data' => ['text' => 'Женский вопрос', 'stepName' => 'askWomanAnswer'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'reply_ans', 'type' => 'reply', 'data' => [
+                'text' => '{{name}}, вы ответили {{answer}}',
+                'media' => null, 'keyboard' => null,
+            ], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_w', 'type' => 'ask', 'data' => [
+                'mode' => 'text', 'stepName' => 'askWomanAnswer', 'text' => 'Женский вопрос',
+                'media' => null, 'validation' => [], 'keyboard' => null,
+            ], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end_m', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end_w', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
         ],
@@ -60,20 +82,29 @@ test('bot with image-in-ask, image-in-ask-keyboard and reply_media photo generat
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask1', 'type' => 'ask_text', 'data' => ['text' => 'Имя?', 'image' => 'https://example.com/hello.jpg'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask1', 'type' => 'ask', 'data' => [
+                'mode' => 'text', 'stepName' => '', 'text' => 'Имя?',
+                'media' => ['type' => 'photo', 'url' => 'https://example.com/hello.jpg'],
+                'validation' => [], 'keyboard' => null,
+            ], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'save1', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'name', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 200]],
-            ['id' => 'ask2', 'type' => 'ask_keyboard', 'data' => [
-                'text' => 'Выбор?',
-                'image' => 'https://example.com/choose.jpg',
-                'buttons' => [
+            ['id' => 'ask2', 'type' => 'ask', 'data' => [
+                'mode' => 'callback', 'stepName' => '', 'text' => 'Выбор?',
+                'media' => ['type' => 'photo', 'url' => 'https://example.com/choose.jpg'],
+                'validation' => [],
+                'keyboard' => ['type' => 'inline', 'buttons' => [
                     [
                         ['type' => 'action', 'label' => 'A', 'action' => 'a'],
                         ['type' => 'action', 'label' => 'B', 'action' => 'b'],
                     ],
-                ],
+                ]],
             ], 'position' => ['x' => 0, 'y' => 300]],
             ['id' => 'save2', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'choice', 'source' => 'message.action']]], 'position' => ['x' => 0, 'y' => 400]],
-            ['id' => 'media', 'type' => 'reply_media', 'data' => ['media_type' => 'photo', 'url' => 'https://example.com/thanks.jpg', 'caption' => 'Спасибо, {{ name }}! Выбор: {{ choice }}'], 'position' => ['x' => 0, 'y' => 500]],
+            ['id' => 'media', 'type' => 'reply', 'data' => [
+                'text' => 'Спасибо, {{ name }}! Выбор: {{ choice }}',
+                'media' => ['type' => 'photo', 'url' => 'https://example.com/thanks.jpg'],
+                'keyboard' => null,
+            ], 'position' => ['x' => 0, 'y' => 500]],
             ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 600]],
         ],
         'edges' => [

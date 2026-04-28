@@ -133,10 +133,6 @@ class SchemaValidator
             return;
         }
 
-        if (empty(trim((string) ($data['stepName'] ?? '')))) {
-            $errors[] = "{$where}: ask должен иметь непустой stepName";
-        }
-
         $hasText = trim((string) ($data['text'] ?? '')) !== '';
         $hasMedia = ! empty($data['media']);
 
