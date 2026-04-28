@@ -106,23 +106,25 @@ class FlowGenerator
             $type = $node['type'] ?? '';
             $data = $node['data'] ?? [];
 
-            if (in_array($type, ['ask_keyboard', 'reply_keyboard'], true)) {
-                $useKeyboard = true;
-                $useButton = true;
+            if (! in_array($type, ['ask', 'reply'], true)) {
+                continue;
             }
 
-            if ($type === 'reply_keyboard') {
+            $hasText = trim((string) ($data['text'] ?? '')) !== '';
+            $hasMedia = ! empty($data['media']);
+            $hasKeyboard = ! empty($data['keyboard']) && ! empty($data['keyboard']['buttons'] ?? []);
+
+            if ($hasMedia) {
+                $useMedia = true;
+            }
+
+            if ($hasText && ! $hasMedia) {
                 $useMessage = true;
             }
 
-            if (in_array($type, ['ask_text', 'ask_keyboard'], true)
-                && trim((string) ($data['image'] ?? '')) !== ''
-            ) {
-                $useMedia = true;
-            }
-
-            if ($type === 'reply_media' && ($data['media_type'] ?? 'photo') === 'photo') {
-                $useMedia = true;
+            if ($hasKeyboard) {
+                $useKeyboard = true;
+                $useButton = true;
             }
         }
 
@@ -147,7 +149,7 @@ class FlowGenerator
         $fallbackCounter = 1;
 
         foreach ($nodes as $node) {
-            if (! in_array($node['type'] ?? null, ['ask_text', 'ask_keyboard'], true)) {
+            if (($node['type'] ?? null) !== 'ask') {
                 continue;
             }
 
@@ -228,7 +230,7 @@ class FlowGenerator
             $inDegree[$edge['target']] = ($inDegree[$edge['target']] ?? 0) + 1;
         }
 
-        $excluded = ['ask_text', 'ask_keyboard', 'on_complete', 'on_cancel', 'start', 'condition'];
+        $excluded = ['ask', 'on_complete', 'on_cancel', 'start', 'condition'];
         $counter = 1;
 
         foreach ($this->nodes as $node) {
@@ -277,7 +279,7 @@ class FlowGenerator
                 continue;
             }
 
-            if (in_array($node['type'], ['ask_text', 'ask_keyboard'], true)
+            if (($node['type'] ?? '') === 'ask'
                 && ! in_array($nodeId, $orderedAsks, true)
             ) {
                 $orderedAsks[] = $nodeId;
@@ -309,7 +311,7 @@ class FlowGenerator
         $askCode = $this->renderAskCode($node);
         $validation = $node['data']['validation'] ?? [];
 
-        $isKeyboard = $node['type'] === 'ask_keyboard';
+        $isKeyboard = ($node['data']['mode'] ?? 'text') === 'callback';
         $validationCode = ! empty($validation)
             ? $this->renderValidationChain($validation, 3, $isKeyboard)
             : '';
@@ -370,7 +372,7 @@ class FlowGenerator
                 break;
             }
             $type = $node['type'];
-            if (in_array($type, ['ask_text', 'ask_keyboard', 'condition', 'on_complete', 'on_cancel'], true)) {
+            if (in_array($type, ['ask', 'condition', 'on_complete', 'on_cancel'], true)) {
                 break;
             }
             $code .= $this->renderActionBlock($type, $node['data'] ?? [], 2);
@@ -405,7 +407,7 @@ class FlowGenerator
                 return $code;
             }
 
-            if (in_array($type, ['ask_text', 'ask_keyboard'], true)) {
+            if ($type === 'ask') {
                 $stepName = $this->askStepNames[$cursor];
                 $code .= $this->indent("\$this->nextStep('{$stepName}');", $indent)."\n";
 
@@ -480,7 +482,7 @@ class FlowGenerator
             return "\$this->{$tailName}();";
         }
 
-        if (in_array($type, ['ask_text', 'ask_keyboard'], true)) {
+        if ($type === 'ask') {
             $stepName = $this->askStepNames[$targetId];
 
             return "\$this->nextStep('{$stepName}');";
@@ -495,51 +497,26 @@ class FlowGenerator
         return trim(preg_replace('/\s+/', ' ', $raw));
     }
 
-    /** Отрендерить ask-часть шага. */
+    /** Отрендерить ask-часть шага (унифицированный тип ask).
+     * @param array<string, mixed> $node Узел графа.
+     * @return string
+     */
     private function renderAskCode(array $node): string
     {
         $data = $node['data'] ?? [];
-        $type = $node['type'];
+        $type = $node['type'] ?? '';
 
-        if ($type === 'ask_text') {
-            $text = $this->renderText($data['text'] ?? '');
-            $image = trim((string) ($data['image'] ?? ''));
-            if ($image !== '') {
-                $url = "'".addslashes($image)."'";
-
-                return "        \$step->ask(\n"
-                    ."            Media::photo({$url})\n"
-                    ."                ->caption({$text})\n"
-                    ."        );\n";
-            }
-
-            return "        \$step->ask({$text});\n";
+        if ($type !== 'ask') {
+            return '';
         }
 
-        if ($type === 'ask_keyboard') {
-            $text = $this->renderText($data['text'] ?? '');
-            $image = trim((string) ($data['image'] ?? ''));
-            $buttons = $data['buttons'] ?? [];
+        $expression = $this->buildOutgoingExpression($data, '        ');
 
-            $kbBody = $this->renderKeyboardBody($buttons, '            ');
-
-            if ($image !== '') {
-                $url = "'".addslashes($image)."'";
-
-                return "        \$step->ask(\n"
-                    ."            Media::photo({$url})\n"
-                    ."                ->caption({$text}),\n"
-                    ."            {$kbBody},\n"
-                    ."        );\n";
-            }
-
-            return "        \$step->ask(\n"
-                ."            {$text},\n"
-                ."            {$kbBody},\n"
-                ."        );\n";
+        if ($expression === null) {
+            return '';
         }
 
-        return '';
+        return "        \$step->ask(\n{$expression}        );\n";
     }
 
     /** Отрендерить тело Keyboard::make()->buttons([…]) с отступом $pad
@@ -578,54 +555,63 @@ class FlowGenerator
 
         return match ($type) {
             'save_state' => $this->renderSaveState($data, $pad),
-            'reply_text' => "{$pad}\$this->reply(".$this->renderText($data['text'] ?? '').");\n",
-            'reply_keyboard' => $this->renderReplyKeyboard($data, $pad),
-            'reply_media' => $this->renderReplyMedia($data, $pad),
+            'reply' => $this->renderReply($data, $pad),
             'api_call' => "{$pad}\$response = \$this->apiCall('".($data['method'] ?? 'GET')."', '".addslashes($data['url'] ?? '')."');\n",
             default => "{$pad}// Unknown block: {$type}\n",
         };
     }
 
-    /** Отрендерить reply_media — поддерживается только photo.
-     * При наличии caption разбивает Media-цепочку на строки (ширина ≤ 120).
+    /** Отрендерить reply-блок: $this->send(<expression>);.
+     * @param array<string, mixed> $data Параметры reply.
+     * @param string $pad Отступ для строки.
+     * @return string
      */
-    private function renderReplyMedia(array $data, string $pad): string
+    private function renderReply(array $data, string $pad): string
     {
-        $type = $data['media_type'] ?? 'photo';
-        if ($type !== 'photo') {
-            return "{$pad}// Unsupported media type: {$type}\n";
+        $expression = $this->buildOutgoingExpression($data, $pad);
+
+        if ($expression === null) {
+            return "{$pad}// Empty reply block\n";
         }
 
-        $url = "'".addslashes($data['url'] ?? '')."'";
-        $caption = trim((string) ($data['caption'] ?? ''));
-
-        if ($caption === '') {
-            return "{$pad}\$this->send(Media::photo({$url}));\n";
-        }
-
-        $inner = $pad.'    ';
-        $chain = $inner.'    ';
-
-        return "{$pad}\$this->send(\n"
-            ."{$inner}Media::photo({$url})\n"
-            ."{$chain}->caption(".$this->renderText($caption).")\n"
-            ."{$pad});\n";
+        return "{$pad}\$this->send(\n{$expression}{$pad});\n";
     }
 
-    /** Отрендерить reply_keyboard через Message::make()->keyboard(Keyboard::make()->buttons([…])). */
-    private function renderReplyKeyboard(array $data, string $pad): string
+    /** Построить fluent-выражение OutgoingMessage из data ask/reply.
+     * Возвращает многострочное выражение с отступом или null если data пустая.
+     * @param array<string, mixed> $data Параметры узла (text, media, keyboard).
+     * @param string $pad Отступ внешнего вызова ($this->send(... | $step->ask(...).
+     * @return ?string
+     */
+    private function buildOutgoingExpression(array $data, string $pad): ?string
     {
-        $text = $this->renderText($data['text'] ?? '');
-        $buttons = $data['buttons'] ?? [];
+        $text = trim((string) ($data['text'] ?? ''));
+        $media = $data['media'] ?? null;
+        $keyboard = $data['keyboard'] ?? null;
+        $inner = $pad.'    ';
 
-        $kbBody = $this->renderKeyboardBody($buttons, $pad.'            ');
+        if ($text === '' && empty($media)) {
+            return null;
+        }
 
-        return "{$pad}\$this->send(\n"
-            ."{$pad}    Message::make({$text})\n"
-            ."{$pad}        ->keyboard(\n"
-            ."{$pad}            {$kbBody}\n"
-            ."{$pad}        )\n"
-            ."{$pad});\n";
+        if (! empty($media)) {
+            $type = $media['type'] ?? 'photo';
+            $url = "'".addslashes($media['url'] ?? '')."'";
+            $expression = "{$inner}Media::{$type}({$url})";
+
+            if ($text !== '') {
+                $expression .= "\n{$inner}    ->caption(".$this->renderText($text).")";
+            }
+        } else {
+            $expression = "{$inner}Message::make(".$this->renderText($text).")";
+        }
+
+        if (! empty($keyboard) && ! empty($keyboard['buttons'] ?? [])) {
+            $kbBody = $this->renderKeyboardBody($keyboard['buttons'], $inner.'        ');
+            $expression .= "\n{$inner}    ->keyboard(\n{$inner}        {$kbBody}\n{$inner}    )";
+        }
+
+        return $expression."\n";
     }
 
     /** Отрендерить save_state — одну или несколько переменных. */
