@@ -2,16 +2,16 @@
 
 use App\Services\CodeGenerator\ControllerGenerator;
 
-test('controller renders reply_media type=photo via Media::photo with caption', function () {
+test('controller renders reply with photo media and caption via Media::photo', function () {
     $generator = new ControllerGenerator;
     $schema = [
         'blocks' => [
             [
-                'type' => 'reply_media',
+                'type' => 'reply',
                 'params' => [
-                    'media_type' => 'photo',
-                    'url' => 'https://example.com/a.jpg',
-                    'caption' => 'Hi, {{ name }}!',
+                    'text' => 'Hi, {{ name }}!',
+                    'media' => ['type' => 'photo', 'url' => 'https://example.com/a.jpg'],
+                    'keyboard' => null,
                 ],
             ],
         ],
@@ -19,22 +19,23 @@ test('controller renders reply_media type=photo via Media::photo with caption', 
 
     $result = $generator->generate('TestController', $schema, 'App\\Controllers\\Commands');
 
-    expect($result)->toContain("use Govorun\\Messaging\\Media;");
+    expect($result)->toContain('use Govorun\\Messaging\\Media;');
     expect($result)->toContain('namespace App\\Controllers\\Commands;');
-    expect($result)->not->toContain("use Govorun\\Messaging\\Message;");
-    expect($result)->toContain("        \$this->send(\n            Media::photo('https://example.com/a.jpg')\n                ->caption('Hi, ' . \$this->state->get('name') . '!')\n        );");
+    expect($result)->not->toContain('use Govorun\\Messaging\\Message;');
+    expect($result)->toContain("Media::photo('https://example.com/a.jpg')");
+    expect($result)->toContain("->caption('Hi, ' . \$this->state->get('name') . '!')");
 });
 
-test('controller renders reply_media type=photo without caption', function () {
+test('controller renders reply with photo media without text', function () {
     $generator = new ControllerGenerator;
     $schema = [
         'blocks' => [
             [
-                'type' => 'reply_media',
+                'type' => 'reply',
                 'params' => [
-                    'media_type' => 'photo',
-                    'url' => 'https://example.com/b.jpg',
-                    'caption' => '',
+                    'text' => null,
+                    'media' => ['type' => 'photo', 'url' => 'https://example.com/b.jpg'],
+                    'keyboard' => null,
                 ],
             ],
         ],
@@ -42,19 +43,20 @@ test('controller renders reply_media type=photo without caption', function () {
 
     $result = $generator->generate('TestController', $schema, 'App\\Controllers\\Commands');
 
-    expect($result)->toContain("\$this->send(Media::photo('https://example.com/b.jpg'));");
+    expect($result)->toContain("Media::photo('https://example.com/b.jpg')");
     expect($result)->not->toContain('->caption');
 });
 
-test('controller renders reply_media non-photo as unsupported comment', function () {
+test('controller renders reply with video media via Media::video', function () {
     $generator = new ControllerGenerator;
     $schema = [
         'blocks' => [
             [
-                'type' => 'reply_media',
+                'type' => 'reply',
                 'params' => [
-                    'media_type' => 'video',
-                    'url' => 'https://example.com/c.mp4',
+                    'text' => null,
+                    'media' => ['type' => 'video', 'url' => 'https://example.com/c.mp4'],
+                    'keyboard' => null,
                 ],
             ],
         ],
@@ -62,5 +64,6 @@ test('controller renders reply_media non-photo as unsupported comment', function
 
     $result = $generator->generate('TestController', $schema, 'App\\Controllers\\Commands');
 
-    expect($result)->toContain('// Unsupported media type: video');
+    expect($result)->toContain("Media::video('https://example.com/c.mp4')");
+    expect($result)->toContain('use Govorun\\Messaging\\Media;');
 });

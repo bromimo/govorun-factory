@@ -521,31 +521,13 @@ class FlowGenerator
 
     /** Отрендерить тело Keyboard::make()->buttons([…]) с отступом $pad
      * для открывающей строки, $pad+4 для строки-ряда, $pad+8 для строки-кнопки.
-     *
-     * @param  array<int, array<int, array<string, mixed>>>  $rows
+     * @param array<int, array<int, array<string, mixed>>> $rows Ряды кнопок.
+     * @param string $pad Базовый отступ.
      * @return string
      */
     private function renderKeyboardBody(array $rows, string $pad): string
     {
-        $rowIndent = $pad.'    ';
-        $btnIndent = $pad.'        ';
-
-        $rowsRendered = array_map(function (array $row) use ($rowIndent, $btnIndent) {
-            if (empty($row)) {
-                return "{$rowIndent}[],";
-            }
-
-            $buttons = array_map(
-                fn (array $btn) => $btnIndent.CodeHelper::renderButton($btn).',',
-                $row,
-            );
-
-            return "{$rowIndent}[\n".implode("\n", $buttons)."\n{$rowIndent}],";
-        }, $rows);
-
-        $rowsCode = implode("\n", $rowsRendered);
-
-        return "Keyboard::make()->buttons([\n{$rowsCode}\n{$pad}])";
+        return KeyboardCodeBuilder::render($rows, $pad);
     }
 
     /** Отрендерить action-блок с указанным уровнем отступа. */
