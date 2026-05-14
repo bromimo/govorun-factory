@@ -793,7 +793,7 @@ test('reply media without text does not generate parseMode', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => 'askPhoto', 'text' => '', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Готов?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'reply', 'type' => 'reply', 'data' => ['text' => null, 'media' => ['type' => 'photo', 'url' => 'https://example.com/img.jpg'], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 200]],
             ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 300]],
         ],
@@ -806,6 +806,7 @@ test('reply media without text does not generate parseMode', function () {
 
     $result = (new FlowGenerator)->generate('PhotoOnlyFlow2', $graph, [], false);
 
-    expect($result)->not->toContain("->parseMode(");
-    expect($result)->toContain("Media::photo(");
+    expect($result)->toContain("Media::photo('https://example.com/img.jpg')");
+    expect($result)->not->toContain("Media::photo('https://example.com/img.jpg')\n                ->parseMode(");
+    expect($result)->toContain("->parseMode('HTML')"); // из ask-блока
 });
