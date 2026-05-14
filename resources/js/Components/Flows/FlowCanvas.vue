@@ -374,9 +374,6 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
 
         <Background :gap="16" />
         <Controls />
-<<<<<<< HEAD
-=======
         <FlowMinimap />
->>>>>>> 6d7e5a1 (feat(flow): replace default minimap with custom viewport indicator)
     </VueFlow>
 </template>
