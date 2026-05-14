@@ -66,6 +66,14 @@ const form = useForm({
     middleware: props.route?.middleware ?? [],
 });
 
+const EVENT_TYPES = [
+    { value: 'new_chat_members',  label: 'new_chat_members — новый участник в группе' },
+    { value: 'left_chat_member',  label: 'left_chat_member — участник покинул группу' },
+    { value: 'new_chat_title',    label: 'new_chat_title — изменение названия группы' },
+    { value: 'new_chat_photo',    label: 'new_chat_photo — изменение фото группы' },
+    { value: 'group_chat_created', label: 'group_chat_created — создание группы' },
+];
+
 const showMatch = computed(() => ['command', 'phrase', 'pattern', 'action', 'referral'].includes(form.type));
 
 const showAliases = computed(() => form.type === 'phrase');
@@ -112,6 +120,10 @@ watch(() => form.type, (newType) => {
     if (newType === 'fallback') {
         form.controller_name = '';
     }
+
+    if (newType === 'event' && !EVENT_TYPES.some(e => e.value === form.match)) {
+        form.match = EVENT_TYPES[0].value;
+    }
 });
 
 function addAlias() {
@@ -153,6 +165,13 @@ function submit() {
                     <label class="block text-sm font-medium text-gray-700">Match</label>
                     <input v-model="form.match" type="text" class="mt-1 w-full rounded-md border-gray-300 text-sm"
                         :placeholder="form.type === 'command' ? '/start' : 'hello'" />
+                </div>
+
+                <div v-if="form.type === 'event'">
+                    <label class="block text-sm font-medium text-gray-700">Событие</label>
+                    <select v-model="form.match" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                        <option v-for="et in EVENT_TYPES" :key="et.value" :value="et.value">{{ et.label }}</option>
+                    </select>
                 </div>
 
                 <div v-if="form.type === 'command'">
