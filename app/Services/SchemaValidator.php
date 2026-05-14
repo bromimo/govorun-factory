@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Bot;
 use App\Models\BotFlow;
 use App\Models\BotRoute;
+use App\Services\TelegramHtml;
 use App\Services\CodeGenerator\FlowGenerator;
 
 /** Валидатор схемы бота перед экспортом. */
@@ -144,6 +145,8 @@ class SchemaValidator
             $this->validateMedia($data['media'], $where, $errors);
         }
 
+        $this->validateTextHtml($data['text'] ?? null, $where, $errors);
+
         if ($mode === 'callback') {
             $kb = $data['keyboard'] ?? null;
             if (empty($kb) || empty($kb['buttons'] ?? [])) {
@@ -173,6 +176,26 @@ class SchemaValidator
 
         if ($hasMedia) {
             $this->validateMedia($data['media'], $where, $errors);
+        }
+
+        $this->validateTextHtml($data['text'] ?? null, $where, $errors);
+    }
+
+    /** Валидировать HTML в поле text блока.
+     * @param mixed $text Значение поля text.
+     * @param string $where Контекст для сообщений.
+     * @param array<int, string> $errors Список ошибок (по ссылке).
+     * @return void
+     */
+    private function validateTextHtml(mixed $text, string $where, array &$errors): void
+    {
+        if ($text === null || trim((string) $text) === '') {
+            return;
+        }
+
+        $str = (string) $text;
+        if (TelegramHtml::sanitize($str) !== $str) {
+            $errors[] = "{$where}: text содержит неподдерживаемый Telegram HTML тег/атрибут";
         }
     }
 
