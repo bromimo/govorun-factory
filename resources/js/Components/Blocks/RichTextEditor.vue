@@ -5,6 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import FormattingToolbar from './FormattingToolbar.vue';
 import { Spoiler } from './tiptap/Spoiler.js';
 import { PlaceholderToken } from './tiptap/PlaceholderToken.js';
 import { ExpandableBlockquote } from './tiptap/ExpandableBlockquote.js';
@@ -60,7 +61,7 @@ defineExpose({ editor });
 <template>
     <div class="rounded border border-gray-300 focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-400">
         <div v-if="editor" class="flex flex-wrap items-center gap-1 border-b border-gray-200 px-2 py-1">
-            <!-- FormattingToolbar will be added in Task 12 -->
+            <FormattingToolbar :editor="editor" />
             <span class="mx-0.5 h-4 border-l border-gray-300" />
             <InsertToolbar :editor="editor" :declared-keys="declaredKeys" />
         </div>
