@@ -46,6 +46,10 @@ class CodeHelper
             return "config('app.name')";
         }
 
+        if ($variable === 'bot.username') {
+            return "config('app.username')";
+        }
+
         if (str_contains($variable, '.')) {
             return '$this->message->'.str_replace('.', '->', $variable);
         }

@@ -34,6 +34,8 @@ class UpdateBotRequest extends FormRequest
             'messenger_config.*' => ['nullable', 'array'],
             'messenger_config.*.enabled' => ['nullable', 'boolean'],
 
+            'messenger_config.telegram.username' => ['nullable', 'string', 'max:64'],
+
             'messenger_config.telegram.profile' => ['nullable', 'array'],
             'messenger_config.telegram.profile.name' => ['nullable', 'string', 'max:64'],
             'messenger_config.telegram.profile.short_description' => ['nullable', 'string', 'max:120'],

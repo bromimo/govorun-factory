@@ -70,9 +70,24 @@ function save() {
                 </div>
             </div>
 
-            <p v-if="isEnabled(driver.key)" class="mt-2 text-sm text-gray-500">
-                Подключён. Токены и секреты указываются в <code>.env</code> при развёртывании.
-            </p>
+            <template v-if="isEnabled(driver.key)">
+                <div v-if="driver.key === 'telegram'" class="mt-3">
+                    <label class="block text-xs font-medium text-gray-500">Юзернейм бота</label>
+                    <div class="mt-1 flex items-center">
+                        <span class="rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-2 py-1.5 text-sm text-gray-500">@</span>
+                        <input
+                            v-model="form.messenger_config.telegram.username"
+                            type="text"
+                            placeholder="mybotname_bot"
+                            class="block w-full rounded-r-md border-gray-300 text-sm"
+                            :disabled="!can.update"
+                        />
+                    </div>
+                </div>
+                <p class="mt-2 text-sm text-gray-500">
+                    Подключён. Токены и секреты указываются в <code>.env</code> при развёртывании.
+                </p>
+            </template>
         </div>
 
         <div v-if="can.update" class="pt-4">

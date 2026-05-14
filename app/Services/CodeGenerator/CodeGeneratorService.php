@@ -97,7 +97,8 @@ class CodeGeneratorService
 
         File::ensureDirectoryExists("{$outputPath}/config");
 
-        $this->putPhp("{$outputPath}/config/app.php", $this->config->generateAppConfig($bot->name, $config));
+        $botUsername = $bot->messenger_config['telegram']['username'] ?? '';
+        $this->putPhp("{$outputPath}/config/app.php", $this->config->generateAppConfig($bot->name, $botUsername, $config));
         $this->putPhp("{$outputPath}/config/messenger.php", $this->config->generateMessengerConfig($drivers));
         $this->putPhp("{$outputPath}/config/database.php", $this->config->generateDatabaseConfig());
         File::put("{$outputPath}/.env.example", $this->config->generateEnvExample(

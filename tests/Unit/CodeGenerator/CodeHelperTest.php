@@ -21,6 +21,16 @@ test('renderText интерполирует {{bot.name}} в одиночной �
         ->toBe("config('app.name')");
 });
 
+test('renderText интерполирует {{bot.username}} в config("app.username")', function () {
+    expect(CodeHelper::renderText('Пиши мне: {{bot.username}}'))
+        ->toBe("'Пиши мне: ' . config('app.username')");
+});
+
+test('renderText интерполирует {{bot.username}} в одиночной позиции', function () {
+    expect(CodeHelper::renderText('{{bot.username}}'))
+        ->toBe("config('app.username')");
+});
+
 test('wrapLongLines не трогает строки короче порога', function () {
     $code = "        \$this->reply('short');";
     expect(CodeHelper::wrapLongLines($code))->toBe($code);
