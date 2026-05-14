@@ -46,7 +46,7 @@ function validateAndUpdateLabel() {
             </div>
         </div>
 
-        <div>
+        <div v-if="edge.sourceIsCondition">
             <label class="block text-xs font-medium text-gray-500">Значение</label>
             <div v-if="canUpdate" class="mt-0.5">
                 <input v-model="localLabel" @blur="validateAndUpdateLabel" @keydown.enter="validateAndUpdateLabel"
