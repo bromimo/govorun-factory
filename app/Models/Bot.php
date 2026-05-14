@@ -20,8 +20,14 @@ class Bot extends Model
         'description',
         'config',
         'messenger_config',
+        'text_format_version',
         'created_by',
         'updated_by',
+    ];
+
+    /** Значения атрибутов по умолчанию. */
+    protected $attributes = [
+        'text_format_version' => 2,
     ];
 
     /** Приведение атрибутов к типам.
@@ -32,6 +38,7 @@ class Bot extends Model
         return [
             'config' => 'array',
             'messenger_config' => 'array',
+            'text_format_version' => 'integer',
         ];
     }
 

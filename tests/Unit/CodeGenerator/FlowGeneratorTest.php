@@ -30,7 +30,7 @@ test('generates step-based flow from linear graph', function () {
     expect($result)->toContain('use Govorun\Messaging\Message;');
     expect($result)->not->toContain('use Govorun\Messaging\Keyboard;');
     expect($result)->toContain('public function askYourNameStep(Step $step): void');
-    expect($result)->toContain("\$step->ask(\n            Message::make('Your name?')\n        );");
+    expect($result)->toContain("\$step->ask(\n            Message::make('Your name?')\n                ->parseMode('HTML')\n        );");
     expect($result)->toContain('$step->receive(function (IncomingMessage $message)');
     expect($result)->toContain("\$this->state->set('name', \$message->text)");
     expect($result)->toContain("Message::make('Thanks, ' . \$this->state->get('name') . '!')");
@@ -66,9 +66,9 @@ test('generates multi-step flow', function () {
     expect($result)->toContain("protected array \$steps = [\n        'askName',\n        'askAge',\n    ];");
     expect($result)->toContain('public function askNameStep(Step $step): void');
     expect($result)->toContain('public function askAgeStep(Step $step): void');
-    expect($result)->toContain("\$step->ask(\n            Message::make('Name?')\n        );");
+    expect($result)->toContain("\$step->ask(\n            Message::make('Name?')\n                ->parseMode('HTML')\n        );");
     expect($result)->toContain("\$this->state->set('name', \$message->text)");
-    expect($result)->toContain("\$step->ask(\n            Message::make('Age?')\n        );");
+    expect($result)->toContain("\$step->ask(\n            Message::make('Age?')\n                ->parseMode('HTML')\n        );");
     expect($result)->toContain("\$this->state->set('age', \$message->text)");
     expect($result)->toContain("Message::make('Done!')");
 });
@@ -452,7 +452,7 @@ test('ask_text with image generates Media::photo with caption', function () {
     $generator = new FlowGenerator;
     $result = $generator->generate('PhotoFlow', $graph, [], false);
 
-    expect($result)->toContain("        \$step->ask(\n            Media::photo('https://example.com/a.jpg')\n                ->caption('Нравится?')\n        );");
+    expect($result)->toContain("        \$step->ask(\n            Media::photo('https://example.com/a.jpg')\n                ->caption('Нравится?')\n                ->parseMode('HTML')\n        );");
     expect($result)->not->toContain("\$step->ask('Нравится?')");
     expect($result)->not->toContain("Media::photo('https://example.com/a.jpg')->caption(");
 });
@@ -473,7 +473,7 @@ test('ask_text without image keeps string ask', function () {
     $generator = new FlowGenerator;
     $result = $generator->generate('AgeFlow', $graph, [], false);
 
-    expect($result)->toContain("\$step->ask(\n            Message::make('Возраст?')\n        );");
+    expect($result)->toContain("\$step->ask(\n            Message::make('Возраст?')\n                ->parseMode('HTML')\n        );");
     expect($result)->not->toContain('Media::photo');
 });
 
@@ -508,7 +508,7 @@ test('ask_keyboard with image generates Media::photo with caption and keyboard',
     $generator = new FlowGenerator;
     $result = $generator->generate('ChoicePhotoFlow', $graph, [], false);
 
-    expect($result)->toContain("Media::photo('https://example.com/b.jpg')\n                ->caption('Выбор?')\n                ->keyboard(\n                    Keyboard::make()->buttons([\n");
+    expect($result)->toContain("Media::photo('https://example.com/b.jpg')\n                ->caption('Выбор?')\n                ->parseMode('HTML')\n                ->keyboard(\n                    Keyboard::make()->buttons([\n");
     expect($result)->toContain("Button::make('Да')->action('yes')");
     expect($result)->toContain("Button::make('Нет')->action('no')");
     expect($result)->toContain('use Govorun\Messaging\Button;');
@@ -534,7 +534,7 @@ test('reply_media type=photo with caption generates Media::photo with caption', 
     $generator = new FlowGenerator;
     $result = $generator->generate('GreetingFlow', $graph, [], false);
 
-    expect($result)->toContain("            \$this->send(\n                Media::photo('https://example.com/pic.jpg')\n                    ->caption('Привет, ' . \$this->state->get('name') . '!')\n            );");
+    expect($result)->toContain("            \$this->send(\n                Media::photo('https://example.com/pic.jpg')\n                    ->caption('Привет, ' . \$this->state->get('name') . '!')\n                    ->parseMode('HTML')\n            );");
 });
 
 test('reply_media type=photo without caption generates Media::photo without caption chain', function () {
@@ -747,4 +747,66 @@ test('action с param рендерится со вторым аргументо�
     $result = $generator->generate('ParamFlow', $graph, [], false);
 
     expect($result)->toContain("Button::make('A')->action('pick', ['id' => 1])");
+});
+
+test('reply text only generates Message with parseMode HTML', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Q?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'reply', 'type' => 'reply', 'data' => ['text' => '<b>Привет</b>!', 'media' => null, 'keyboard' => null], 'position' => ['x' => 0, 'y' => 200]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 300]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'reply'],
+            ['source' => 'reply', 'target' => 'end'],
+        ],
+    ];
+
+    $result = (new FlowGenerator)->generate('HtmlFlow', $graph, [], false);
+
+    expect($result)->toContain("->parseMode('HTML')");
+    expect($result)->toContain("Message::make(");
+});
+
+test('ask with text generates ask with parseMode HTML', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => '<i>Введите</i> имя?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'end'],
+        ],
+    ];
+
+    $result = (new FlowGenerator)->generate('ItalicAskFlow', $graph, [], false);
+
+    expect($result)->toContain("\$step->ask(");
+    expect($result)->toContain("->parseMode('HTML')");
+});
+
+test('reply media without text does not generate parseMode', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Готов?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'reply', 'type' => 'reply', 'data' => ['text' => null, 'media' => ['type' => 'photo', 'url' => 'https://example.com/img.jpg'], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 200]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 300]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'reply'],
+            ['source' => 'reply', 'target' => 'end'],
+        ],
+    ];
+
+    $result = (new FlowGenerator)->generate('PhotoOnlyFlow2', $graph, [], false);
+
+    expect($result)->toContain("Media::photo('https://example.com/img.jpg')");
+    expect($result)->not->toContain("Media::photo('https://example.com/img.jpg')\n                ->parseMode(");
+    expect($result)->toContain("->parseMode('HTML')"); // из ask-блока
 });

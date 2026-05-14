@@ -23,7 +23,7 @@ function icon(btn) {
     <div v-if="hasButtons" class="space-y-1 rounded border border-gray-200 bg-gray-50 p-2">
         <div v-for="(row, ri) in modelValue" :key="ri" class="flex gap-1">
             <div v-for="(btn, bi) in row" :key="bi"
-                class="flex-1 rounded bg-white border border-gray-300 px-2 py-1 text-xs text-gray-700 truncate">
+                class="flex-1 rounded bg-white border border-gray-300 px-2 py-1 text-xs text-gray-700 truncate text-center">
                 {{ btn.label || '—' }}
                 <span v-if="icon(btn)" class="ml-1">{{ icon(btn) }}</span>
             </div>

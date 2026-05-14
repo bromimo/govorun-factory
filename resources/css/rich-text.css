@@ -1,0 +1,50 @@
+/* PlaceholderToken chip */
+.tpl-token {
+    display: inline;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.8em;
+    background-color: #e0e7ff;
+    color: #4338ca;
+    padding: 1px 4px;
+    border-radius: 3px;
+    user-select: all;
+    cursor: default;
+}
+
+/* Tiptap placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #9ca3af;
+    pointer-events: none;
+    height: 0;
+}
+
+/* Telegram spoiler */
+.tg-spoiler {
+    background-color: #9ca3af;
+    color: #9ca3af;
+    border-radius: 2px;
+    padding: 0 2px;
+    cursor: pointer;
+}
+.tg-spoiler:hover {
+    color: #111827;
+}
+
+/* Expandable blockquote indicator */
+.tiptap blockquote[expandable]::after {
+    content: '…';
+    display: block;
+    text-align: right;
+    color: #9ca3af;
+    font-size: 0.75em;
+}
+
+/* Editor paragraph spacing */
+.tiptap p {
+    margin: 0 0 0.4em;
+}
+.tiptap p:last-child {
+    margin-bottom: 0;
+}

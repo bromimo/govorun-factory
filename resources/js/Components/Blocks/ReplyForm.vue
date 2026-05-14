@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import VarsHint from './VarsHint.vue';
 import StateWarning from './StateWarning.vue';
-import InsertToolbar from './InsertToolbar.vue';
 import MediaPicker from './MediaPicker.vue';
 import KeyboardSection from './KeyboardSection.vue';
+import RichTextEditor from './RichTextEditor.vue';
 import { useStateWarnings } from './useStateWarnings.js';
+import { stripTelegramHtml } from '@/utils/telegramHtml.js';
 
 const model = defineModel({ type: Object, default: () => ({ text: '', media: null, keyboard: null }) });
 const props = defineProps({
@@ -14,10 +15,8 @@ const props = defineProps({
     possiblyDeclaredStateKeys: { type: Array, default: () => [] },
 });
 
-const textareaRef = ref(null);
-
 const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useStateWarnings(
-    () => model.value.text ?? '',
+    () => stripTelegramHtml(model.value.text ?? ''),
     () => props.allStateKeys,
     () => props.declaredStateKeys,
     () => props.possiblyDeclaredStateKeys,
@@ -54,15 +53,13 @@ function addKeyboard() {
 <template>
     <div class="space-y-3">
         <div>
-            <div class="flex items-center justify-between">
-                <label class="block text-xs font-medium text-gray-500">Текст ответа</label>
-                <InsertToolbar :target="textareaRef" :declared-keys="declaredStateKeys" />
-            </div>
-            <textarea ref="textareaRef" v-model="text" rows="3"
-                class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400"
-                placeholder="Привет, {{user.firstName}}!" />
+            <label class="block text-xs font-medium text-gray-500">Текст ответа</label>
+            <RichTextEditor v-model="text" class="mt-1"
+                placeholder="Привет, {{user.firstName}}!"
+                :declared-keys="declaredStateKeys" />
             <StateWarning :uninitialized-keys="uninitializedKeys"
-                :partially-initialized-keys="partiallyInitializedKeys" :undeclared-keys="undeclaredKeys" />
+                :partially-initialized-keys="partiallyInitializedKeys"
+                :undeclared-keys="undeclaredKeys" />
             <VarsHint />
         </div>
 
@@ -72,7 +69,7 @@ function addKeyboard() {
             + Добавить медиа
         </button>
 
-        <KeyboardSection v-if="keyboard" v-model="keyboard" />
+        <KeyboardSection v-if="keyboard" v-model="keyboard" :declared-keys="declaredStateKeys" />
         <button v-else type="button" @click="addKeyboard"
             class="text-xs text-indigo-600 hover:text-indigo-800">
             + Добавить клавиатуру

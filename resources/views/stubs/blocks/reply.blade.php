@@ -16,10 +16,12 @@
 @if ($hasMedia)
             Media::{{ $media['type'] }}('{{ addslashes($media['url'] ?? '') }}')@if ($hasText)
 
-                ->caption({!! CodeHelper::renderText($text) !!})@endif
+                ->caption({!! CodeHelper::renderText($text) !!})
+                ->parseMode('HTML')@endif
 
 @else
-            Message::make({!! CodeHelper::renderText($text) !!})@endif
+            Message::make({!! CodeHelper::renderText($text) !!})
+                ->parseMode('HTML')@endif
 @if ($hasKeyboard)
 
                 ->keyboard(

@@ -2,10 +2,9 @@
 import { ref } from 'vue';
 import EmojiPickerPopover from './EmojiPickerPopover.vue';
 import VariablePickerPopover from './VariablePickerPopover.vue';
-import { insertAtCursor } from '@/utils/insertAtCursor';
 
 const props = defineProps({
-    target: { type: Object, default: null },
+    editor: { type: Object, default: null },
     declaredKeys: { type: Array, default: () => [] },
 });
 
@@ -24,26 +23,26 @@ function toggle(which) {
 }
 
 function onEmoji(emoji) {
-    insertAtCursor(props.target, emoji);
+    props.editor?.chain().focus().insertContent(emoji).run();
     emojiOpen.value = false;
 }
 
 function onVar(key) {
-    insertAtCursor(props.target, `{{ ${key} }}`);
+    props.editor?.chain().focus().insertPlaceholderToken(key).run();
     varsOpen.value = false;
 }
 </script>
 
 <template>
     <div ref="toolbarRef" class="relative inline-flex items-center gap-1">
-        <button type="button" :disabled="!target"
+        <button type="button" :disabled="!editor"
             @click="toggle('emoji')"
             title="Вставить эмодзи"
             aria-label="Вставить эмодзи"
             class="inline-flex h-6 w-6 items-center justify-center text-base text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-40">
             😀
         </button>
-        <button type="button" :disabled="!target"
+        <button type="button" :disabled="!editor"
             @click="toggle('vars')"
             title="Вставить переменную"
             aria-label="Вставить переменную"

@@ -1,16 +1,25 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import draggable from 'vuedraggable';
+import EmojiPickerPopover from './EmojiPickerPopover.vue';
+import VariablePickerPopover from './VariablePickerPopover.vue';
+import { insertAtCursor } from '@/utils/insertAtCursor';
 
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
     open: { type: Boolean, default: false },
+    declaredKeys: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(['update:modelValue', 'update:open']);
 
 const localRows = ref([]);
-const paramErrors = ref({}); // key "r:b" → boolean (invalid JSON)
+const paramErrors = ref({});
+const labelInputs = ref({});
+const emojiOpen = ref(null);
+const varsOpen = ref(null);
+const emojiAnchorEl = ref(null);
+const varsAnchorEl = ref(null);
 
 function buildInitial() {
     const src = Array.isArray(props.modelValue) ? props.modelValue : [];
@@ -113,6 +122,51 @@ function save() {
 function cancel() {
     emit('update:open', false);
 }
+
+function setLabelRef(ri, bi, el) {
+    const key = `${ri}:${bi}`;
+    if (el) {
+        labelInputs.value[key] = el;
+    } else {
+        delete labelInputs.value[key];
+    }
+}
+
+function toggleEmoji(ri, bi, event) {
+    const key = `${ri}:${bi}`;
+    if (emojiOpen.value === key) {
+        emojiOpen.value = null;
+        return;
+    }
+    varsOpen.value = null;
+    emojiAnchorEl.value = event.currentTarget;
+    emojiOpen.value = key;
+}
+
+function toggleVars(ri, bi, event) {
+    const key = `${ri}:${bi}`;
+    if (varsOpen.value === key) {
+        varsOpen.value = null;
+        return;
+    }
+    emojiOpen.value = null;
+    varsAnchorEl.value = event.currentTarget;
+    varsOpen.value = key;
+}
+
+function onEmoji(emoji) {
+    const key = emojiOpen.value;
+    if (!key) return;
+    insertAtCursor(labelInputs.value[key] ?? null, emoji);
+    emojiOpen.value = null;
+}
+
+function onVar(varKey) {
+    const key = varsOpen.value;
+    if (!key) return;
+    insertAtCursor(labelInputs.value[key] ?? null, `{{${varKey}}}`);
+    varsOpen.value = null;
+}
 </script>
 
 <template>
@@ -143,7 +197,20 @@ function cancel() {
                                     <div class="flex items-center gap-1">
                                         <span class="drag-handle cursor-move text-gray-400 select-none">⋮⋮</span>
                                         <input v-model="btn.label" placeholder="Текст"
-                                            :class="['flex-1 rounded border text-sm px-2 py-1', !btn.label?.trim() ? 'border-red-400' : 'border-gray-300']" />
+                                            :ref="(el) => setLabelRef(ri, bi, el)"
+                                            :class="['flex-1 rounded border text-sm px-2 py-1 text-center', !btn.label?.trim() ? 'border-red-400' : 'border-gray-300']" />
+                                        <button type="button"
+                                            @click="toggleEmoji(ri, bi, $event)"
+                                            title="Вставить эмодзи"
+                                            class="inline-flex h-6 w-6 shrink-0 items-center justify-center text-base text-gray-400 hover:text-gray-600">
+                                            😀
+                                        </button>
+                                        <button type="button"
+                                            @click="toggleVars(ri, bi, $event)"
+                                            title="Вставить переменную"
+                                            class="inline-flex h-6 w-6 shrink-0 items-center justify-center font-mono text-sm text-gray-400 hover:text-gray-600">
+                                            {…}
+                                        </button>
                                         <button type="button" @click="removeButton(ri, bi)"
                                             class="text-red-400 hover:text-red-600">×</button>
                                     </div>
@@ -193,4 +260,13 @@ function cancel() {
             </div>
         </div>
     </teleport>
+    <EmojiPickerPopover v-if="emojiOpen"
+        :anchor="emojiAnchorEl"
+        @select="onEmoji"
+        @close="emojiOpen = null" />
+    <VariablePickerPopover v-if="varsOpen"
+        :anchor="varsAnchorEl"
+        :declared-keys="declaredKeys"
+        @select="onVar"
+        @close="varsOpen = null" />
 </template>

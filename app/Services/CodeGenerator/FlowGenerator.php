@@ -583,9 +583,11 @@ class FlowGenerator
 
             if ($text !== '') {
                 $expression .= "\n{$inner}    ->caption(".$this->renderText($text).")";
+                $expression .= "\n{$inner}    ->parseMode('HTML')";
             }
         } else {
             $expression = "{$inner}Message::make(".$this->renderText($text).")";
+            $expression .= "\n{$inner}    ->parseMode('HTML')";
         }
 
         if (! empty($keyboard) && ! empty($keyboard['buttons'] ?? [])) {
