@@ -3,6 +3,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { VueFlow, useVueFlow, MarkerType } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
+import FlowMinimap from './FlowMinimap.vue';
 import dagre from '@dagrejs/dagre';
 import { useFlowDragDrop } from './useFlowDragDrop.js';
 import AskNode from './nodes/AskNode.vue';
@@ -373,5 +374,9 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
 
         <Background :gap="16" />
         <Controls />
+<<<<<<< HEAD
+=======
+        <FlowMinimap />
+>>>>>>> 6d7e5a1 (feat(flow): replace default minimap with custom viewport indicator)
     </VueFlow>
 </template>
