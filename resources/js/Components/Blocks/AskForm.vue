@@ -172,6 +172,6 @@ const isCallback = computed(() => model.value.mode === 'callback');
         <ValidationEditor v-if="isText" v-model="validation"
             :bot-validation-messages="botValidationMessages" />
 
-        <KeyboardSection v-if="isCallback" v-model="keyboard" :required="true" />
+        <KeyboardSection v-if="isCallback" v-model="keyboard" :required="true" :declared-keys="declaredStateKeys" />
     </div>
 </template>

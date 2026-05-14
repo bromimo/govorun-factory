@@ -69,7 +69,7 @@ function addKeyboard() {
             + Добавить медиа
         </button>
 
-        <KeyboardSection v-if="keyboard" v-model="keyboard" />
+        <KeyboardSection v-if="keyboard" v-model="keyboard" :declared-keys="declaredStateKeys" />
         <button v-else type="button" @click="addKeyboard"
             class="text-xs text-indigo-600 hover:text-indigo-800">
             + Добавить клавиатуру

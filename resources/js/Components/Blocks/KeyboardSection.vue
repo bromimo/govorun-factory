@@ -4,8 +4,9 @@ import KeyboardPreview from './KeyboardPreview.vue';
 import KeyboardEditorModal from './KeyboardEditorModal.vue';
 
 const model = defineModel({ type: Object, default: null });
-defineProps({
+const props = defineProps({
     required: { type: Boolean, default: false },
+    declaredKeys: { type: Array, default: () => [] },
 });
 
 const editorOpen = ref(false);
@@ -44,6 +45,6 @@ function clear() {
             {{ hasButtons ? 'Редактировать клавиатуру' : 'Добавить кнопки' }}
         </button>
 
-        <KeyboardEditorModal v-model="buttons" v-model:open="editorOpen" />
+        <KeyboardEditorModal v-model="buttons" v-model:open="editorOpen" :declared-keys="props.declaredKeys" />
     </div>
 </template>
