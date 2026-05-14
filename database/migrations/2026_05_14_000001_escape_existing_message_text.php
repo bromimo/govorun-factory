@@ -1,8 +1,8 @@
 <?php
 
 use App\Services\TelegramHtml;
-use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Migrations\Migration;
 
 /** Миграция данных: экранировать plain-text в полях text узлов ask/reply (text_format_version 1 → 2). */
 return new class extends Migration
@@ -27,7 +27,10 @@ return new class extends Migration
     /** Откатить миграцию (no-op).
      * @return void
      */
-    public function down(): void {}
+    public function down(): void
+    {
+        //
+    }
 
     /** Экранировать текст в нодах flow.
      * @param array<int, int> $botIds

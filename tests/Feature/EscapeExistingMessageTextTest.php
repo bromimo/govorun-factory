@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\Bot;
+use App\Models\User;
 use App\Models\BotFlow;
 use App\Models\BotRoute;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -85,5 +85,7 @@ test('leaves version-2 bots untouched', function () {
     runEscapeMigration();
 
     $flow->refresh();
+    $bot->refresh();
+    expect($bot->text_format_version)->toBe(2);
     expect($flow->graph['nodes'][0]['data']['text'])->toBe('Already <b>formatted</b>');
 });
