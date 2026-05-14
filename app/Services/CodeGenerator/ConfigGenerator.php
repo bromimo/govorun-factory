@@ -44,10 +44,11 @@ class ConfigGenerator
     /** Сгенерировать config/app.php.
      * @param  array<string, mixed>  $config
      */
-    public function generateAppConfig(string $botName, array $config): string
+    public function generateAppConfig(string $botName, string $botUsername, array $config): string
     {
         return "<?php\n\n".view('stubs.config_app', [
             'botName' => $botName,
+            'botUsername' => $botUsername,
             'environment' => $config['environment'] ?? 'production',
             'debug' => $config['debug'] ?? false,
             'stateStorage' => $config['state_storage'] ?? 'file',
