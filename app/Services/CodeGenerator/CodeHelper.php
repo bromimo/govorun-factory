@@ -35,12 +35,17 @@ class CodeHelper
 
     /** Отрендерить переменную в PHP-выражение.
      * Dot-нотация (user.firstName) → $this->message->user->firstName
+     * bot.name → config('app.name')
      * Простое имя (name) → $this->state->get('name')
      *
      * @return string PHP-выражение
      */
     private static function renderVariable(string $variable): string
     {
+        if ($variable === 'bot.name') {
+            return "config('app.name')";
+        }
+
         if (str_contains($variable, '.')) {
             return '$this->message->'.str_replace('.', '->', $variable);
         }
