@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
-import { colorClasses } from '../Blocks/blockTypes.js';
+import { colorClasses, controllerBlockTypes } from '../Blocks/blockTypes.js';
 import RouteEditor from './RouteEditor.vue';
 
 const props = defineProps({
@@ -95,6 +95,34 @@ const typeColors = {
     event: 'gray', media: 'pink', fallback: 'gray', location: 'green',
     contact: 'green', referral: 'orange',
 };
+
+function routeBlockSummary(route) {
+    if (route.handler_type !== 'controller') return null;
+    const block = (route.handler_schema?.blocks ?? [])[0];
+    if (!block) return null;
+    const bt = controllerBlockTypes.find(b => b.type === block.type);
+    const raw = block.type === 'api_call'
+        ? (block.params?.url ?? '')
+        : block.type === 'save_state'
+            ? (block.params?.variables ?? []).map(v => v.key).filter(Boolean).join(', ')
+            : (block.params?.text ?? '').replace(/<[^>]*>/g, '');
+    const full = raw.trim();
+    const short = full.length > 28 ? full.slice(0, 28) + '…' : full;
+    return { label: bt?.label ?? block.type, color: bt?.color ?? 'gray', short, full };
+}
+
+const blockSummaries = computed(() => {
+    const map = {};
+    for (const r of localRoutes.value) {
+        const s = routeBlockSummary(r);
+        if (s) map[r.id] = s;
+        for (const c of r.children ?? []) {
+            const cs = routeBlockSummary(c);
+            if (cs) map[c.id] = cs;
+        }
+    }
+    return map;
+});
 </script>
 
 <template>
@@ -116,9 +144,16 @@ const typeColors = {
                         {{ r.type }}
                     </span>
                     <div class="min-w-0">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span v-if="r.match" class="text-sm text-gray-700">{{ r.match }}</span>
                             <span v-if="!r.children?.length" class="text-xs text-gray-400">{{ r.handler_type }}</span>
+                            <span v-if="blockSummaries[r.id]"
+                                :title="blockSummaries[r.id].full || undefined"
+                                class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium whitespace-nowrap cursor-default"
+                                :class="[colorClasses[blockSummaries[r.id].color]?.badge, colorClasses[blockSummaries[r.id].color]?.text]">
+                                {{ blockSummaries[r.id].label }}
+                                <span v-if="blockSummaries[r.id].short" class="font-normal opacity-70">· {{ blockSummaries[r.id].short }}</span>
+                            </span>
                         </div>
                         <div v-if="r.aliases?.length" class="mt-1 flex flex-wrap gap-1">
                             <span v-for="alias in r.aliases" :key="alias"
@@ -142,9 +177,16 @@ const typeColors = {
                         {{ child.type }}
                     </span>
                     <div class="min-w-0">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span v-if="child.match" class="text-sm text-gray-700">{{ child.match }}</span>
                             <span class="text-xs text-gray-400">{{ child.handler_type }}</span>
+                            <span v-if="blockSummaries[child.id]"
+                                :title="blockSummaries[child.id].full || undefined"
+                                class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium whitespace-nowrap cursor-default"
+                                :class="[colorClasses[blockSummaries[child.id].color]?.badge, colorClasses[blockSummaries[child.id].color]?.text]">
+                                {{ blockSummaries[child.id].label }}
+                                <span v-if="blockSummaries[child.id].short" class="font-normal opacity-70">· {{ blockSummaries[child.id].short }}</span>
+                            </span>
                         </div>
                         <div v-if="child.aliases?.length" class="mt-1 flex flex-wrap gap-1">
                             <span v-for="alias in child.aliases" :key="alias"
