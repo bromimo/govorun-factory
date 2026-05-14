@@ -69,6 +69,7 @@ test('javascript href in reply text fails validation', function () {
 
     $result = (new SchemaValidator($this->bot))->validate();
     expect($result->isValid())->toBeFalse();
+    expect(implode(' ', $result->errors))->toContain('text содержит неподдерживаемый Telegram HTML');
 });
 
 test('valid Telegram HTML in reply text passes validation', function () {

@@ -19,7 +19,8 @@ class SchemaValidator
 
     public function __construct(
         private Bot $bot,
-    ) {}
+    ) {
+    }
 
     /** Валидировать схему бота.
      * @return ValidationResult
