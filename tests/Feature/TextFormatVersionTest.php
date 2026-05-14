@@ -10,7 +10,7 @@ test('new bot has text_format_version 2 by default', function () {
     $user = User::factory()->admin()->create();
     $bot = Bot::factory()->for($user, 'creator')->create();
 
-    expect($bot->text_format_version)->toBe(2);
+    expect($bot->fresh()->text_format_version)->toBe(2);
 });
 
 test('existing bot can have text_format_version 1', function () {
