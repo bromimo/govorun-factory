@@ -20,8 +20,9 @@ const colors = colorClasses[props.color] ?? colorClasses.gray;
         :class="[colors.border, colors.bg, selected ? 'ring-2 ring-indigo-400' : '']">
         <Handle v-if="hasInput" type="target" :position="Position.Top" :connectable-start="false" />
 
-        <div class="px-3 py-1.5 text-xs font-bold border-b" :class="[colors.text, colors.border]">
-            {{ label }}
+        <div class="flex items-center justify-between px-3 py-1.5 text-xs font-bold border-b" :class="[colors.text, colors.border]">
+            <span>{{ label }}</span>
+            <slot name="header-right" />
         </div>
 
         <div class="px-3 py-2 text-xs text-gray-700">
