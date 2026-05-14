@@ -4,6 +4,23 @@ import { useVueFlow } from '@vue-flow/core';
 
 const { getNodes, viewport, dimensions } = useVueFlow();
 
+const NODE_COLORS = {
+    ask:        { fill: '#eff6ff', stroke: '#93c5fd' },
+    reply:      { fill: '#fdf2f8', stroke: '#f9a8d4' },
+    save_state: { fill: '#f0fdf4', stroke: '#86efac' },
+    condition:  { fill: '#fff7ed', stroke: '#fdba74' },
+    api_call:   { fill: '#faf5ff', stroke: '#d8b4fe' },
+    on_complete:{ fill: '#f9fafb', stroke: '#d1d5db' },
+    on_cancel:  { fill: '#f9fafb', stroke: '#d1d5db' },
+    start:      { fill: '#f9fafb', stroke: '#d1d5db' },
+};
+
+const DEFAULT_COLOR = { fill: '#f9fafb', stroke: '#d1d5db' };
+
+function nodeColor(type) {
+    return NODE_COLORS[type] ?? DEFAULT_COLOR;
+}
+
 const graphBounds = computed(() => {
     const nodes = getNodes.value;
     if (!nodes.length) {
@@ -49,7 +66,8 @@ const viewRect = computed(() => {
                 :x="n.position.x" :y="n.position.y"
                 :width="n.dimensions?.width ?? 180"
                 :height="n.dimensions?.height ?? 60"
-                fill="#f1f5f9" stroke="#cbd5e1"
+                :fill="nodeColor(n.type).fill"
+                :stroke="nodeColor(n.type).stroke"
                 stroke-width="2"
                 vector-effect="non-scaling-stroke"
                 rx="4"
