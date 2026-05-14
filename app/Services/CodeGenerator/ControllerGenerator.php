@@ -90,14 +90,25 @@ class ControllerGenerator
             $type = $block['type'] ?? '';
             $params = $block['params'] ?? [];
 
-            if (in_array($type, ['ask_keyboard', 'reply_keyboard'], true)) {
-                $useMessage = true;
-                $useKeyboard = true;
-                $useButton = true;
+            if ($type !== 'reply') {
+                continue;
             }
 
-            if ($type === 'reply_media' && ($params['media_type'] ?? 'photo') === 'photo') {
+            $hasText = trim((string) ($params['text'] ?? '')) !== '';
+            $hasMedia = ! empty($params['media']);
+            $hasKeyboard = ! empty($params['keyboard']) && ! empty($params['keyboard']['buttons'] ?? []);
+
+            if ($hasMedia) {
                 $useMedia = true;
+            }
+
+            if ($hasText && ! $hasMedia) {
+                $useMessage = true;
+            }
+
+            if ($hasKeyboard) {
+                $useKeyboard = true;
+                $useButton = true;
             }
         }
 

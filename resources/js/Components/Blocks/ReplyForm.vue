@@ -1,0 +1,81 @@
+<script setup>
+import { ref, computed } from 'vue';
+import VarsHint from './VarsHint.vue';
+import StateWarning from './StateWarning.vue';
+import InsertToolbar from './InsertToolbar.vue';
+import MediaPicker from './MediaPicker.vue';
+import KeyboardSection from './KeyboardSection.vue';
+import { useStateWarnings } from './useStateWarnings.js';
+
+const model = defineModel({ type: Object, default: () => ({ text: '', media: null, keyboard: null }) });
+const props = defineProps({
+    allStateKeys: { type: Array, default: () => [] },
+    declaredStateKeys: { type: Array, default: () => [] },
+    possiblyDeclaredStateKeys: { type: Array, default: () => [] },
+});
+
+const textareaRef = ref(null);
+
+const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useStateWarnings(
+    () => model.value.text ?? '',
+    () => props.allStateKeys,
+    () => props.declaredStateKeys,
+    () => props.possiblyDeclaredStateKeys,
+);
+
+const text = computed({
+    get: () => model.value.text ?? '',
+    set: (val) => { model.value = { ...model.value, text: val }; },
+});
+
+const media = computed({
+    get: () => model.value.media ?? null,
+    set: (val) => { model.value = { ...model.value, media: val }; },
+});
+
+const keyboard = computed({
+    get: () => model.value.keyboard ?? null,
+    set: (val) => { model.value = { ...model.value, keyboard: val }; },
+});
+
+function addMedia() {
+    if (!media.value) {
+        media.value = { type: 'photo', url: '' };
+    }
+}
+
+function addKeyboard() {
+    if (!keyboard.value) {
+        keyboard.value = { type: 'inline', buttons: [] };
+    }
+}
+</script>
+
+<template>
+    <div class="space-y-3">
+        <div>
+            <div class="flex items-center justify-between">
+                <label class="block text-xs font-medium text-gray-500">Текст ответа</label>
+                <InsertToolbar :target="textareaRef" :declared-keys="declaredStateKeys" />
+            </div>
+            <textarea ref="textareaRef" v-model="text" rows="3"
+                class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400"
+                placeholder="Привет, {{user.firstName}}!" />
+            <StateWarning :uninitialized-keys="uninitializedKeys"
+                :partially-initialized-keys="partiallyInitializedKeys" :undeclared-keys="undeclaredKeys" />
+            <VarsHint />
+        </div>
+
+        <MediaPicker v-if="media" v-model="media" />
+        <button v-else type="button" @click="addMedia"
+            class="text-xs text-indigo-600 hover:text-indigo-800">
+            + Добавить медиа
+        </button>
+
+        <KeyboardSection v-if="keyboard" v-model="keyboard" />
+        <button v-else type="button" @click="addKeyboard"
+            class="text-xs text-indigo-600 hover:text-indigo-800">
+            + Добавить клавиатуру
+        </button>
+    </div>
+</template>

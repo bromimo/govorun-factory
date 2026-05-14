@@ -1,17 +1,12 @@
 export const controllerBlockTypes = [
-    { type: 'reply_text', label: 'Ответ текстом', color: 'pink' },
-    { type: 'reply_keyboard', label: 'Ответ с клавиатурой', color: 'pink' },
-    { type: 'reply_media', label: 'Ответ медиа', color: 'pink' },
+    { type: 'reply', label: 'Ответ', color: 'pink' },
     { type: 'save_state', label: 'Сохранить состояние', color: 'green' },
     { type: 'api_call', label: 'API-запрос', color: 'purple' },
 ];
 
 export const flowNodeTypes = [
-    { type: 'ask_text', label: 'Вопрос текстом', color: 'blue' },
-    { type: 'ask_keyboard', label: 'Вопрос с клавиатурой', color: 'blue' },
-    { type: 'reply_text', label: 'Ответ текстом', color: 'pink' },
-    { type: 'reply_keyboard', label: 'Ответ с клавиатурой', color: 'pink' },
-    { type: 'reply_media', label: 'Ответ медиа', color: 'pink' },
+    { type: 'ask', label: 'Вопрос', color: 'blue' },
+    { type: 'reply', label: 'Ответ', color: 'pink' },
     { type: 'save_state', label: 'Сохранить состояние', color: 'green' },
     { type: 'condition', label: 'Условие', color: 'orange' },
     { type: 'api_call', label: 'API-запрос', color: 'purple' },
@@ -20,12 +15,9 @@ export const flowNodeTypes = [
 ];
 
 export const defaultBlockParams = {
-    reply_text: { text: '' },
-    reply_keyboard: { text: '', buttons: [] },
-    reply_media: { media_type: 'photo', url: '', caption: '' },
+    reply: { text: '', media: null, keyboard: null },
+    ask: { mode: 'text', stepName: '', text: '', media: null, validation: [], keyboard: null },
     save_state: { variables: [{ key: '', source: '' }] },
-    ask_text: { text: '', image: '', validation: [] },
-    ask_keyboard: { text: '', image: '', buttons: [], validation: [] },
     condition: { field: '' },
     api_call: { url: '', method: 'GET' },
     on_complete: {},

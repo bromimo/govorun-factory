@@ -21,7 +21,13 @@ class BotRouteFactory extends Factory
             'type' => RouteType::Command->value,
             'match' => '/'.fake()->word(),
             'handler_type' => HandlerType::Controller->value,
-            'handler_schema' => ['blocks' => [['type' => 'reply_text', 'params' => ['text' => fake()->sentence()]]]],
+            'handler_schema' => ['blocks' => [
+                ['type' => 'reply', 'params' => [
+                    'text' => fake()->sentence(),
+                    'media' => null,
+                    'keyboard' => null,
+                ]],
+            ]],
             'middleware' => [],
             'sort_order' => 0,
         ];

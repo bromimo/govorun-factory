@@ -5,11 +5,8 @@ import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import dagre from '@dagrejs/dagre';
 import { useFlowDragDrop } from './useFlowDragDrop.js';
-import AskTextNode from './nodes/AskTextNode.vue';
-import AskKeyboardNode from './nodes/AskKeyboardNode.vue';
-import ReplyTextNode from './nodes/ReplyTextNode.vue';
-import ReplyKeyboardNode from './nodes/ReplyKeyboardNode.vue';
-import ReplyMediaNode from './nodes/ReplyMediaNode.vue';
+import AskNode from './nodes/AskNode.vue';
+import ReplyNode from './nodes/ReplyNode.vue';
 import SaveStateNode from './nodes/SaveStateNode.vue';
 import ConditionNode from './nodes/ConditionNode.vue';
 import ApiCallNode from './nodes/ApiCallNode.vue';
@@ -364,11 +361,8 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
         @drop="onDrop"
     >
         <template #node-start="p"><StartNode v-bind="p" /></template>
-        <template #node-ask_text="p"><AskTextNode v-bind="p" /></template>
-        <template #node-ask_keyboard="p"><AskKeyboardNode v-bind="p" /></template>
-        <template #node-reply_text="p"><ReplyTextNode v-bind="p" /></template>
-        <template #node-reply_keyboard="p"><ReplyKeyboardNode v-bind="p" /></template>
-        <template #node-reply_media="p"><ReplyMediaNode v-bind="p" /></template>
+        <template #node-ask="p"><AskNode v-bind="p" /></template>
+        <template #node-reply="p"><ReplyNode v-bind="p" /></template>
         <template #node-save_state="p"><SaveStateNode v-bind="p" /></template>
         <template #node-condition="p"><ConditionNode v-bind="p" /></template>
         <template #node-api_call="p"><ApiCallNode v-bind="p" /></template>
