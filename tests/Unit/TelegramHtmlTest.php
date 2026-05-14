@@ -75,3 +75,8 @@ test('htmlEscapeKeepPlaceholders escapes ampersand outside placeholders', functi
 test('htmlEscapeKeepPlaceholders handles empty string', function () {
     expect(TelegramHtml::htmlEscapeKeepPlaceholders(''))->toBe('');
 });
+
+test('sanitize strips href with relative url keeping tag', function () {
+    $result = TelegramHtml::sanitize('<a href="/relative/path">link</a>');
+    expect($result)->toBe('<a>link</a>');
+});
