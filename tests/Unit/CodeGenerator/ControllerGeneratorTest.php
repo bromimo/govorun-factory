@@ -45,3 +45,49 @@ test('generates controller with save_state block', function () {
     expect($result)->toContain('namespace App\\Controllers;');
     expect($result)->toContain("\$this->state->set('name', \$this->message->text)");
 });
+
+test('reply with text generates parseMode HTML', function () {
+    $schema = [
+        'blocks' => [
+            ['type' => 'reply', 'params' => ['text' => '<b>Привет!</b>', 'media' => null, 'keyboard' => null]],
+        ],
+    ];
+
+    $result = (new ControllerGenerator)->generate('HtmlCtrl', $schema, 'App\\Controllers');
+
+    expect($result)->toContain("->parseMode('HTML')");
+});
+
+test('reply with media and text generates parseMode HTML', function () {
+    $schema = [
+        'blocks' => [
+            ['type' => 'reply', 'params' => [
+                'text' => 'Caption <b>text</b>',
+                'media' => ['type' => 'photo', 'url' => 'https://example.com/a.jpg'],
+                'keyboard' => null,
+            ]],
+        ],
+    ];
+
+    $result = (new ControllerGenerator)->generate('MediaHtmlCtrl', $schema, 'App\\Controllers');
+
+    expect($result)->toContain("->parseMode('HTML')");
+    expect($result)->toContain("->caption(");
+});
+
+test('reply with media only does not generate parseMode', function () {
+    $schema = [
+        'blocks' => [
+            ['type' => 'reply', 'params' => [
+                'text' => '',
+                'media' => ['type' => 'photo', 'url' => 'https://example.com/a.jpg'],
+                'keyboard' => null,
+            ]],
+        ],
+    ];
+
+    $result = (new ControllerGenerator)->generate('PhotoCtrl', $schema, 'App\\Controllers');
+
+    expect($result)->not->toContain("->parseMode(");
+    expect($result)->toContain("Media::photo(");
+});
