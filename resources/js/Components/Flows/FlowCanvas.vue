@@ -76,7 +76,14 @@ onNodeClick(({ node }) => {
 });
 
 onEdgeClick(({ edge }) => {
-    selectedEdge.value = { id: edge.id, source: edge.source, target: edge.target, label: edge.label };
+    const sourceNode = getNodes.value.find(n => n.id === edge.source);
+    selectedEdge.value = {
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        label: edge.label,
+        sourceIsCondition: sourceNode?.type === 'condition',
+    };
     selectedNode.value = null;
 });
 
