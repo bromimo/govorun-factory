@@ -2,12 +2,13 @@
 import { ref, computed } from 'vue';
 import VarsHint from './VarsHint.vue';
 import StateWarning from './StateWarning.vue';
-import InsertToolbar from './InsertToolbar.vue';
 import MediaPicker from './MediaPicker.vue';
 import KeyboardSection from './KeyboardSection.vue';
 import ValidationEditor from './ValidationEditor.vue';
+import RichTextEditor from './RichTextEditor.vue';
 import { useStateWarnings } from './useStateWarnings.js';
 import { toCamelCase, sanitizeIdentifier, identifierWarning } from '@/utils/translit';
+import { stripTelegramHtml } from '@/utils/telegramHtml.js';
 
 const model = defineModel({
     type: Object,
@@ -20,12 +21,11 @@ const props = defineProps({
     botValidationMessages: { type: Object, default: () => ({}) },
 });
 
-const textareaRef = ref(null);
 const stepNameWarning = ref('');
 let stepNameWarningTimer = null;
 
 const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useStateWarnings(
-    () => model.value.text ?? '',
+    () => stripTelegramHtml(model.value.text ?? ''),
     () => props.allStateKeys,
     () => props.declaredStateKeys,
     () => props.possiblyDeclaredStateKeys,
@@ -52,7 +52,7 @@ const validation = computed({
 });
 
 function autoStepName() {
-    const body = toCamelCase(model.value.text ?? '');
+    const body = toCamelCase(stripTelegramHtml(model.value.text ?? ''));
     if (!body) return '';
     return 'ask' + body.charAt(0).toUpperCase() + body.slice(1);
 }
@@ -133,15 +133,13 @@ const isCallback = computed(() => model.value.mode === 'callback');
         </div>
 
         <div>
-            <div class="flex items-center justify-between">
-                <label class="block text-xs font-medium text-gray-500">Текст вопроса</label>
-                <InsertToolbar :target="textareaRef" :declared-keys="declaredStateKeys" />
-            </div>
-            <textarea ref="textareaRef" v-model="text" rows="3"
-                class="mt-1 w-full rounded border-gray-300 text-sm placeholder-gray-400"
-                placeholder="Как вас зовут?" />
+            <label class="block text-xs font-medium text-gray-500">Текст вопроса</label>
+            <RichTextEditor v-model="text" class="mt-1"
+                placeholder="Как вас зовут?"
+                :declared-keys="declaredStateKeys" />
             <StateWarning :uninitialized-keys="uninitializedKeys"
-                :partially-initialized-keys="partiallyInitializedKeys" :undeclared-keys="undeclaredKeys" />
+                :partially-initialized-keys="partiallyInitializedKeys"
+                :undeclared-keys="undeclaredKeys" />
             <VarsHint />
         </div>
 

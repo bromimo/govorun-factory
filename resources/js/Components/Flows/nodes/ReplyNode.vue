@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import BaseNode from './BaseNode.vue';
 import { highlightVars } from './highlightVars.js';
+import { stripTelegramHtml } from '@/utils/telegramHtml.js';
 
 defineOptions({ inheritAttrs: false });
 
@@ -9,7 +10,7 @@ const props = defineProps(['id', 'data', 'selected']);
 
 const typeLabels = { photo: 'Фото', video: 'Видео', audio: 'Аудио', document: 'Документ', animation: 'GIF' };
 
-const html = computed(() => highlightVars(props.data.text));
+const html = computed(() => highlightVars(stripTelegramHtml(props.data.text ?? '')));
 
 const buttonsCount = computed(() => {
     const buttons = props.data.keyboard?.buttons;
