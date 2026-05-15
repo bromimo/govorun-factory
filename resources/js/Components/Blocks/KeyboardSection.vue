@@ -22,12 +22,12 @@ const buttons = computed({
 
 const resize = computed({
     get: () => model.value?.resize ?? false,
-    set: (val) => { model.value = { ...model.value, resize: val }; },
+    set: (val) => { model.value = { ...(model.value ?? { type: 'reply', resize: false, oneTime: false, buttons: [] }), resize: val }; },
 });
 
 const oneTime = computed({
     get: () => model.value?.oneTime ?? false,
-    set: (val) => { model.value = { ...model.value, oneTime: val }; },
+    set: (val) => { model.value = { ...(model.value ?? { type: 'reply', resize: false, oneTime: false, buttons: [] }), oneTime: val }; },
 });
 
 const hasButtons = computed(() => {
