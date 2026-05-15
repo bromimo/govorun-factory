@@ -105,6 +105,25 @@ function urlInvalid(btn) {
     return !u.trim() || !/^https?:\/\//.test(u);
 }
 
+function actionInvalid(btn) {
+    if (btn.type !== 'action') return false;
+    const a = btn.action?.trim() ?? '';
+    return a.length > 0 && !/^[a-zA-Z0-9_-]+$/.test(a);
+}
+
+const duplicateActions = computed(() => {
+    const counts = {};
+    for (const row of localRows.value) {
+        for (const btn of row) {
+            if (btn.type === 'action') {
+                const a = btn.action?.trim() ?? '';
+                if (a) counts[a] = (counts[a] ?? 0) + 1;
+            }
+        }
+    }
+    return new Set(Object.keys(counts).filter(a => counts[a] >= 2));
+});
+
 const isValid = computed(() => {
     for (const isErr of Object.values(paramErrors.value)) {
         if (isErr) return false;
@@ -113,7 +132,11 @@ const isValid = computed(() => {
         for (const btn of row) {
             if (!btn.label?.trim()) return false;
             if (props.keyboardType === 'inline') {
-                if (btn.type === 'action' && !btn.action?.trim()) return false;
+                if (btn.type === 'action') {
+                    if (!btn.action?.trim()) return false;
+                    if (actionInvalid(btn)) return false;
+                    if (duplicateActions.value.has(btn.action.trim())) return false;
+                }
                 if (urlInvalid(btn)) return false;
             }
         }
@@ -242,7 +265,7 @@ function onVar(varKey) {
 
                                     <template v-if="keyboardType === 'inline'">
                                         <input v-if="btn.type === 'action'" v-model="btn.action" placeholder="action"
-                                            :class="['w-full rounded border text-xs px-2 py-1', !btn.action?.trim() ? 'border-red-400' : 'border-gray-300']" />
+                                            :class="['w-full rounded border text-xs px-2 py-1', !btn.action?.trim() || actionInvalid(btn) || duplicateActions.has(btn.action?.trim()) ? 'border-red-400' : 'border-gray-300']" />
 
                                         <textarea v-if="btn.type === 'action'"
                                             :value="paramString(btn)" @input="onParamInput(ri, bi, btn, $event)"
