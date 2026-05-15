@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\BotMedia;
 use App\Observers\BotObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -68,5 +69,12 @@ class Bot extends Model
     public function flows(): HasMany
     {
         return $this->hasMany(BotFlow::class);
+    }
+
+    /** Медиафайлы бота.
+     */
+    public function media(): HasMany
+    {
+        return $this->hasMany(BotMedia::class);
     }
 }
