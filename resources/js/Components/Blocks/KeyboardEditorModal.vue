@@ -9,6 +9,7 @@ const props = defineProps({
     modelValue: { type: Array, default: () => [] },
     open: { type: Boolean, default: false },
     declaredKeys: { type: Array, default: () => [] },
+    keyboardType: { type: String, default: 'inline' },
 });
 
 const emit = defineEmits(['update:modelValue', 'update:open']);
@@ -48,7 +49,11 @@ function removeRow(ri) {
 }
 
 function addButton(ri) {
-    localRows.value[ri].push({ type: 'action', label: '', action: '' });
+    if (props.keyboardType === 'reply') {
+        localRows.value[ri].push({ type: 'text', label: '' });
+    } else {
+        localRows.value[ri].push({ type: 'action', label: '', action: '' });
+    }
 }
 
 function removeButton(ri, bi) {
@@ -64,8 +69,10 @@ function onTypeChange(btn) {
     }
     btn.label = text;
     btn.type = type;
-    if (type === 'action') btn.action = '';
-    if (type === 'url') btn.url = '';
+    if (props.keyboardType === 'inline') {
+        if (type === 'action') btn.action = '';
+        if (type === 'url') btn.url = '';
+    }
 }
 
 function paramString(btn) {
@@ -105,8 +112,10 @@ const isValid = computed(() => {
     for (const row of localRows.value) {
         for (const btn of row) {
             if (!btn.label?.trim()) return false;
-            if (btn.type === 'action' && !btn.action?.trim()) return false;
-            if (urlInvalid(btn)) return false;
+            if (props.keyboardType === 'inline') {
+                if (btn.type === 'action' && !btn.action?.trim()) return false;
+                if (urlInvalid(btn)) return false;
+            }
         }
     }
     return true;
@@ -214,7 +223,8 @@ function onVar(varKey) {
                                         <button type="button" @click="removeButton(ri, bi)"
                                             class="text-red-400 hover:text-red-600">×</button>
                                     </div>
-                                    <select v-model="btn.type" @change="onTypeChange(btn)"
+                                    <select v-if="keyboardType === 'inline'"
+                                        v-model="btn.type" @change="onTypeChange(btn)"
                                         class="w-full rounded border-gray-300 text-xs py-1">
                                         <option value="action">action</option>
                                         <option value="url">url</option>
@@ -222,17 +232,27 @@ function onVar(varKey) {
                                         <option value="location">location</option>
                                     </select>
 
-                                    <input v-if="btn.type === 'action'" v-model="btn.action" placeholder="action"
-                                        :class="['w-full rounded border text-xs px-2 py-1', !btn.action?.trim() ? 'border-red-400' : 'border-gray-300']" />
+                                    <select v-if="keyboardType === 'reply'"
+                                        v-model="btn.type" @change="onTypeChange(btn)"
+                                        class="w-full rounded border-gray-300 text-xs py-1">
+                                        <option value="text">Текст</option>
+                                        <option value="contact">Контакт</option>
+                                        <option value="location">Геолокация</option>
+                                    </select>
 
-                                    <textarea v-if="btn.type === 'action'"
-                                        :value="paramString(btn)" @input="onParamInput(ri, bi, btn, $event)"
-                                        placeholder="param (JSON, опционально)"
-                                        :class="['w-full rounded border text-xs px-2 py-1 font-mono', paramErrors[`${ri}:${bi}`] ? 'border-red-400' : 'border-gray-300']"
-                                        rows="2" />
+                                    <template v-if="keyboardType === 'inline'">
+                                        <input v-if="btn.type === 'action'" v-model="btn.action" placeholder="action"
+                                            :class="['w-full rounded border text-xs px-2 py-1', !btn.action?.trim() ? 'border-red-400' : 'border-gray-300']" />
 
-                                    <input v-if="btn.type === 'url'" v-model="btn.url" placeholder="https://..."
-                                        :class="['w-full rounded border text-xs px-2 py-1', urlInvalid(btn) ? 'border-red-400' : 'border-gray-300']" />
+                                        <textarea v-if="btn.type === 'action'"
+                                            :value="paramString(btn)" @input="onParamInput(ri, bi, btn, $event)"
+                                            placeholder="param (JSON, опционально)"
+                                            :class="['w-full rounded border text-xs px-2 py-1 font-mono', paramErrors[`${ri}:${bi}`] ? 'border-red-400' : 'border-gray-300']"
+                                            rows="2" />
+
+                                        <input v-if="btn.type === 'url'" v-model="btn.url" placeholder="https://..."
+                                            :class="['w-full rounded border text-xs px-2 py-1', urlInvalid(btn) ? 'border-red-400' : 'border-gray-300']" />
+                                    </template>
                                 </div>
                             </template>
                         </draggable>
