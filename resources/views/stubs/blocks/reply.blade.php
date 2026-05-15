@@ -25,7 +25,7 @@
 @if ($hasKeyboard)
 
                 ->keyboard(
-                    {!! KeyboardCodeBuilder::render($keyboard['buttons'], '                    ') !!}
+                    {!! KeyboardCodeBuilder::renderKeyboard($keyboard, '                    ') !!}
                 )
 @endif
 

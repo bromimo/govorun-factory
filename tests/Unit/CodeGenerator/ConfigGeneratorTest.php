@@ -10,7 +10,7 @@ test('generates app config from bot settings', function () {
     ];
 
     $generator = new ConfigGenerator;
-    $result = $generator->generateAppConfig('My Bot', $config);
+    $result = $generator->generateAppConfig('My Bot', 'my_bot', $config);
 
     expect($result)->toContain("'name' => 'My Bot'");
     expect($result)->toContain("'environment' => 'production'");
@@ -25,7 +25,7 @@ test('app config includes laravel-style banners for each key', function () {
         'state_storage' => 'database',
     ];
 
-    $result = (new ConfigGenerator)->generateAppConfig('My Bot', $config);
+    $result = (new ConfigGenerator)->generateAppConfig('My Bot', 'my_bot', $config);
 
     expect($result)
         ->toContain('| Имя приложения')

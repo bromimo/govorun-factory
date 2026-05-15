@@ -59,3 +59,57 @@ test('renderBlock reply empty (no text and no media) emits comment', function ()
 
     expect($code)->toContain('// Empty reply block');
 });
+
+test('renderBlock reply with reply keyboard emits Keyboard::reply()', function () {
+    $gen = new ControllerGenerator;
+    $code = $gen->renderBlock('reply', [
+        'text' => 'Выберите',
+        'media' => null,
+        'keyboard' => [
+            'type' => 'reply',
+            'resize' => false,
+            'oneTime' => false,
+            'buttons' => [[['type' => 'text', 'label' => 'Да']]],
+        ],
+    ]);
+
+    expect($code)->toContain('Keyboard::reply()');
+    expect($code)->not->toContain('Keyboard::make()');
+    expect($code)->toContain("Button::make('Да')");
+});
+
+test('renderBlock reply with reply keyboard and resize flag emits ->resize()', function () {
+    $gen = new ControllerGenerator;
+    $code = $gen->renderBlock('reply', [
+        'text' => 'Выберите',
+        'media' => null,
+        'keyboard' => [
+            'type' => 'reply',
+            'resize' => true,
+            'oneTime' => false,
+            'buttons' => [[['type' => 'text', 'label' => 'Да']]],
+        ],
+    ]);
+
+    expect($code)->toContain('Keyboard::reply()');
+    expect($code)->toContain('->resize()');
+    expect($code)->not->toContain('->oneTime()');
+});
+
+test('renderBlock reply with reply keyboard and oneTime flag emits ->oneTime() and contact button', function () {
+    $gen = new ControllerGenerator;
+    $code = $gen->renderBlock('reply', [
+        'text' => 'Выберите',
+        'media' => null,
+        'keyboard' => [
+            'type' => 'reply',
+            'resize' => false,
+            'oneTime' => true,
+            'buttons' => [[['type' => 'contact', 'label' => 'Контакт']]],
+        ],
+    ]);
+
+    expect($code)->toContain('Keyboard::reply()');
+    expect($code)->toContain('->oneTime()');
+    expect($code)->toContain('->requestContact()');
+});

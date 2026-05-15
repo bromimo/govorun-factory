@@ -11,17 +11,39 @@ const props = defineProps({
 
 const editorOpen = ref(false);
 
+const keyboardType = computed(() => model.value?.type ?? 'inline');
+
 const buttons = computed({
     get: () => model.value?.buttons ?? [],
     set: (val) => {
-        model.value = { type: 'inline', buttons: val };
+        model.value = { ...(model.value ?? { type: 'inline' }), buttons: val };
     },
+});
+
+const resize = computed({
+    get: () => model.value?.resize ?? false,
+    set: (val) => { model.value = { ...(model.value ?? { type: 'reply', resize: false, oneTime: false, buttons: [] }), resize: val }; },
+});
+
+const oneTime = computed({
+    get: () => model.value?.oneTime ?? false,
+    set: (val) => { model.value = { ...(model.value ?? { type: 'reply', resize: false, oneTime: false, buttons: [] }), oneTime: val }; },
 });
 
 const hasButtons = computed(() => {
     const b = model.value?.buttons;
     return Array.isArray(b) && b.some(row => Array.isArray(row) && row.length > 0);
 });
+
+function switchType(newType) {
+    if (newType === keyboardType.value) return;
+    if (hasButtons.value && !confirm('При переключении типа все кнопки будут удалены. Продолжить?')) return;
+    if (newType === 'reply') {
+        model.value = { type: 'reply', resize: false, oneTime: false, buttons: [] };
+    } else {
+        model.value = { type: 'inline', buttons: [] };
+    }
+}
 
 function clear() {
     model.value = null;
@@ -38,13 +60,36 @@ function clear() {
             </button>
         </div>
 
-        <KeyboardPreview :model-value="buttons" />
+        <div class="inline-flex rounded-md border border-gray-300 bg-white p-0.5 text-xs">
+            <button type="button" @click="switchType('inline')"
+                :class="['px-3 py-1 rounded', keyboardType === 'inline' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50']">
+                Inline
+            </button>
+            <button type="button" @click="switchType('reply')"
+                :class="['px-3 py-1 rounded', keyboardType === 'reply' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50']">
+                Reply
+            </button>
+        </div>
+
+        <div v-if="keyboardType === 'reply'" class="flex gap-4 text-xs text-gray-600">
+            <label class="flex items-center gap-1">
+                <input type="checkbox" v-model="resize" class="rounded" />
+                Подогнать размер
+            </label>
+            <label class="flex items-center gap-1">
+                <input type="checkbox" v-model="oneTime" class="rounded" />
+                Скрыть после нажатия
+            </label>
+        </div>
+
+        <KeyboardPreview :model-value="buttons" :keyboard-type="keyboardType" />
 
         <button type="button" @click="editorOpen = true"
             class="rounded-md border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-50">
             {{ hasButtons ? 'Редактировать клавиатуру' : 'Добавить кнопки' }}
         </button>
 
-        <KeyboardEditorModal v-model="buttons" v-model:open="editorOpen" :declared-keys="props.declaredKeys" />
+        <KeyboardEditorModal v-model="buttons" v-model:open="editorOpen"
+            :declared-keys="props.declaredKeys" :keyboard-type="keyboardType" />
     </div>
 </template>

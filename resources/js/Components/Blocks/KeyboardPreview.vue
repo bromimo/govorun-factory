@@ -3,6 +3,7 @@ import { computed } from 'vue';
 
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
+    keyboardType: { type: String, default: 'inline' },
 });
 
 const hasButtons = computed(() => {
@@ -21,6 +22,7 @@ function icon(btn) {
 
 <template>
     <div v-if="hasButtons" class="space-y-1 rounded border border-gray-200 bg-gray-50 p-2">
+        <div v-if="keyboardType === 'reply'" class="text-xs font-medium text-gray-400">Reply</div>
         <div v-for="(row, ri) in modelValue" :key="ri" class="flex gap-1">
             <div v-for="(btn, bi) in row" :key="bi"
                 class="flex-1 rounded bg-white border border-gray-300 px-2 py-1 text-xs text-gray-700 truncate text-center">
