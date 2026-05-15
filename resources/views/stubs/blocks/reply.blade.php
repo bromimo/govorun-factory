@@ -14,7 +14,12 @@
 @else
         $this->send(
 @if ($hasMedia)
-            Media::{{ $media['type'] }}('{{ addslashes($media['url'] ?? '') }}')@if ($hasText)
+@php
+    $mediaRef = isset($media['media_id'])
+        ? "dirname(__DIR__, 2) . '/resources/media/" . ($media['filename'] ?? 'unknown') . "'"
+        : "'" . addslashes($media['url'] ?? '') . "'";
+@endphp
+            Media::{{ $media['type'] }}({!! $mediaRef !!})@if ($hasText)
 
                 ->caption({!! CodeHelper::renderText($text) !!})
                 ->parseMode('HTML')@endif

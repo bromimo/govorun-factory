@@ -14,6 +14,9 @@ class FlowGenerator
     /** @var array<string, string> Дефолтные сообщения валидации на уровне бота. */
     private array $validationMessages = [];
 
+    /** @var array<int, string> Маппинг media_id → filename. */
+    private array $mediaMap = [];
+
     /** @var Collection<int, array<string, mixed>> Коллекция всех нод для поиска по id. */
     private Collection $nodes;
 
@@ -33,10 +36,12 @@ class FlowGenerator
      * @param  array<string, mixed>  $graph
      * @param  array<string>  $interruptCommands
      * @param  array<string, string>  $validationMessages
+     * @param  array<int, string>  $mediaMap
      */
-    public function generate(string $className, array $graph, array $interruptCommands, bool $interruptOnEvent, array $validationMessages = []): string
+    public function generate(string $className, array $graph, array $interruptCommands, bool $interruptOnEvent, array $validationMessages = [], array $mediaMap = []): string
     {
         $this->validationMessages = $validationMessages;
+        $this->mediaMap = $mediaMap;
         $this->nodes = collect($graph['nodes'] ?? []);
         $edges = collect($graph['edges'] ?? []);
 
@@ -106,7 +111,7 @@ class FlowGenerator
             $type = $node['type'] ?? '';
             $data = $node['data'] ?? [];
 
-            if (! in_array($type, ['ask', 'reply'], true)) {
+            if (! in_array($type, ['ask', 'reply', 'reply_media'], true)) {
                 continue;
             }
 
@@ -526,7 +531,7 @@ class FlowGenerator
 
         return match ($type) {
             'save_state' => $this->renderSaveState($data, $pad),
-            'reply' => $this->renderReply($data, $pad),
+            'reply', 'reply_media' => $this->renderReply($data, $pad),
             'api_call' => "{$pad}\$response = \$this->apiCall('".($data['method'] ?? 'GET')."', '".addslashes($data['url'] ?? '')."');\n",
             default => "{$pad}// Unknown block: {$type}\n",
         };
@@ -567,8 +572,15 @@ class FlowGenerator
 
         if (! empty($media)) {
             $type = $media['type'] ?? 'photo';
-            $url = "'".addslashes($media['url'] ?? '')."'";
-            $expression = "{$inner}Media::{$type}({$url})";
+
+            if (isset($media['media_id'])) {
+                $filename = $this->mediaMap[$media['media_id']] ?? 'unknown';
+                $mediaRef = "dirname(__DIR__, 2) . '/resources/media/{$filename}'";
+            } else {
+                $mediaRef = "'".addslashes($media['url'] ?? '')."'";
+            }
+
+            $expression = "{$inner}Media::{$type}({$mediaRef})";
 
             if ($text !== '') {
                 $expression .= "\n{$inner}    ->caption(".$this->renderText($text).")";

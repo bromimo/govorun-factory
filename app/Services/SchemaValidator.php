@@ -216,13 +216,14 @@ class SchemaValidator
 
         $type = $media['type'] ?? null;
         $url = $media['url'] ?? null;
+        $mediaId = $media['media_id'] ?? null;
 
         if (! in_array($type, self::ALLOWED_MEDIA_TYPES, true)) {
             $errors[] = "{$where}: тип медиа «{$type}» не поддерживается";
         }
 
-        if (empty(trim((string) $url))) {
-            $errors[] = "{$where}: media должен иметь непустой url";
+        if (empty($mediaId) && empty(trim((string) $url))) {
+            $errors[] = "{$where}: media должен иметь непустой url или media_id";
         }
     }
 

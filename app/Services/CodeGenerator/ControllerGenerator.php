@@ -8,11 +8,16 @@ use Illuminate\Support\Facades\Blade;
 /** Генератор классов контроллеров из схемы обработчика. */
 class ControllerGenerator
 {
+    /** @var array<int, string> Маппинг media_id → filename. */
+    private array $mediaMap = [];
+
     /** Сгенерировать класс контроллера с одним методом handle().
      * @param  array<string, mixed>  $handlerSchema
+     * @param  array<int, string>  $mediaMap
      */
-    public function generate(string $className, array $handlerSchema, string $namespace): string
+    public function generate(string $className, array $handlerSchema, string $namespace, array $mediaMap = []): string
     {
+        $this->mediaMap = $mediaMap;
         $blocks = $handlerSchema['blocks'] ?? [];
         $blockCode = '';
 
@@ -37,9 +42,11 @@ class ControllerGenerator
 
     /** Сгенерировать класс контроллера с несколькими методами.
      * @param  array<int, array{name: string, schema: array}> $methods
+     * @param  array<int, string>  $mediaMap
      */
-    public function generateWithMethods(string $className, array $methods, string $namespace): string
+    public function generateWithMethods(string $className, array $methods, string $namespace, array $mediaMap = []): string
     {
+        $this->mediaMap = $mediaMap;
         $methodsCode = '';
         $allBlocks = [];
 
@@ -125,6 +132,10 @@ class ControllerGenerator
      */
     public function renderBlock(string $type, array $params): string
     {
+        if (isset($params['media']['media_id'])) {
+            $params['media']['filename'] = $this->mediaMap[$params['media']['media_id']] ?? 'unknown';
+        }
+
         $stubView = "stubs.blocks.{$type}";
 
         if (view()->exists($stubView)) {
