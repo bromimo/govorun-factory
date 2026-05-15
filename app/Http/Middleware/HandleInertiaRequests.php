@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Models\Plugin;
-use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Http\Request;
 
 /** Middleware для Inertia.js — шаблон, версия и общие пропсы. */
 class HandleInertiaRequests extends Middleware

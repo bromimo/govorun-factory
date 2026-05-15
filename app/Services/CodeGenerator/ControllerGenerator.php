@@ -41,7 +41,7 @@ class ControllerGenerator
     }
 
     /** Сгенерировать класс контроллера с несколькими методами.
-     * @param  array<int, array{name: string, schema: array}> $methods
+     * @param  array<int, array{name: string, schema: array}>  $methods
      * @param  array<int, string>  $mediaMap
      */
     public function generateWithMethods(string $className, array $methods, string $namespace, array $mediaMap = []): string

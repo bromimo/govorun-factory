@@ -216,7 +216,6 @@ class CodeGeneratorService
 
     /** Построить маппинг media_id → filename для всех медиафайлов бота.
      *
-     * @param  Bot  $bot
      * @return array<int, string>
      */
     private function buildMediaMap(Bot $bot): array
@@ -232,9 +231,6 @@ class CodeGeneratorService
     }
 
     /** Сгенерировать config/bot_profile.php и (если есть) скопировать фото-бинарь.
-     * @param Bot $bot
-     * @param string $outputPath
-     * @return void
      */
     private function generateBotProfile(Bot $bot, string $outputPath): void
     {

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePluginRequest;
-use App\Models\Plugin;
 use Inertia\Inertia;
+use App\Models\Plugin;
+use App\Http\Requests\StorePluginRequest;
 
 /** Контроллер управления плагинами (только для администраторов). */
 class PluginController extends Controller

@@ -1,7 +1,7 @@
 <?php
 
-use App\Services\MediaOptimizerService;
 use Illuminate\Http\UploadedFile;
+use App\Services\MediaOptimizerService;
 
 test('rejects file over 50 MB', function () {
     $file = UploadedFile::fake()->create('big.mp4', 51 * 1024, 'video/mp4');

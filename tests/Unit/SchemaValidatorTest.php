@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Bot;
-use App\Models\BotRoute;
 use App\Models\User;
+use App\Models\BotRoute;
 use App\Services\SchemaValidator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

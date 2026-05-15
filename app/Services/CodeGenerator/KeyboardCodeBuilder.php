@@ -6,9 +6,8 @@ namespace App\Services\CodeGenerator;
 class KeyboardCodeBuilder
 {
     /** Отрендерить клавиатуру из полного объекта keyboard (с type, resize, oneTime, buttons).
-     * @param array<string, mixed> $keyboard Объект клавиатуры из схемы бота.
-     * @param string $pad Базовый отступ для открывающей строки и закрывающей скобки.
-     * @return string
+     * @param  array<string, mixed>  $keyboard  Объект клавиатуры из схемы бота.
+     * @param  string  $pad  Базовый отступ для открывающей строки и закрывающей скобки.
      */
     public static function renderKeyboard(array $keyboard, string $pad): string
     {
@@ -21,10 +20,10 @@ class KeyboardCodeBuilder
         $code = "{$factory}->buttons([\n{$rowsCode}\n{$pad}])";
 
         if ($type === 'reply') {
-            if (!empty($keyboard['resize'])) {
+            if (! empty($keyboard['resize'])) {
                 $code .= "\n{$pad}    ->resize()";
             }
-            if (!empty($keyboard['oneTime'])) {
+            if (! empty($keyboard['oneTime'])) {
                 $code .= "\n{$pad}    ->oneTime()";
             }
         }
@@ -33,9 +32,8 @@ class KeyboardCodeBuilder
     }
 
     /** Отрендерить тело Keyboard::make()->buttons([…]).
-     * @param array<int, array<int, array<string, mixed>>> $rows Ряды кнопок.
-     * @param string $pad Базовый отступ для открывающей строки и закрывающей скобки.
-     * @return string
+     * @param  array<int, array<int, array<string, mixed>>>  $rows  Ряды кнопок.
+     * @param  string  $pad  Базовый отступ для открывающей строки и закрывающей скобки.
      */
     public static function render(array $rows, string $pad): string
     {
@@ -45,9 +43,7 @@ class KeyboardCodeBuilder
     }
 
     /** Отрендерить ряды кнопок в строку PHP-кода.
-     * @param array<int, array<int, array<string, mixed>>> $rows
-     * @param string $pad
-     * @return string
+     * @param  array<int, array<int, array<string, mixed>>>  $rows
      */
     private static function renderRows(array $rows, string $pad): string
     {

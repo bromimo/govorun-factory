@@ -503,8 +503,7 @@ class FlowGenerator
     }
 
     /** Отрендерить ask-часть шага (унифицированный тип ask).
-     * @param array<string, mixed> $node Узел графа.
-     * @return string
+     * @param  array<string, mixed>  $node  Узел графа.
      */
     private function renderAskCode(array $node): string
     {
@@ -538,9 +537,8 @@ class FlowGenerator
     }
 
     /** Отрендерить reply-блок: $this->send(<expression>);.
-     * @param array<string, mixed> $data Параметры reply.
-     * @param string $pad Отступ для строки.
-     * @return string
+     * @param  array<string, mixed>  $data  Параметры reply.
+     * @param  string  $pad  Отступ для строки.
      */
     private function renderReply(array $data, string $pad): string
     {
@@ -555,9 +553,9 @@ class FlowGenerator
 
     /** Построить fluent-выражение OutgoingMessage из data ask/reply.
      * Возвращает многострочное выражение с отступом или null если data пустая.
-     * @param array<string, mixed> $data Параметры узла (text, media, keyboard).
-     * @param string $pad Отступ внешнего вызова ($this->send(... | $step->ask(...).
-     * @return ?string
+     *
+     * @param  array<string, mixed>  $data  Параметры узла (text, media, keyboard).
+     * @param  string  $pad  Отступ внешнего вызова ($this->send(... | $step->ask(...).
      */
     private function buildOutgoingExpression(array $data, string $pad): ?string
     {
@@ -583,11 +581,11 @@ class FlowGenerator
             $expression = "{$inner}Media::{$type}({$mediaRef})";
 
             if ($text !== '') {
-                $expression .= "\n{$inner}    ->caption(".$this->renderText($text).")";
+                $expression .= "\n{$inner}    ->caption(".$this->renderText($text).')';
                 $expression .= "\n{$inner}    ->parseMode('HTML')";
             }
         } else {
-            $expression = "{$inner}Message::make(".$this->renderText($text).")";
+            $expression = "{$inner}Message::make(".$this->renderText($text).')';
             $expression .= "\n{$inner}    ->parseMode('HTML')";
         }
 

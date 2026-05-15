@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Bot;
-use App\Models\BotFlow;
 use App\Models\BotMedia;
+use App\Services\CodeGenerator\FlowGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -10,8 +10,8 @@ uses(RefreshDatabase::class);
 test('generates local path when media_id is set', function () {
     $bot = Bot::factory()->create();
     $media = BotMedia::factory()->create([
-        'bot_id'   => $bot->id,
-        'type'     => 'photo',
+        'bot_id' => $bot->id,
+        'type' => 'photo',
         'filename' => 'abc123.jpg',
     ]);
 
@@ -19,18 +19,18 @@ test('generates local path when media_id is set', function () {
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
             [
-                'id'       => 'ask1',
-                'type'     => 'ask',
+                'id' => 'ask1',
+                'type' => 'ask',
                 'position' => ['x' => 0, 'y' => 100],
-                'data'     => ['mode' => 'text', 'stepName' => '', 'text' => 'Question?', 'media' => null, 'validation' => [], 'keyboard' => null],
+                'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Question?', 'media' => null, 'validation' => [], 'keyboard' => null],
             ],
             [
-                'id'       => 'n1',
-                'type'     => 'reply',
+                'id' => 'n1',
+                'type' => 'reply',
                 'position' => ['x' => 0, 'y' => 200],
-                'data'     => [
-                    'text'     => '',
-                    'media'    => ['type' => 'photo', 'media_id' => $media->id],
+                'data' => [
+                    'text' => '',
+                    'media' => ['type' => 'photo', 'media_id' => $media->id],
                     'keyboard' => null,
                 ],
             ],
@@ -43,7 +43,7 @@ test('generates local path when media_id is set', function () {
         ],
     ];
 
-    $result = (new \App\Services\CodeGenerator\FlowGenerator)->generate(
+    $result = (new FlowGenerator)->generate(
         'TestFlow', $graph, [], false, [], [$media->id => 'abc123.jpg']
     );
 
@@ -56,18 +56,18 @@ test('generates url string when media url is set', function () {
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
             [
-                'id'       => 'ask1',
-                'type'     => 'ask',
+                'id' => 'ask1',
+                'type' => 'ask',
                 'position' => ['x' => 0, 'y' => 100],
-                'data'     => ['mode' => 'text', 'stepName' => '', 'text' => 'Question?', 'media' => null, 'validation' => [], 'keyboard' => null],
+                'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Question?', 'media' => null, 'validation' => [], 'keyboard' => null],
             ],
             [
-                'id'       => 'n1',
-                'type'     => 'reply',
+                'id' => 'n1',
+                'type' => 'reply',
                 'position' => ['x' => 0, 'y' => 200],
-                'data'     => [
-                    'text'     => '',
-                    'media'    => ['type' => 'photo', 'url' => 'https://example.com/img.jpg'],
+                'data' => [
+                    'text' => '',
+                    'media' => ['type' => 'photo', 'url' => 'https://example.com/img.jpg'],
                     'keyboard' => null,
                 ],
             ],
@@ -80,7 +80,7 @@ test('generates url string when media url is set', function () {
         ],
     ];
 
-    $result = (new \App\Services\CodeGenerator\FlowGenerator)->generate('TestFlow', $graph, [], false);
+    $result = (new FlowGenerator)->generate('TestFlow', $graph, [], false);
 
     expect($result)->toContain("'https://example.com/img.jpg'");
 });

@@ -412,7 +412,6 @@ class CodeHelper
      * Для contact/location — только label.
      *
      * @param  array<string, mixed>  $btn
-     * @return string
      */
     public static function renderButton(array $btn): string
     {
@@ -431,7 +430,6 @@ class CodeHelper
     /** Отрендерить вызов ->action(...) с опциональным param-массивом.
      *
      * @param  array<string, mixed>  $btn
-     * @return string
      */
     private static function renderActionCall(array $btn): string
     {
@@ -452,7 +450,6 @@ class CodeHelper
      * Поддерживает только скалярные значения и вложенные массивы тех же типов.
      *
      * @param  array<string|int, mixed>  $arr
-     * @return string
      */
     private static function phpArrayLiteral(array $arr): string
     {
@@ -475,8 +472,6 @@ class CodeHelper
 
     /** Отрендерить скалярное значение или массив как PHP-литерал.
      *
-     * @param  mixed  $value
-     * @return string
      */
     private static function phpScalarLiteral(mixed $value): string
     {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bot;
 use Inertia\Inertia;
+use Inertia\Response;
 use App\Models\BotMedia;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -18,11 +19,8 @@ class BotMediaController extends Controller
 
     /** Список медиафайлов бота.
      *
-     * @param Request $request
-     * @param Bot $bot
-     * @return \Inertia\Response|JsonResponse
      */
-    public function index(Request $request, Bot $bot): \Inertia\Response|JsonResponse
+    public function index(Request $request, Bot $bot): Response|JsonResponse
     {
         $this->authorize('view', $bot);
 
@@ -33,16 +31,13 @@ class BotMediaController extends Controller
         }
 
         return Inertia::render('Bots/Media/Index', [
-            'bot'   => $bot,
+            'bot' => $bot,
             'media' => $items,
         ]);
     }
 
     /** Загрузить новый медиафайл в библиотеку бота.
      *
-     * @param Request $request
-     * @param Bot $bot
-     * @return JsonResponse
      */
     public function store(Request $request, Bot $bot): JsonResponse
     {
@@ -62,13 +57,13 @@ class BotMediaController extends Controller
         @unlink($optimized['tmp_path']);
 
         $media = $bot->media()->create([
-            'type'          => $request->type,
+            'type' => $request->type,
             'original_name' => $request->file('file')->getClientOriginalName(),
-            'filename'      => $optimized['filename'],
-            'mime_type'     => $optimized['mime_type'],
-            'size'          => $optimized['size'],
-            'width'         => $optimized['width'],
-            'height'        => $optimized['height'],
+            'filename' => $optimized['filename'],
+            'mime_type' => $optimized['mime_type'],
+            'size' => $optimized['size'],
+            'width' => $optimized['width'],
+            'height' => $optimized['height'],
         ]);
 
         return response()->json($this->serialize($bot, $media), 201);
@@ -76,9 +71,6 @@ class BotMediaController extends Controller
 
     /** Отдать файл из библиотеки клиенту.
      *
-     * @param Bot $bot
-     * @param BotMedia $media
-     * @return StreamedResponse
      */
     public function file(Bot $bot, BotMedia $media): StreamedResponse
     {
@@ -93,9 +85,6 @@ class BotMediaController extends Controller
 
     /** Удалить медиафайл из библиотеки и с диска.
      *
-     * @param Bot $bot
-     * @param BotMedia $media
-     * @return JsonResponse
      */
     public function destroy(Bot $bot, BotMedia $media): JsonResponse
     {
@@ -115,22 +104,20 @@ class BotMediaController extends Controller
 
     /** Сериализовать медиафайл в массив для API-ответа.
      *
-     * @param Bot $bot
-     * @param BotMedia $media
      * @return array<string, mixed>
      */
     private function serialize(Bot $bot, BotMedia $media): array
     {
         return [
-            'id'            => $media->id,
-            'type'          => $media->type,
+            'id' => $media->id,
+            'type' => $media->type,
             'original_name' => $media->original_name,
-            'filename'      => $media->filename,
-            'mime_type'     => $media->mime_type,
-            'size'          => $media->size,
-            'width'         => $media->width,
-            'height'        => $media->height,
-            'file_url'      => route('bots.media.file', [$bot, $media]),
+            'filename' => $media->filename,
+            'mime_type' => $media->mime_type,
+            'size' => $media->size,
+            'width' => $media->width,
+            'height' => $media->height,
+            'file_url' => route('bots.media.file', [$bot, $media]),
         ];
     }
 }

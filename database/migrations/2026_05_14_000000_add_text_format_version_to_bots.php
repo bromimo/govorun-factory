@@ -1,14 +1,13 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 /** Добавить столбец text_format_version в таблицу bots. */
 return new class extends Migration
 {
     /** Применить миграцию.
-     * @return void
      */
     public function up(): void
     {
@@ -18,7 +17,6 @@ return new class extends Migration
     }
 
     /** Откатить миграцию.
-     * @return void
      */
     public function down(): void
     {

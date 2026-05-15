@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\Storage;
 class BotProfileGenerator
 {
     /** Сгенерировать содержимое config/bot_profile.php или null если Telegram отключён.
-     * @param Bot $bot
-     * @return string|null
      */
     public function renderConfig(Bot $bot): ?string
     {
@@ -21,7 +19,7 @@ class BotProfileGenerator
 
         $profile = $bot->messenger_config['telegram']['profile'] ?? [];
 
-        return "<?php\n\n" . view('stubs.config_bot_profile', [
+        return "<?php\n\n".view('stubs.config_bot_profile', [
             'name' => $profile['name'] ?? '',
             'shortDescription' => $profile['short_description'] ?? '',
             'description' => $profile['description'] ?? '',
@@ -30,7 +28,6 @@ class BotProfileGenerator
     }
 
     /** Получить пути исходного и целевого файлов фото или null если фото нет.
-     * @param Bot $bot
      * @return array{source_absolute_path: string, zip_relative_path: string}|null
      */
     public function resolvePhoto(Bot $bot): ?array
@@ -54,7 +51,6 @@ class BotProfileGenerator
     }
 
     /** Собрать массив команд для меню Telegram из маршрутов типа command с непустым description.
-     * @param Bot $bot
      * @return array<int, array{command: string, description: string}>
      */
     private function buildCommands(Bot $bot): array

@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
+use ZipArchive;
 use App\Models\Bot;
 use App\Models\BotMedia;
-use App\Services\CodeGenerator\CodeGeneratorService;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use ZipArchive;
+use App\Services\CodeGenerator\CodeGeneratorService;
 
 /** Сервис экспорта бота в ZIP-архив с готовым проектом. */
 class ExportService
@@ -77,7 +77,7 @@ class ExportService
                 $src = Storage::disk('local')->path("media/{$bot->id}/{$item->filename}");
 
                 if (file_exists($src)) {
-                    copy($src, $mediaDir . '/' . basename($item->filename));
+                    copy($src, $mediaDir.'/'.basename($item->filename));
                 }
             }
         );

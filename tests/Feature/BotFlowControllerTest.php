@@ -3,10 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Bot;
-use App\Models\BotFlow;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\BotFlow;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class BotFlowControllerTest extends TestCase
 {

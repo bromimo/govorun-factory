@@ -159,26 +159,26 @@ test('renderButton type по умолчанию action', function () {
 });
 
 test('controllerSubdir returns plural studly for non-fallback types', function () {
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('command'))->toBe('Commands');
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('phrase'))->toBe('Phrases');
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('pattern'))->toBe('Patterns');
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('action'))->toBe('Actions');
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('event'))->toBe('Events');
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('media'))->toBe('Media');
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('location'))->toBe('Locations');
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('contact'))->toBe('Contacts');
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('referral'))->toBe('Referrals');
+    expect(CodeHelper::controllerSubdir('command'))->toBe('Commands');
+    expect(CodeHelper::controllerSubdir('phrase'))->toBe('Phrases');
+    expect(CodeHelper::controllerSubdir('pattern'))->toBe('Patterns');
+    expect(CodeHelper::controllerSubdir('action'))->toBe('Actions');
+    expect(CodeHelper::controllerSubdir('event'))->toBe('Events');
+    expect(CodeHelper::controllerSubdir('media'))->toBe('Media');
+    expect(CodeHelper::controllerSubdir('location'))->toBe('Locations');
+    expect(CodeHelper::controllerSubdir('contact'))->toBe('Contacts');
+    expect(CodeHelper::controllerSubdir('referral'))->toBe('Referrals');
 });
 
 test('controllerSubdir returns null for fallback', function () {
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerSubdir('fallback'))->toBeNull();
+    expect(CodeHelper::controllerSubdir('fallback'))->toBeNull();
 });
 
 test('controllerNamespace returns subdirectory namespace for non-fallback', function () {
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerNamespace('command'))->toBe('App\\Controllers\\Commands');
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerNamespace('media'))->toBe('App\\Controllers\\Media');
+    expect(CodeHelper::controllerNamespace('command'))->toBe('App\\Controllers\\Commands');
+    expect(CodeHelper::controllerNamespace('media'))->toBe('App\\Controllers\\Media');
 });
 
 test('controllerNamespace returns root namespace for fallback', function () {
-    expect(\App\Services\CodeGenerator\CodeHelper::controllerNamespace('fallback'))->toBe('App\\Controllers');
+    expect(CodeHelper::controllerNamespace('fallback'))->toBe('App\\Controllers');
 });

@@ -767,7 +767,7 @@ test('reply text only generates Message with parseMode HTML', function () {
     $result = (new FlowGenerator)->generate('HtmlFlow', $graph, [], false);
 
     expect($result)->toContain("->parseMode('HTML')");
-    expect($result)->toContain("Message::make(");
+    expect($result)->toContain('Message::make(');
 });
 
 test('ask with text generates ask with parseMode HTML', function () {
@@ -785,7 +785,7 @@ test('ask with text generates ask with parseMode HTML', function () {
 
     $result = (new FlowGenerator)->generate('ItalicAskFlow', $graph, [], false);
 
-    expect($result)->toContain("\$step->ask(");
+    expect($result)->toContain('$step->ask(');
     expect($result)->toContain("->parseMode('HTML')");
 });
 

@@ -15,7 +15,6 @@ class MediaOptimizerService
     private const JPEG_QUALITY = 85;
 
     /** Оптимизировать файл под тип медиа.
-     * @param  UploadedFile  $file
      * @param  string  $type  photo|video|audio|document|animation
      * @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: int|null, height: int|null}
      *
@@ -76,23 +75,22 @@ class MediaOptimizerService
             $image = $scaled;
         }
 
-        $filename = uniqid('media_', true) . '.jpg';
-        $tmpPath = sys_get_temp_dir() . '/' . $filename;
+        $filename = uniqid('media_', true).'.jpg';
+        $tmpPath = sys_get_temp_dir().'/'.$filename;
         imagejpeg($image, $tmpPath, self::JPEG_QUALITY);
         imagedestroy($image);
 
         return [
-            'tmp_path'  => $tmpPath,
-            'filename'  => $filename,
+            'tmp_path' => $tmpPath,
+            'filename' => $filename,
             'mime_type' => 'image/jpeg',
-            'size'      => filesize($tmpPath),
-            'width'     => $newW,
-            'height'    => $newH,
+            'size' => filesize($tmpPath),
+            'width' => $newW,
+            'height' => $newH,
         ];
     }
 
     /** Конвертировать PNG с прозрачностью в трукалорный GdImage с белым фоном.
-     * @return \GdImage|false
      */
     private function pngToTruecolor(string $path): \GdImage|false
     {
@@ -118,7 +116,7 @@ class MediaOptimizerService
      */
     private function optimizeImageWithImagick(UploadedFile $file): array
     {
-        $imagick = new \Imagick($file->getRealPath() . '[0]');
+        $imagick = new \Imagick($file->getRealPath().'[0]');
         $imagick->setImageFormat('jpeg');
         $imagick->setImageCompressionQuality(self::JPEG_QUALITY);
 
@@ -130,18 +128,18 @@ class MediaOptimizerService
             $imagick->resizeImage($newW, $newH, \Imagick::FILTER_LANCZOS, 1);
         }
 
-        $filename = uniqid('media_', true) . '.jpg';
-        $tmpPath = sys_get_temp_dir() . '/' . $filename;
+        $filename = uniqid('media_', true).'.jpg';
+        $tmpPath = sys_get_temp_dir().'/'.$filename;
         $imagick->writeImage($tmpPath);
         $imagick->destroy();
 
         return [
-            'tmp_path'  => $tmpPath,
-            'filename'  => $filename,
+            'tmp_path' => $tmpPath,
+            'filename' => $filename,
             'mime_type' => 'image/jpeg',
-            'size'      => filesize($tmpPath),
-            'width'     => $newW,
-            'height'    => $newH,
+            'size' => filesize($tmpPath),
+            'width' => $newW,
+            'height' => $newH,
         ];
     }
 
@@ -154,8 +152,8 @@ class MediaOptimizerService
         $imagick = $imagick->coalesceImages();
         $imagick->setFormat('gif');
 
-        $filename = uniqid('media_', true) . '.gif';
-        $tmpPath = sys_get_temp_dir() . '/' . $filename;
+        $filename = uniqid('media_', true).'.gif';
+        $tmpPath = sys_get_temp_dir().'/'.$filename;
         $imagick->writeImages($tmpPath, true);
 
         $w = $imagick->getImageWidth();
@@ -163,12 +161,12 @@ class MediaOptimizerService
         $imagick->destroy();
 
         return [
-            'tmp_path'  => $tmpPath,
-            'filename'  => $filename,
+            'tmp_path' => $tmpPath,
+            'filename' => $filename,
             'mime_type' => 'image/gif',
-            'size'      => filesize($tmpPath),
-            'width'     => $w,
-            'height'    => $h,
+            'size' => filesize($tmpPath),
+            'width' => $w,
+            'height' => $h,
         ];
     }
 
@@ -178,17 +176,17 @@ class MediaOptimizerService
     private function passThrough(UploadedFile $file): array
     {
         $ext = $file->getClientOriginalExtension() ?: 'bin';
-        $filename = uniqid('media_', true) . '.' . $ext;
-        $tmpPath = sys_get_temp_dir() . '/' . $filename;
+        $filename = uniqid('media_', true).'.'.$ext;
+        $tmpPath = sys_get_temp_dir().'/'.$filename;
         copy($file->getRealPath(), $tmpPath);
 
         return [
-            'tmp_path'  => $tmpPath,
-            'filename'  => $filename,
+            'tmp_path' => $tmpPath,
+            'filename' => $filename,
             'mime_type' => $file->getMimeType() ?? 'application/octet-stream',
-            'size'      => filesize($tmpPath),
-            'width'     => null,
-            'height'    => null,
+            'size' => filesize($tmpPath),
+            'width' => null,
+            'height' => null,
         ];
     }
 
