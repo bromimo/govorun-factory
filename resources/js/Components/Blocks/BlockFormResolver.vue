@@ -13,6 +13,7 @@ const props = defineProps({
     declaredStateKeys: { type: Array, default: () => [] },
     possiblyDeclaredStateKeys: { type: Array, default: () => [] },
     botValidationMessages: { type: Object, default: () => ({}) },
+    botId: { type: [Number, String], default: null },
 });
 
 const formComponent = computed(() => ({
@@ -22,12 +23,22 @@ const formComponent = computed(() => ({
     condition: ConditionForm,
     api_call: ApiCallForm,
 })[props.type] ?? null);
+
+const extraProps = computed(() => {
+    if (props.type === 'ask') {
+        return { 'bot-validation-messages': props.botValidationMessages };
+    }
+    if (props.type === 'reply') {
+        return { 'bot-id': props.botId };
+    }
+    return {};
+});
 </script>
 
 <template>
     <component v-if="formComponent" :is="formComponent" v-model="model"
         :all-state-keys="allStateKeys" :declared-state-keys="declaredStateKeys"
         :possibly-declared-state-keys="possiblyDeclaredStateKeys"
-        v-bind="type === 'ask' ? { 'bot-validation-messages': botValidationMessages } : {}" />
+        v-bind="extraProps" />
     <p v-else class="text-xs text-gray-400">Нет параметров для этого типа</p>
 </template>

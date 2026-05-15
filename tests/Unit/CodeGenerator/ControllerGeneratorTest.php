@@ -72,7 +72,7 @@ test('reply with media and text generates parseMode HTML', function () {
     $result = (new ControllerGenerator)->generate('MediaHtmlCtrl', $schema, 'App\\Controllers');
 
     expect($result)->toContain("->parseMode('HTML')");
-    expect($result)->toContain("->caption(");
+    expect($result)->toContain('->caption(');
 });
 
 test('reply with media only does not generate parseMode', function () {
@@ -88,6 +88,6 @@ test('reply with media only does not generate parseMode', function () {
 
     $result = (new ControllerGenerator)->generate('PhotoCtrl', $schema, 'App\\Controllers');
 
-    expect($result)->not->toContain("->parseMode(");
-    expect($result)->toContain("Media::photo(");
+    expect($result)->not->toContain('->parseMode(');
+    expect($result)->toContain('Media::photo(');
 });

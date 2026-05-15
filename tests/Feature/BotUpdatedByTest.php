@@ -3,10 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Bot;
-use App\Models\BotRoute;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\BotRoute;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class BotUpdatedByTest extends TestCase
 {

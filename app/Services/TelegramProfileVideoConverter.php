@@ -15,9 +15,9 @@ class TelegramProfileVideoConverter
     ) {}
 
     /** Конвертировать видео в файл, совместимый с Bot API setMyProfilePhoto.
-     * @param string $sourcePath Полный путь к исходному файлу.
-     * @param string $destinationPath Полный путь, куда писать сконвертированный mp4.
-     * @return void
+     * @param  string  $sourcePath  Полный путь к исходному файлу.
+     * @param  string  $destinationPath  Полный путь, куда писать сконвертированный mp4.
+     *
      * @throws \RuntimeException Если ffmpeg недоступен или конвертация провалилась.
      */
     public function convert(string $sourcePath, string $destinationPath): void
@@ -50,7 +50,7 @@ class TelegramProfileVideoConverter
     }
 
     /** Подсказка по типичным причинам сбоя ffmpeg.
-     * @param string $stderr Сырой stderr ffmpeg.
+     * @param  string  $stderr  Сырой stderr ffmpeg.
      * @return string Префикс с подсказкой или пустая строка.
      */
     private function guessHint(string $stderr): string

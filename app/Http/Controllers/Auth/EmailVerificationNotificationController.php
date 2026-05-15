@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /** Контроллер отправки уведомления подтверждения email. */
 class EmailVerificationNotificationController extends Controller

@@ -12,8 +12,6 @@ class TelegramHtml
 
     /** Санитизировать HTML до whitelist Telegram.
      * Возвращает строку без изменений, если она уже валидна.
-     * @param string $html
-     * @return string
      */
     public static function sanitize(string $html): string
     {
@@ -60,15 +58,14 @@ class TelegramHtml
                     return "<span{$filtered}>";
                 }
 
-                return "<{$closing}{$tag}" . self::filterAttrs($tag, $attrs) . '>';
+                return "<{$closing}{$tag}".self::filterAttrs($tag, $attrs).'>';
             },
             $html
         );
     }
 
     /** Экранировать спецсимволы HTML, оставляя плейсхолдеры {{...}} нетронутыми.
-     * @param string $text Исходный plain-text.
-     * @return string
+     * @param  string  $text  Исходный plain-text.
      */
     public static function htmlEscapeKeepPlaceholders(string $text): string
     {
@@ -88,8 +85,8 @@ class TelegramHtml
     }
 
     /** Фильтровать атрибуты тега — оставить только разрешённые.
-     * @param string $tag Имя тега.
-     * @param string $raw Строка атрибутов.
+     * @param  string  $tag  Имя тега.
+     * @param  string  $raw  Строка атрибутов.
      * @return string Строка разрешённых атрибутов с ведущим пробелом или пустая строка.
      */
     private static function filterAttrs(string $tag, string $raw): string
@@ -121,6 +118,6 @@ class TelegramHtml
             $out[] = "class=\"{$m[1]}\"";
         }
 
-        return $out ? ' ' . implode(' ', $out) : '';
+        return $out ? ' '.implode(' ', $out) : '';
     }
 }

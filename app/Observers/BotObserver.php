@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Storage;
 class BotObserver
 {
     /** Выставить updated_by при создании, если ещё не задан.
-     * @return void
      */
     public function creating(Bot $bot): void
     {
@@ -20,7 +19,6 @@ class BotObserver
     }
 
     /** Выставить updated_by на текущего пользователя при любом изменении.
-     * @return void
      */
     public function updating(Bot $bot): void
     {
@@ -30,7 +28,6 @@ class BotObserver
     }
 
     /** Удалить каталог с аватаром бота при удалении модели.
-     * @return void
      */
     public function deleted(Bot $bot): void
     {

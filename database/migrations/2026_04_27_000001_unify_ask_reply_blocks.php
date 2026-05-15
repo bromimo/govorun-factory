@@ -1,13 +1,12 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Migrations\Migration;
 
 /** Миграция данных: legacy-блоки ask_text/ask_keyboard/reply_text/reply_keyboard/reply_media → ask/reply. */
 return new class extends Migration
 {
     /** Применить миграцию.
-     * @return void
      */
     public function up(): void
     {
@@ -16,7 +15,6 @@ return new class extends Migration
     }
 
     /** Откатить миграцию (no-op — данные не восстанавливаются).
-     * @return void
      */
     public function down(): void
     {
@@ -24,7 +22,6 @@ return new class extends Migration
     }
 
     /** Преобразовать графы flow с legacy-нодами в новый формат.
-     * @return void
      */
     private function migrateFlows(): void
     {
@@ -53,7 +50,6 @@ return new class extends Migration
     }
 
     /** Преобразовать handler_schema всех маршрутов с legacy-блоками в новый формат.
-     * @return void
      */
     private function migrateRoutes(): void
     {
@@ -82,7 +78,7 @@ return new class extends Migration
     }
 
     /** Преобразовать одну ноду графа.
-     * @param array<string, mixed> $node Узел.
+     * @param  array<string, mixed>  $node  Узел.
      * @return ?array<string, mixed> Новый узел или null если изменений не требуется.
      */
     private function migrateNode(array $node): ?array
@@ -103,7 +99,7 @@ return new class extends Migration
     }
 
     /** Преобразовать один блок маршрута.
-     * @param array<string, mixed> $block Блок.
+     * @param  array<string, mixed>  $block  Блок.
      * @return ?array<string, mixed> Новый блок или null если изменений не требуется.
      */
     private function migrateBlock(array $block): ?array
@@ -124,7 +120,7 @@ return new class extends Migration
     }
 
     /** Сопоставить старый тип с новым.
-     * @param string $type Старое имя типа.
+     * @param  string  $type  Старое имя типа.
      * @return string Новое имя.
      */
     private function mapType(string $type): string
@@ -137,8 +133,8 @@ return new class extends Migration
     }
 
     /** Преобразовать data/params legacy-блока в новый формат.
-     * @param string $type Старый тип.
-     * @param array<string, mixed> $data Данные блока.
+     * @param  string  $type  Старый тип.
+     * @param  array<string, mixed>  $data  Данные блока.
      * @return ?array<string, mixed> Новые данные или null если тип не legacy.
      */
     private function mapData(string $type, array $data): ?array
@@ -189,7 +185,7 @@ return new class extends Migration
     }
 
     /** Преобразовать поле image (URL или пусто) в media-объект или null.
-     * @param string $url URL картинки.
+     * @param  string  $url  URL картинки.
      * @return ?array<string, string>
      */
     private function imageToMedia(string $url): ?array

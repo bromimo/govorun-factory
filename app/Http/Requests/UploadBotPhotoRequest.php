@@ -8,7 +8,6 @@ use Illuminate\Foundation\Http\FormRequest;
 class UploadBotPhotoRequest extends FormRequest
 {
     /** Проверка авторизации.
-     * @return bool
      */
     public function authorize(): bool
     {

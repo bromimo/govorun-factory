@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Bot;
 use App\Models\BotFlow;
 use App\Models\BotRoute;
-use App\Services\TelegramHtml;
 use App\Services\CodeGenerator\FlowGenerator;
 
 /** Валидатор схемы бота перед экспортом. */
@@ -19,11 +18,9 @@ class SchemaValidator
 
     public function __construct(
         private Bot $bot,
-    ) {
-    }
+    ) {}
 
     /** Валидировать схему бота.
-     * @return ValidationResult
      */
     public function validate(): ValidationResult
     {
@@ -51,9 +48,8 @@ class SchemaValidator
     }
 
     /** Проверить flow.
-     * @param BotFlow $flow Flow для проверки.
-     * @param array<int, string> $errors Список ошибок (по ссылке).
-     * @return void
+     * @param  BotFlow  $flow  Flow для проверки.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
      */
     private function validateFlow(BotFlow $flow, array &$errors): void
     {
@@ -94,9 +90,8 @@ class SchemaValidator
     }
 
     /** Проверить route.
-     * @param BotRoute $route Маршрут для проверки.
-     * @param array<int, string> $errors Список ошибок (по ссылке).
-     * @return void
+     * @param  BotRoute  $route  Маршрут для проверки.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
      */
     private function validateRoute(BotRoute $route, array &$errors): void
     {
@@ -120,10 +115,9 @@ class SchemaValidator
     }
 
     /** Валидировать данные ask-блока.
-     * @param array<string, mixed> $data Данные узла.
-     * @param string $where Контекст для сообщений об ошибках.
-     * @param array<int, string> $errors Список ошибок (по ссылке).
-     * @return void
+     * @param  array<string, mixed>  $data  Данные узла.
+     * @param  string  $where  Контекст для сообщений об ошибках.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
      */
     private function validateAsk(array $data, string $where, array &$errors): void
     {
@@ -161,10 +155,9 @@ class SchemaValidator
     }
 
     /** Валидировать данные reply-блока.
-     * @param array<string, mixed> $data Параметры блока.
-     * @param string $where Контекст для сообщений об ошибках.
-     * @param array<int, string> $errors Список ошибок (по ссылке).
-     * @return void
+     * @param  array<string, mixed>  $data  Параметры блока.
+     * @param  string  $where  Контекст для сообщений об ошибках.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
      */
     private function validateReply(array $data, string $where, array &$errors): void
     {
@@ -183,10 +176,9 @@ class SchemaValidator
     }
 
     /** Валидировать HTML в поле text блока.
-     * @param mixed $text Значение поля text.
-     * @param string $where Контекст для сообщений.
-     * @param array<int, string> $errors Список ошибок (по ссылке).
-     * @return void
+     * @param  mixed  $text  Значение поля text.
+     * @param  string  $where  Контекст для сообщений.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
      */
     private function validateTextHtml(mixed $text, string $where, array &$errors): void
     {
@@ -201,10 +193,9 @@ class SchemaValidator
     }
 
     /** Валидировать структуру media.
-     * @param mixed $media Объект media (ожидается массив с type и url).
-     * @param string $where Контекст для сообщений об ошибках.
-     * @param array<int, string> $errors Список ошибок (по ссылке).
-     * @return void
+     * @param  mixed  $media  Объект media (ожидается массив с type и url).
+     * @param  string  $where  Контекст для сообщений об ошибках.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
      */
     private function validateMedia(mixed $media, string $where, array &$errors): void
     {
@@ -216,18 +207,19 @@ class SchemaValidator
 
         $type = $media['type'] ?? null;
         $url = $media['url'] ?? null;
+        $mediaId = $media['media_id'] ?? null;
 
         if (! in_array($type, self::ALLOWED_MEDIA_TYPES, true)) {
             $errors[] = "{$where}: тип медиа «{$type}» не поддерживается";
         }
 
-        if (empty(trim((string) $url))) {
-            $errors[] = "{$where}: media должен иметь непустой url";
+        if (empty($mediaId) && empty(trim((string) $url))) {
+            $errors[] = "{$where}: media должен иметь непустой url или media_id";
         }
     }
 
     /** Найти дублирующиеся имена ask-шагов.
-     * @param array<int, array<string, mixed>> $nodes Список узлов flow.
+     * @param  array<int, array<string, mixed>>  $nodes  Список узлов flow.
      * @return array<int, string>
      */
     private function findDuplicateStepNames(array $nodes): array

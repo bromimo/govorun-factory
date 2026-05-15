@@ -9,7 +9,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 /** Запустить миграцию экранирования plain-text.
- * @return void
  */
 function runEscapeMigration(): void
 {

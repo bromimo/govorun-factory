@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Enums\HandlerType;
-use App\Enums\RouteType;
 use App\Models\Bot;
+use App\Enums\RouteType;
+use App\Enums\HandlerType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** Фабрика для модели BotRoute. */

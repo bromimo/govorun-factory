@@ -1,13 +1,14 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BotController;
-use App\Http\Controllers\BotFlowController;
-use App\Http\Controllers\BotRouteController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PluginController;
+use App\Http\Controllers\BotFlowController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BotMediaController;
+use App\Http\Controllers\BotRouteController;
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [BotController::class, 'index'])->name('dashboard');
@@ -23,6 +24,11 @@ Route::middleware('auth')->group(function () {
             ->name('bots.profile-photo.show');
         Route::delete('{bot}/profile-photo', [BotController::class, 'deleteProfilePhoto'])
             ->name('bots.profile-photo.delete');
+
+        Route::get('{bot}/media', [BotMediaController::class, 'index'])->name('bots.media.index');
+        Route::post('{bot}/media', [BotMediaController::class, 'store'])->name('bots.media.store');
+        Route::get('{bot}/media/{media}/file', [BotMediaController::class, 'file'])->name('bots.media.file');
+        Route::delete('{bot}/media/{media}', [BotMediaController::class, 'destroy'])->name('bots.media.destroy');
 
         Route::prefix('{bot}/routes')->group(function () {
             Route::post('', [BotRouteController::class, 'store'])->name('bot-routes.store');

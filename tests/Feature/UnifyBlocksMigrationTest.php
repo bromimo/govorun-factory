@@ -3,13 +3,11 @@
 use App\Models\Bot;
 use App\Models\BotFlow;
 use App\Models\BotRoute;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
 /** Запустить миграцию по конкретному пути (идемпотентно).
- * @return void
  */
 function runUnifyBlocksMigration(): void
 {

@@ -2,11 +2,11 @@
 
 namespace Database\Factories;
 
-use App\Enums\UserRole;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
+use App\Enums\UserRole;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<User> */
 class UserFactory extends Factory

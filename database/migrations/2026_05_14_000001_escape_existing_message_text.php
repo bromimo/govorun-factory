@@ -8,7 +8,6 @@ use Illuminate\Database\Migrations\Migration;
 return new class extends Migration
 {
     /** Применить миграцию.
-     * @return void
      */
     public function up(): void
     {
@@ -25,7 +24,6 @@ return new class extends Migration
     }
 
     /** Откатить миграцию (no-op).
-     * @return void
      */
     public function down(): void
     {
@@ -33,8 +31,7 @@ return new class extends Migration
     }
 
     /** Экранировать текст в нодах flow.
-     * @param array<int, int> $botIds
-     * @return void
+     * @param  array<int, int>  $botIds
      */
     private function migrateFlows(array $botIds): void
     {
@@ -72,8 +69,7 @@ return new class extends Migration
     }
 
     /** Экранировать текст в блоках route handler_schema.
-     * @param array<int, int> $botIds
-     * @return void
+     * @param  array<int, int>  $botIds
      */
     private function migrateRoutes(array $botIds): void
     {

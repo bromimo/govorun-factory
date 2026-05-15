@@ -269,7 +269,7 @@ function submit() {
 
                     <div v-if="form.handler_type === 'controller'">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Блоки</label>
-                        <BlockList v-model="form.handler_schema.blocks" />
+                        <BlockList v-model="form.handler_schema.blocks" :bot-id="botId" />
                     </div>
                 </template>
 
