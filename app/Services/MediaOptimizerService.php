@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Http\UploadedFile;
 use InvalidArgumentException;
+use Illuminate\Http\UploadedFile;
 
 /** Оптимизирует медиафайлы для Telegram перед сохранением. */
 class MediaOptimizerService
@@ -15,7 +15,6 @@ class MediaOptimizerService
     private const JPEG_QUALITY = 85;
 
     /** Оптимизировать файл под тип медиа.
-     *
      * @param  UploadedFile  $file
      * @param  string  $type  photo|video|audio|document|animation
      * @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: int|null, height: int|null}
@@ -39,7 +38,9 @@ class MediaOptimizerService
         return $this->passThrough($file);
     }
 
-    /** @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: int, height: int} */
+    /** Оптимизировать изображение через GD и сохранить как JPEG.
+     * @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: int, height: int}
+     */
     private function optimizePhoto(UploadedFile $file): array
     {
         $mime = $file->getMimeType() ?? '';
@@ -90,6 +91,9 @@ class MediaOptimizerService
         ];
     }
 
+    /** Конвертировать PNG с прозрачностью в трукалорный GdImage с белым фоном.
+     * @return \GdImage|false
+     */
     private function pngToTruecolor(string $path): \GdImage|false
     {
         $src = imagecreatefrompng($path);
@@ -109,7 +113,9 @@ class MediaOptimizerService
         return $dst;
     }
 
-    /** @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: int, height: int} */
+    /** Конвертировать изображение в JPEG через Imagick (используется для HEIC/HEIF).
+     * @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: int, height: int}
+     */
     private function optimizeImageWithImagick(UploadedFile $file): array
     {
         $imagick = new \Imagick($file->getRealPath() . '[0]');
@@ -139,7 +145,9 @@ class MediaOptimizerService
         ];
     }
 
-    /** @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: int, height: int} */
+    /** Конвертировать анимацию в GIF через Imagick.
+     * @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: int, height: int}
+     */
     private function optimizeAnimationImagick(UploadedFile $file): array
     {
         $imagick = new \Imagick($file->getRealPath());
@@ -164,7 +172,9 @@ class MediaOptimizerService
         ];
     }
 
-    /** @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: null, height: null} */
+    /** Скопировать файл без обработки (для video/audio/document).
+     * @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: null, height: null}
+     */
     private function passThrough(UploadedFile $file): array
     {
         $ext = $file->getClientOriginalExtension() ?: 'bin';
@@ -182,7 +192,9 @@ class MediaOptimizerService
         ];
     }
 
-    /** @return array{int, int} */
+    /** Вычислить новые размеры с сохранением пропорций, не превышая MAX_DIM.
+     * @return array{int, int}
+     */
     private function scaledDimensions(int $w, int $h): array
     {
         if ($w <= self::MAX_DIM && $h <= self::MAX_DIM) {
