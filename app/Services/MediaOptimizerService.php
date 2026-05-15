@@ -44,6 +44,15 @@ class MediaOptimizerService
     {
         $mime = $file->getMimeType() ?? '';
 
+        // HEIC/HEIF поддерживается только через Imagick
+        if (str_contains($mime, 'heic') || str_contains($mime, 'heif')) {
+            if (! extension_loaded('imagick')) {
+                throw new InvalidArgumentException('HEIC/HEIF формат требует расширение Imagick.');
+            }
+
+            return $this->optimizeImageWithImagick($file);
+        }
+
         $image = match (true) {
             str_contains($mime, 'jpeg') || str_contains($mime, 'jpg') => imagecreatefromjpeg($file->getRealPath()),
             str_contains($mime, 'png') => $this->pngToTruecolor($file->getRealPath()),
@@ -98,6 +107,36 @@ class MediaOptimizerService
         imagedestroy($src);
 
         return $dst;
+    }
+
+    /** @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: int, height: int} */
+    private function optimizeImageWithImagick(UploadedFile $file): array
+    {
+        $imagick = new \Imagick($file->getRealPath() . '[0]');
+        $imagick->setImageFormat('jpeg');
+        $imagick->setImageCompressionQuality(self::JPEG_QUALITY);
+
+        $origW = $imagick->getImageWidth();
+        $origH = $imagick->getImageHeight();
+        [$newW, $newH] = $this->scaledDimensions($origW, $origH);
+
+        if ($newW !== $origW || $newH !== $origH) {
+            $imagick->resizeImage($newW, $newH, \Imagick::FILTER_LANCZOS, 1);
+        }
+
+        $filename = uniqid('media_', true) . '.jpg';
+        $tmpPath = sys_get_temp_dir() . '/' . $filename;
+        $imagick->writeImage($tmpPath);
+        $imagick->destroy();
+
+        return [
+            'tmp_path'  => $tmpPath,
+            'filename'  => $filename,
+            'mime_type' => 'image/jpeg',
+            'size'      => filesize($tmpPath),
+            'width'     => $newW,
+            'height'    => $newH,
+        ];
     }
 
     /** @return array{tmp_path: string, filename: string, mime_type: string, size: int, width: int, height: int} */
