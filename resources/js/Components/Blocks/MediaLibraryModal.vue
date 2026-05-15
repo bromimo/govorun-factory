@@ -26,6 +26,33 @@ const filters = [
     { key: 'document', label: 'Документ' },
 ];
 
+const extColors = {
+    jpg:  'bg-amber-500',
+    jpeg: 'bg-amber-500',
+    png:  'bg-sky-500',
+    webp: 'bg-cyan-500',
+    heic: 'bg-violet-500',
+    heif: 'bg-violet-500',
+    tiff: 'bg-teal-500',
+    tif:  'bg-teal-500',
+    gif:  'bg-green-500',
+    mp4:  'bg-blue-600',
+    mov:  'bg-blue-600',
+    avi:  'bg-blue-700',
+    mkv:  'bg-blue-700',
+    webm: 'bg-indigo-500',
+    mp3:  'bg-rose-500',
+    ogg:  'bg-rose-500',
+    wav:  'bg-rose-600',
+    m4a:  'bg-rose-500',
+    pdf:  'bg-red-500',
+};
+
+function extColor(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    return extColors[ext] ?? 'bg-gray-400';
+}
+
 const typeIcons = {
     photo: '🖼',
     video: '🎬',
@@ -105,7 +132,7 @@ async function upload(e) {
 
 <template>
     <Modal :show="show" max-width="screen" @close="emit('close')">
-        <div class="flex max-h-[90vh] flex-col">
+        <div class="flex h-[90vh] flex-col">
             <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
                 <h3 class="text-lg font-medium text-gray-900">Медиатека</h3>
                 <button type="button" @click="emit('close')"
@@ -132,7 +159,7 @@ async function upload(e) {
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-4">
+            <div class="flex-1 overflow-y-auto p-3">
                 <div v-if="loading"
                     class="flex h-48 items-center justify-center text-sm text-gray-400">
                     Загрузка…
@@ -141,23 +168,30 @@ async function upload(e) {
                     class="flex h-48 items-center justify-center text-sm text-gray-400">
                     Нет файлов
                 </div>
-                <div v-else class="grid grid-cols-5 gap-2 sm:grid-cols-6">
+                <div v-else class="grid grid-cols-5 gap-2 sm:grid-cols-7 lg:grid-cols-9">
                     <button v-for="item in filtered" :key="item.id" type="button"
                         @click="tempSelected = item"
                         @dblclick="() => { tempSelected = item; confirm(); }"
-                        :class="['flex flex-col items-center overflow-hidden rounded-lg border-2 p-1 transition',
+                        :class="['flex flex-col overflow-hidden rounded border-2 transition',
                             tempSelected?.id === item.id
-                                ? 'border-indigo-600 bg-indigo-50'
-                                : 'border-transparent bg-gray-50 hover:border-gray-300']">
-                        <div class="flex h-20 w-full items-center justify-center overflow-hidden rounded bg-gray-100">
+                                ? 'border-indigo-500'
+                                : 'border-transparent bg-white hover:border-gray-300']">
+                        <div class="flex justify-end bg-gray-50 px-1 py-0.5">
+                            <span :class="['rounded px-1 py-px text-[9px] font-bold uppercase leading-none text-white', extColor(item.original_name)]">
+                                {{ item.original_name.split('.').pop() }}
+                            </span>
+                        </div>
+                        <div class="aspect-square w-full overflow-hidden bg-gray-100">
                             <img v-if="item.type === 'photo' || item.type === 'animation'"
                                 :src="item.file_url" :alt="item.original_name"
-                                class="h-full w-full object-cover" />
-                            <span v-else class="text-3xl">{{ typeIcons[item.type] }}</span>
+                                class="h-full w-full object-contain" />
+                            <div v-else class="flex h-full w-full items-center justify-center">
+                                <span class="text-4xl">{{ typeIcons[item.type] }}</span>
+                            </div>
                         </div>
-                        <p class="mt-1 w-full truncate text-center text-[10px] text-gray-600"
+                        <p class="truncate bg-gray-50 px-1.5 py-1 text-center text-[10px] text-gray-600"
                             :title="item.original_name">
-                            {{ item.original_name }}
+                            {{ item.original_name.replace(/\.[^.]+$/, '') }}
                         </p>
                     </button>
                 </div>
