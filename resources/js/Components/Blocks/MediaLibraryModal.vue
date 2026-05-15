@@ -104,8 +104,8 @@ async function upload(e) {
 </script>
 
 <template>
-    <Modal :show="show" max-width="3xl" @close="emit('close')">
-        <div class="flex max-h-[80vh] flex-col">
+    <Modal :show="show" max-width="screen" @close="emit('close')">
+        <div class="flex max-h-[90vh] flex-col">
             <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
                 <h3 class="text-lg font-medium text-gray-900">Медиатека</h3>
                 <button type="button" @click="emit('close')"
