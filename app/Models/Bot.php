@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\BotMedia;
 use App\Observers\BotObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
