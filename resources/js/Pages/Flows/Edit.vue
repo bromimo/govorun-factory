@@ -164,6 +164,7 @@ function autoLayout() {
                     :declared-state-keys="declaredStateKeys"
                     :possibly-declared-state-keys="possiblyDeclaredStateKeys"
                     :bot-validation-messages="botValidationMessages"
+                    :bot-id="bot.id"
                     class="flex-1 min-w-0"
                     @update="onNodeDataUpdated"
                     @rename="onNodeRenamed"

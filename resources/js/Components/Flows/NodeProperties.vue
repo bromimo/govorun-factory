@@ -11,6 +11,7 @@ const props = defineProps({
     declaredStateKeys: { type: Array, default: () => [] },
     possiblyDeclaredStateKeys: { type: Array, default: () => [] },
     botValidationMessages: { type: Object, default: () => ({}) },
+    botId: { type: [Number, String], default: null },
 });
 
 const emit = defineEmits(['update', 'rename', 'close']);
@@ -77,7 +78,7 @@ function validateAndRenameId() {
         </div>
 
         <div v-if="canUpdate">
-            <BlockFormResolver :type="node.type" v-model="localData" :all-state-keys="allStateKeys" :declared-state-keys="declaredStateKeys" :possibly-declared-state-keys="possiblyDeclaredStateKeys" :bot-validation-messages="botValidationMessages" />
+            <BlockFormResolver :type="node.type" v-model="localData" :all-state-keys="allStateKeys" :declared-state-keys="declaredStateKeys" :possibly-declared-state-keys="possiblyDeclaredStateKeys" :bot-validation-messages="botValidationMessages" :bot-id="botId" />
         </div>
         <div v-else class="text-xs text-gray-500">
             <pre class="whitespace-pre-wrap">{{ JSON.stringify(node.data, null, 2) }}</pre>

@@ -13,6 +13,7 @@ const props = defineProps({
     allStateKeys: { type: Array, default: () => [] },
     declaredStateKeys: { type: Array, default: () => [] },
     possiblyDeclaredStateKeys: { type: Array, default: () => [] },
+    botId: { type: [Number, String], default: null },
 });
 
 const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useStateWarnings(
@@ -63,7 +64,7 @@ function addKeyboard() {
             <VarsHint />
         </div>
 
-        <MediaPicker v-if="media" v-model="media" />
+        <MediaPicker v-if="media" v-model="media" :bot-id="props.botId" />
         <button v-else type="button" @click="addMedia"
             class="text-xs text-indigo-600 hover:text-indigo-800">
             + Добавить медиа

@@ -3,6 +3,9 @@ import { controllerBlockTypes, defaultBlockParams, colorClasses } from '../Block
 import BlockFormResolver from '../Blocks/BlockFormResolver.vue';
 
 const model = defineModel({ type: Array, default: () => [] });
+const props = defineProps({
+    botId: { type: [Number, String], default: null },
+});
 
 function addBlock(type) {
     model.value = [...model.value, { type, params: { ...defaultBlockParams[type] } }];
@@ -36,7 +39,7 @@ function moveBlock(index, direction) {
                     <button type="button" @click="removeBlock(i)" class="text-red-400 hover:text-red-600 text-xs ml-2">x</button>
                 </div>
             </div>
-            <BlockFormResolver :type="block.type" v-model="block.params" />
+            <BlockFormResolver :type="block.type" v-model="block.params" :bot-id="props.botId" />
         </div>
 
         <div class="flex flex-wrap gap-2 pt-2">
