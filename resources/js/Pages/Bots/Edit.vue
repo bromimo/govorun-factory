@@ -8,6 +8,7 @@ import MessengerConfigForm from '@/Components/Bots/MessengerConfigForm.vue';
 import RouteList from '@/Components/Routes/RouteList.vue';
 import FlowList from '@/Components/Flows/FlowList.vue';
 import ValidationMessagesForm from '@/Components/Bots/ValidationMessagesForm.vue';
+import MediaLibrary from '@/Components/Bots/MediaLibrary.vue';
 
 const props = defineProps({
     bot: Object,
@@ -20,6 +21,7 @@ const tabs = [
     { key: 'flows', label: 'Flow-диалоги' },
     { key: 'validation', label: 'Валидация' },
     { key: 'messengers', label: 'Мессенджеры' },
+    { key: 'media', label: 'Медиатека' },
 ];
 
 const activeTab = ref('settings');
@@ -115,6 +117,8 @@ function deleteBot() {
                         <ValidationMessagesForm v-else-if="activeTab === 'validation'" :bot="bot" :can="can" />
 
                         <MessengerConfigForm v-else-if="activeTab === 'messengers'" :bot="bot" :can="can" />
+
+                        <MediaLibrary v-else-if="activeTab === 'media'" :bot="bot" />
                     </div>
                 </div>
             </div>
