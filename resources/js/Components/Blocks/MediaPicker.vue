@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import axios from 'axios';
+import MediaLibraryModal from '@/Components/Blocks/MediaLibraryModal.vue';
 
 const model = defineModel({ type: Object, default: null });
 const props = defineProps({
@@ -8,10 +9,10 @@ const props = defineProps({
 });
 
 const activeTab = ref('url');
-const libraryItems = ref([]);
-const libraryLoading = ref(false);
+const modalOpen = ref(false);
 const uploading = ref(false);
 const fileInputRef = ref(null);
+const selectedItem = ref(null);
 
 const typeIcons = {
     photo: '🖼',
@@ -21,14 +22,30 @@ const typeIcons = {
     animation: '🎞',
 };
 
+watch(
+    () => model.value?.media_id,
+    (id) => {
+        if (!id) {
+            selectedItem.value = null;
+        }
+    },
+);
+
 function setType(value) {
     model.value = { ...(model.value ?? { url: '' }), type: value };
     delete model.value.media_id;
+    selectedItem.value = null;
 }
 
 function setUrl(value) {
     model.value = { ...(model.value ?? { type: 'photo' }), url: value };
     delete model.value.media_id;
+    selectedItem.value = null;
+}
+
+function onSelect(item) {
+    model.value = { type: item.type, media_id: item.id };
+    selectedItem.value = item;
 }
 
 const previewUrl = computed(() => {
@@ -41,25 +58,6 @@ const previewUrl = computed(() => {
     return null;
 });
 
-async function loadLibrary() {
-    if (!props.botId || libraryItems.value.length) return;
-    libraryLoading.value = true;
-    try {
-        const res = await axios.get(route('bots.media.index', props.botId));
-        libraryItems.value = res.data;
-    } finally {
-        libraryLoading.value = false;
-    }
-}
-
-watch(activeTab, (val) => {
-    if (val === 'library') loadLibrary();
-});
-
-function selectFromLibrary(item) {
-    model.value = { type: item.type, media_id: item.id };
-}
-
 function detectType(file) {
     const mime = file.type;
     if (mime === 'image/gif') return 'animation';
@@ -69,17 +67,18 @@ function detectType(file) {
     return 'document';
 }
 
-async function uploadToLibrary(e) {
+async function uploadDirect(e) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+        return;
+    }
     const form = new FormData();
     form.append('file', file);
     form.append('type', detectType(file));
     uploading.value = true;
     try {
         const res = await axios.post(route('bots.media.store', props.botId), form);
-        libraryItems.value.unshift(res.data);
-        selectFromLibrary(res.data);
+        onSelect(res.data);
     } catch (err) {
         alert(err.response?.data?.message ?? 'Ошибка загрузки');
     } finally {
@@ -90,6 +89,7 @@ async function uploadToLibrary(e) {
 
 function clear() {
     model.value = null;
+    selectedItem.value = null;
 }
 </script>
 
@@ -102,7 +102,6 @@ function clear() {
             </button>
         </div>
 
-        <!-- Tabs — only shown when botId is available -->
         <div v-if="botId" class="inline-flex rounded-md border border-gray-300 bg-white p-0.5 text-xs">
             <button type="button" @click="activeTab = 'url'"
                 :class="['rounded px-3 py-1', activeTab === 'url' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50']">
@@ -114,7 +113,6 @@ function clear() {
             </button>
         </div>
 
-        <!-- URL mode -->
         <template v-if="!botId || activeTab === 'url'">
             <div>
                 <label class="block text-[10px] text-gray-400">Тип</label>
@@ -135,37 +133,39 @@ function clear() {
             </div>
         </template>
 
-        <!-- Library mode -->
         <template v-else>
-            <div v-if="libraryLoading" class="py-4 text-center text-xs text-gray-400">Загрузка…</div>
+            <div v-if="model.media_id"
+                class="flex items-center gap-2 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2">
+                <span class="text-base">{{ typeIcons[model.type] ?? '📎' }}</span>
+                <span class="flex-1 truncate text-xs text-indigo-700">
+                    {{ selectedItem?.original_name ?? 'Файл из библиотеки' }}
+                </span>
+                <button type="button" @click="modalOpen = true"
+                    class="shrink-0 text-xs text-indigo-500 hover:text-indigo-700">
+                    Изменить
+                </button>
+            </div>
+
             <div v-else class="space-y-1.5">
-                <div class="grid max-h-48 grid-cols-4 gap-1 overflow-y-auto">
-                    <div v-for="item in libraryItems" :key="item.id"
-                        @click="selectFromLibrary(item)"
-                        :class="['flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded border-2 bg-gray-50',
-                            model.media_id === item.id ? 'border-indigo-600' : 'border-transparent hover:border-gray-300']">
-                        <img v-if="item.type === 'photo' || item.type === 'animation'"
-                            :src="item.file_url" :alt="item.original_name"
-                            class="h-full w-full object-cover" />
-                        <span v-else class="text-xl">{{ typeIcons[item.type] }}</span>
-                    </div>
-                    <div v-if="!libraryItems.length" class="col-span-4 py-4 text-center text-xs text-gray-400">
-                        Нет файлов
-                    </div>
-                </div>
+                <button type="button" @click="modalOpen = true"
+                    class="w-full rounded-md border border-dashed border-indigo-300 py-2.5 text-xs text-indigo-600 hover:bg-indigo-50">
+                    Выбрать из библиотеки
+                </button>
                 <div>
-                    <input ref="fileInputRef" type="file" class="hidden" @change="uploadToLibrary" />
+                    <input ref="fileInputRef" type="file" class="hidden" @change="uploadDirect" />
                     <button type="button" @click="fileInputRef.click()" :disabled="uploading"
-                        class="text-xs text-indigo-600 hover:text-indigo-800 disabled:opacity-50">
-                        {{ uploading ? 'Загрузка…' : '+ Загрузить новый' }}
+                        class="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50">
+                        {{ uploading ? 'Загрузка…' : '+ Загрузить новый файл' }}
                     </button>
                 </div>
             </div>
         </template>
 
-        <!-- Preview -->
         <div v-if="previewUrl" class="pt-1">
             <img :src="previewUrl" class="max-h-32 w-full rounded object-cover" />
         </div>
     </div>
+
+    <MediaLibraryModal v-if="botId" :show="modalOpen" :bot-id="botId"
+        @close="modalOpen = false" @select="onSelect" />
 </template>
