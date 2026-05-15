@@ -19,13 +19,13 @@ class BotMediaFactory extends Factory
     {
         return [
             'bot_id'        => Bot::factory(),
-            'type'          => 'photo',
-            'original_name' => 'image.jpg',
-            'filename'      => uniqid('media_') . '.jpg',
+            'type'          => fake()->randomElement(['photo', 'video', 'audio', 'document', 'animation']),
+            'original_name' => fake()->word() . '.jpg',
+            'filename'      => fake()->unique()->uuid() . '.jpg',
             'mime_type'     => 'image/jpeg',
-            'size'          => 102400,
-            'width'         => 1280,
-            'height'        => 720,
+            'size'          => fake()->numberBetween(1024, 10485760),
+            'width'         => fake()->numberBetween(100, 5000),
+            'height'        => fake()->numberBetween(100, 5000),
         ];
     }
 }

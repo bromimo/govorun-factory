@@ -71,8 +71,7 @@ class Bot extends Model
         return $this->hasMany(BotFlow::class);
     }
 
-    /** Медиафайлы бота.
-     */
+    /** Медиафайлы бота. */
     public function media(): HasMany
     {
         return $this->hasMany(BotMedia::class);

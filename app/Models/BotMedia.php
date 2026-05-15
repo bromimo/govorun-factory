@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** Медиафайл из библиотеки бота.
  *
@@ -33,8 +33,10 @@ class BotMedia extends Model
         'height',
     ];
 
+    /** Бот, которому принадлежит медиафайл. */
     public function bot(): BelongsTo
     {
         return $this->belongsTo(Bot::class);
     }
+
 }
