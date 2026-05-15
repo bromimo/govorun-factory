@@ -519,17 +519,6 @@ class FlowGenerator
         return "        \$step->ask(\n{$expression}        );\n";
     }
 
-    /** Отрендерить тело Keyboard::make()->buttons([…]) с отступом $pad
-     * для открывающей строки, $pad+4 для строки-ряда, $pad+8 для строки-кнопки.
-     * @param array<int, array<int, array<string, mixed>>> $rows Ряды кнопок.
-     * @param string $pad Базовый отступ.
-     * @return string
-     */
-    private function renderKeyboardBody(array $rows, string $pad): string
-    {
-        return KeyboardCodeBuilder::render($rows, $pad);
-    }
-
     /** Отрендерить action-блок с указанным уровнем отступа. */
     private function renderActionBlock(string $type, array $data, int $indent): string
     {
@@ -591,7 +580,7 @@ class FlowGenerator
         }
 
         if (! empty($keyboard) && ! empty($keyboard['buttons'] ?? [])) {
-            $kbBody = $this->renderKeyboardBody($keyboard['buttons'], $inner.'        ');
+            $kbBody = KeyboardCodeBuilder::renderKeyboard($keyboard, $inner.'        ');
             $expression .= "\n{$inner}    ->keyboard(\n{$inner}        {$kbBody}\n{$inner}    )";
         }
 
