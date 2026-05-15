@@ -41,12 +41,13 @@ class CodeGeneratorService
         $bot->load(['routes.flow', 'flows', 'media']);
 
         $this->buildFlowClassNames($bot);
+        $mediaMap = $this->buildMediaMap($bot);
         $this->copySkeletonTo($outputPath);
         $this->generateConfigs($bot, $outputPath);
         $this->generateBotProfile($bot, $outputPath);
         $this->generateRoutes($bot, $outputPath);
-        $this->generateControllers($bot, $outputPath);
-        $this->generateFlows($bot, $outputPath);
+        $this->generateControllers($bot, $outputPath, $mediaMap);
+        $this->generateFlows($bot, $outputPath, $mediaMap);
         $this->generateComposer($bot, $outputPath);
     }
 
@@ -117,11 +118,10 @@ class CodeGeneratorService
 
     /** Сгенерировать контроллеры.
      */
-    private function generateControllers(Bot $bot, string $outputPath): void
+    private function generateControllers(Bot $bot, string $outputPath, array $mediaMap = []): void
     {
         File::ensureDirectoryExists("{$outputPath}/app/Controllers");
 
-        $mediaMap = $this->buildMediaMap($bot);
         $topRoutes = $bot->routes()->whereNull('parent_id')->orderBy('sort_order')->with('children')->get();
 
         foreach ($topRoutes as $route) {
@@ -194,12 +194,11 @@ class CodeGeneratorService
 
     /** Сгенерировать Flow-классы.
      */
-    private function generateFlows(Bot $bot, string $outputPath): void
+    private function generateFlows(Bot $bot, string $outputPath, array $mediaMap = []): void
     {
         File::ensureDirectoryExists("{$outputPath}/app/Flows");
 
         $validationMessages = $bot->config['validation_messages'] ?? [];
-        $mediaMap = $this->buildMediaMap($bot);
 
         foreach ($bot->flows as $flow) {
             $className = $this->flowClassNames[$flow->id];
@@ -217,6 +216,7 @@ class CodeGeneratorService
 
     /** Построить маппинг media_id → filename для всех медиафайлов бота.
      *
+     * @param  Bot  $bot
      * @return array<int, string>
      */
     private function buildMediaMap(Bot $bot): array

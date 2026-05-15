@@ -77,7 +77,7 @@ class ExportService
                 $src = Storage::disk('local')->path("media/{$bot->id}/{$item->filename}");
 
                 if (file_exists($src)) {
-                    copy($src, "{$mediaDir}/{$item->filename}");
+                    copy($src, $mediaDir . '/' . basename($item->filename));
                 }
             }
         );
