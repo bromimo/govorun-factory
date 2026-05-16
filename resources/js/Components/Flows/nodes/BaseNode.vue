@@ -36,5 +36,6 @@ const colors = colorClasses[props.color] ?? colorClasses.gray;
         </div>
 
         <Handle v-if="hasOutput" type="source" :position="Position.Bottom" />
+        <slot v-else name="output-handles" />
     </div>
 </template>
