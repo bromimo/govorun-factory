@@ -75,4 +75,10 @@ class Bot extends Model
     {
         return $this->hasMany(BotMedia::class);
     }
+
+    /** Подключения бота к внешним API. */
+    public function connections(): HasMany
+    {
+        return $this->hasMany(BotConnection::class);
+    }
 }
