@@ -234,7 +234,6 @@ class SchemaValidator
     }
 
     /** Проверить api_call-узел.
-     *
      * @param  array<string, mixed>  $node  Узел графа.
      * @param  array<int, array<string, mixed>>  $edges  Все рёбра flow.
      * @param  string  $where  Описание места ошибки.

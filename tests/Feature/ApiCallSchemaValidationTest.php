@@ -63,7 +63,7 @@ it('запрещает дубликаты state_key в response_mapping', functi
 
     $errors = (new SchemaValidator($this->bot))->validate()->errors;
 
-    expect(collect($errors)->some(fn ($e) => str_contains($e, 'x')))->toBeTrue();
+    expect(collect($errors)->some(fn ($e) => str_contains($e, 'дублируется')))->toBeTrue();
 });
 
 it('требует on_error edge при on_error=branch', function () {
