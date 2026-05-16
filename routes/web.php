@@ -9,6 +9,7 @@ use App\Http\Controllers\BotFlowController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BotMediaController;
 use App\Http\Controllers\BotRouteController;
+use App\Http\Controllers\BotConnectionController;
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [BotController::class, 'index'])->name('dashboard');
@@ -44,6 +45,13 @@ Route::middleware('auth')->group(function () {
             Route::get('{flow}', [BotFlowController::class, 'show'])->name('bot-flows.show');
             Route::put('{flow}', [BotFlowController::class, 'update'])->name('bot-flows.update');
             Route::delete('{flow}', [BotFlowController::class, 'destroy'])->name('bot-flows.destroy');
+        });
+
+        Route::prefix('{bot}/connections')->group(function () {
+            Route::get('', [BotConnectionController::class, 'index'])->name('bot-connections.index');
+            Route::post('', [BotConnectionController::class, 'store'])->name('bot-connections.store');
+            Route::put('{connection}', [BotConnectionController::class, 'update'])->name('bot-connections.update');
+            Route::delete('{connection}', [BotConnectionController::class, 'destroy'])->name('bot-connections.destroy');
         });
     });
 
