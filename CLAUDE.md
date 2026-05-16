@@ -51,6 +51,7 @@ Schema-first visual bot builder: **Vue UI → JSON Schema (DB) → PHP Code Gene
    - `FlowGenerator` → `app/Flows/*.php` (step-based, см. ниже)
    - `BotProfileGenerator` → `config/bot_profile.php` + бинарь аватара (только если включён Telegram)
    - `ComposerGenerator` → `composer.json`
+   - `ConnectionGenerator` → `config/connections.php` + дополняет `.env.example` переменными `CONN_<SLUG>_*`
 
 `KeyboardCodeBuilder` — статический сериализатор inline/reply-клавиатуры из схемы в PHP-код `Govorun\Messaging\Keyboard`; используется `Controller`- и `Flow`-генераторами.
 
@@ -63,6 +64,8 @@ ZIP-экспорт делает `ExportService`; артефакты попада
 Lifecycle-методы: `onComplete()`, `onCancel()`. См. `docs/plan-flow-generator-step-based.md`.
 Локальные репозитории фреймворка — `C:\domains\govorun-framework` и `govorun-skeleton`.
 
+`api_call`-нода генерирует `$this->http()->connection('<slug>')-><method>(...)` с маппингом ответа через `data_get()` и тремя вариантами `on_error`: `stop_flow` → `$this->cancel()`, `continue` → запись в `state.api_error`, `branch` → `$this->goTo()` по ребру с `sourceHandle=on_error`. Зависит от трейта `MakesHttpCalls` в `govorun/framework` (реализован отдельно).
+
 ### Runtime Services (не генератор)
 
 - `TelegramHtml` — санитизация HTML до whitelist Telegram (`<b>`, `<i>`, `<a>`, `<span class="tg-spoiler">` и т.д.). Применяется при сохранении текстов reply/ask-нод.
@@ -71,7 +74,7 @@ Lifecycle-методы: `onComplete()`, `onCancel()`. См. `docs/plan-flow-gene
 
 ### Data Model
 
-`User` (admin/editor/viewer) → `Bot` (config, messenger_config as JSON) → `BotRoute` (entry points with type/match/handler) + `BotFlow` (dialog graphs stored as JSON with nodes/edges) + `BotMedia` (библиотека загруженных файлов: photo/video/audio/document/animation, хранение в `bots/{bot_id}/media/`). `Plugin` — extensible block types.
+`User` (admin/editor/viewer) → `Bot` (config, messenger_config as JSON) → `BotRoute` (entry points with type/match/handler) + `BotFlow` (dialog graphs stored as JSON with nodes/edges) + `BotMedia` (библиотека загруженных файлов: photo/video/audio/document/animation, хранение в `bots/{bot_id}/media/`) + `BotConnection` (переиспользуемые HTTP-подключения: slug, base_url, auth_type, auth_config encrypted:array). `Plugin` — extensible block types.
 
 Observers регистрируются атрибутом `#[ObservedBy(...)]` на модели (`Bot`, `BotRoute`, `BotFlow`), не через `Model::observe()` в провайдере.
 
@@ -81,7 +84,7 @@ Role-based via `UserRole` enum + `BotPolicy`. Admin: full access. Editor: own bo
 
 ### Route Structure
 
-All routes in `routes/web.php` under `auth` middleware, grouped by prefix: `bots/`, `bots/{bot}/routes/`, `bots/{bot}/flows/`, `bots/{bot}/media/`, `bots/{bot}/profile-photo/`, `bots/{bot}/export`, `profile/`, `users/` (admin-only), `plugins/` (admin-only).
+All routes in `routes/web.php` under `auth` middleware, grouped by prefix: `bots/`, `bots/{bot}/routes/`, `bots/{bot}/flows/`, `bots/{bot}/media/`, `bots/{bot}/profile-photo/`, `bots/{bot}/connections/` (index/store/update/destroy + POST `{connection}/test` throttle:30,1), `bots/{bot}/export`, `profile/`, `users/` (admin-only), `plugins/` (admin-only).
 Роуты пробрасываются во фронт через Ziggy (`tightenco/ziggy`).
 
 ### Frontend
@@ -91,6 +94,8 @@ Inertia.js SFC pages in `resources/js/Pages/` (точки входа: `Bots/Edit
 - `Routes/` — route list, editor drawer, block list
 - `Flows/` — Vue Flow canvas, node palette, properties panels, custom nodes in `nodes/`. Drag-and-drop из палитры на канвас — composable `useFlowDragDrop`.
 - `Bots/MediaLibrary.vue` + `Blocks/MediaLibraryModal.vue` + `Blocks/MediaPicker.vue` — библиотека медиа и выбор файлов в формах reply_media.
+- `Bots/Connections/Index.vue` — страница переиспользуемых HTTP-подключений бота (таблица + drawer `Connections/ConnectionDrawer.vue`). AJAX JSON-ответ через `wantsJson()` для загрузки списка в форме ноды.
+- `Blocks/ApiCall/` — форма ноды api_call: `RequestSection.vue` (подключение/метод/путь/заголовки/тело), `ResponsePicker.vue` (визуальный JSON-tree picker маппинга ответа), `ErrorBehavior.vue` (stop_flow/continue/branch), `JsonTree.vue`, `ResponseMappingList.vue`, `StateSampleEditor.vue`.
 
 **TipTap** используется как rich text editor для текстов нод/сообщений (`Blocks/RichTextEditor.vue` + `FormattingToolbar.vue` + `InsertToolbar.vue`); результат — Telegram-HTML, проходящий через `TelegramHtml::sanitize()`.
 
@@ -106,7 +111,7 @@ Runtime input validation on `ask_text`/`ask_keyboard` nodes. Rules stored in `no
 
 ### Enums
 
-`UserRole` (admin/editor/viewer), `RouteType` (command/phrase/pattern/action/event/media/location/contact/referral/fallback), `HandlerType` (controller/flow). All backed enums in PHP, stored as strings in DB — never use `enum` column type in migrations.
+`UserRole` (admin/editor/viewer), `RouteType` (command/phrase/pattern/action/event/media/location/contact/referral/fallback), `HandlerType` (controller/flow), `ConnectionAuthType` (none/api_key/bearer/basic). All backed enums in PHP, stored as strings in DB — never use `enum` column type in migrations.
 
 ## Code Style
 
