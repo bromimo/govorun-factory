@@ -16,7 +16,9 @@ const form = useForm({
     slug: props.connection?.slug ?? '',
     base_url: props.connection?.base_url ?? '',
     auth_type: props.connection?.auth_type ?? 'none',
-    auth_config: props.connection ? { ...props.connection.auth_config } : {},
+    auth_config: props.connection
+        ? { ...props.connection.auth_config, token: '', password: '', value: '' }
+        : {},
     default_headers: props.connection?.default_headers ?? [],
 });
 
@@ -26,6 +28,10 @@ watch(() => form.name, (n) => {
     if (! slugManuallyEdited.value) {
         form.slug = transliterate(n);
     }
+});
+
+watch(() => form.auth_type, () => {
+    form.auth_config = {};
 });
 
 function onSlugInput(e) {
@@ -117,6 +123,7 @@ function removeHeader(i) {
                         :type="form.auth_type"
                         v-model="form.auth_config"
                         :is-edit="isEdit"
+                        :errors="form.errors"
                     />
                 </div>
 

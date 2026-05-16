@@ -1,17 +1,11 @@
 <script setup>
-import { computed } from 'vue';
-
 const props = defineProps({
     type: String,
     modelValue: Object,
     isEdit: Boolean,
+    errors: { type: Object, default: () => ({}) },
 });
 const emit = defineEmits(['update:modelValue']);
-
-const v = computed({
-    get: () => props.modelValue,
-    set: (val) => emit('update:modelValue', val),
-});
 
 function update(key, value) {
     emit('update:modelValue', { ...props.modelValue, [key]: value });
@@ -39,6 +33,7 @@ function update(key, value) {
                     type="password"
                     class="mt-1 w-full rounded border-gray-300 text-sm"
                 />
+                <div v-if="errors['auth_config.value']" class="text-xs text-red-600 mt-1">{{ errors['auth_config.value'] }}</div>
             </div>
             <div>
                 <label class="text-xs text-gray-500">Передавать в</label>
@@ -50,6 +45,7 @@ function update(key, value) {
                     <option value="header">Заголовке</option>
                     <option value="query">Query-параметре</option>
                 </select>
+                <div v-if="errors['auth_config.in']" class="text-xs text-red-600 mt-1">{{ errors['auth_config.in'] }}</div>
             </div>
         </template>
 
@@ -63,6 +59,7 @@ function update(key, value) {
                     type="password"
                     class="mt-1 w-full rounded border-gray-300 text-sm"
                 />
+                <div v-if="errors['auth_config.token']" class="text-xs text-red-600 mt-1">{{ errors['auth_config.token'] }}</div>
                 <div v-if="isEdit" class="mt-1 text-xs text-gray-400">Пустое значение — оставить текущий токен</div>
             </div>
         </template>
@@ -86,6 +83,7 @@ function update(key, value) {
                     type="password"
                     class="mt-1 w-full rounded border-gray-300 text-sm"
                 />
+                <div v-if="errors['auth_config.password']" class="text-xs text-red-600 mt-1">{{ errors['auth_config.password'] }}</div>
             </div>
         </template>
     </div>

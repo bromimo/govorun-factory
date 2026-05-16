@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { router, Head } from '@inertiajs/vue3';
-import { Link } from '@inertiajs/vue3';
+import { router, Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ConnectionDrawer from '@/Components/Connections/ConnectionDrawer.vue';
 
