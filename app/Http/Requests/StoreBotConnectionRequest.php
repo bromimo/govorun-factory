@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\ConnectionAuthType;
 use Illuminate\Validation\Rule;
+use App\Enums\ConnectionAuthType;
 use Illuminate\Foundation\Http\FormRequest;
 
 /** Валидация создания подключения бота к внешнему API. */
