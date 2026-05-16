@@ -28,3 +28,4 @@ Thumbs.db
 /public/hot
 /storage/*.key
 .env.backup
+/.backups/
