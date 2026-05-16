@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import Modal from '@/Components/Modal.vue';
 import SettingsForm from '@/Components/Bots/SettingsForm.vue';
@@ -22,6 +22,7 @@ const tabs = [
     { key: 'validation', label: 'Валидация' },
     { key: 'messengers', label: 'Мессенджеры' },
     { key: 'media', label: 'Медиатека' },
+    { key: 'connections', label: 'Подключения', href: (bot) => route('bot-connections.index', bot.id) },
 ];
 
 const activeTab = ref('settings');
@@ -88,19 +89,26 @@ function deleteBot() {
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="flex gap-8">
                     <nav class="w-48 shrink-0 space-y-1">
-                        <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
-                            class="block w-full rounded-md px-3 py-2 text-left text-sm font-medium"
-                            :class="activeTab === tab.key
-                                ? 'bg-indigo-50 text-indigo-700'
-                                : 'text-gray-600 hover:bg-gray-50'">
-                            {{ tab.label }}
-                            <span v-if="tab.key === 'routes'" class="ml-1 text-xs text-gray-400">
-                                ({{ bot.routes?.length ?? 0 }})
-                            </span>
-                            <span v-if="tab.key === 'flows'" class="ml-1 text-xs text-gray-400">
-                                ({{ bot.flows?.length ?? 0 }})
-                            </span>
-                        </button>
+                        <template v-for="tab in tabs" :key="tab.key">
+                            <Link v-if="tab.href"
+                                :href="tab.href(bot)"
+                                class="block w-full rounded-md px-3 py-2 text-left text-sm font-medium text-gray-600 hover:bg-gray-50">
+                                {{ tab.label }}
+                            </Link>
+                            <button v-else @click="activeTab = tab.key"
+                                class="block w-full rounded-md px-3 py-2 text-left text-sm font-medium"
+                                :class="activeTab === tab.key
+                                    ? 'bg-indigo-50 text-indigo-700'
+                                    : 'text-gray-600 hover:bg-gray-50'">
+                                {{ tab.label }}
+                                <span v-if="tab.key === 'routes'" class="ml-1 text-xs text-gray-400">
+                                    ({{ bot.routes?.length ?? 0 }})
+                                </span>
+                                <span v-if="tab.key === 'flows'" class="ml-1 text-xs text-gray-400">
+                                    ({{ bot.flows?.length ?? 0 }})
+                                </span>
+                            </button>
+                        </template>
                     </nav>
 
                     <div class="flex-1 rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-900/5">
