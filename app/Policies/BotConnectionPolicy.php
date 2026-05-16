@@ -20,7 +20,7 @@ class BotConnectionPolicy
     {
         return match ($user->role) {
             UserRole::Admin => true,
-            UserRole::Editor => $user->id === $connection->bot->created_by,
+            UserRole::Editor => $connection->bot?->created_by === $user->id,
             default => false,
         };
     }

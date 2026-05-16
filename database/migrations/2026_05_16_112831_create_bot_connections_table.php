@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('slug', 64);
             $table->string('base_url', 2048);
             $table->string('auth_type', 32)->default('none');
-            $table->json('auth_config')->nullable();
+            $table->text('auth_config')->nullable();
             $table->json('default_headers')->nullable();
             $table->timestamps();
 

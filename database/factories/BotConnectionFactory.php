@@ -14,7 +14,7 @@ class BotConnectionFactory extends Factory
         return [
             'bot_id' => Bot::factory(),
             'name' => $this->faker->company(),
-            'slug' => $this->faker->unique()->slug(2, false),
+            'slug' => $this->faker->unique()->regexify('[a-z][a-z0-9_]{4,12}'),
             'base_url' => $this->faker->url(),
             'auth_type' => ConnectionAuthType::None->value,
             'auth_config' => [],
