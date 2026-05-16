@@ -19,7 +19,7 @@ it('шифрует auth_config через encrypted cast', function () {
         'auth_config' => ['token' => 'secret-token-123'],
     ]);
 
-    $raw = \DB::table('bot_connections')->where('id', $connection->id)->value('auth_config');
+    $raw = DB::table('bot_connections')->where('id', $connection->id)->value('auth_config');
 
     expect($raw)->not->toContain('secret-token-123');
     expect($connection->fresh()->auth_config)->toBe(['token' => 'secret-token-123']);
