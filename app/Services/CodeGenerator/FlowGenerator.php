@@ -2,6 +2,7 @@
 
 namespace App\Services\CodeGenerator;
 
+use App\Models\BotConnection;
 use Illuminate\Support\Collection;
 
 /** Генератор классов Flow из графа диалога (step-based архитектура).
@@ -32,6 +33,9 @@ class FlowGenerator
     /** @var array<string, string> Имена tail-методов: nodeId → tailName. */
     private array $tailNames = [];
 
+    /** @var array<string, mixed> Полный граф (nodes + edges) для доступа внутри render-методов. */
+    private array $graph = [];
+
     /** Сгенерировать класс Flow.
      * @param  array<string, mixed>  $graph
      * @param  array<string>  $interruptCommands
@@ -42,6 +46,7 @@ class FlowGenerator
     {
         $this->validationMessages = $validationMessages;
         $this->mediaMap = $mediaMap;
+        $this->graph = $graph;
         $this->nodes = collect($graph['nodes'] ?? []);
         $edges = collect($graph['edges'] ?? []);
 
@@ -342,7 +347,7 @@ class FlowGenerator
     private function renderTailMethod(string $nodeId, string $tailName): string
     {
         $node = $this->nodes->firstWhere('id', $nodeId);
-        $actionCode = $this->renderActionBlock($node['type'], $node['data'] ?? [], 2);
+        $actionCode = $this->renderActionBlock($node, 2);
         $next = $this->adjacency[$nodeId][0] ?? null;
         $continuation = $next !== null
             ? $this->buildSequence($next, 2)
@@ -380,7 +385,7 @@ class FlowGenerator
             if (in_array($type, ['ask', 'condition', 'on_complete', 'on_cancel'], true)) {
                 break;
             }
-            $code .= $this->renderActionBlock($type, $node['data'] ?? [], 2);
+            $code .= $this->renderActionBlock($node, 2);
             $cursor = $this->adjacency[$cursor][0] ?? null;
         }
 
@@ -437,7 +442,7 @@ class FlowGenerator
                 return $code;
             }
 
-            $code .= $this->renderActionBlock($type, $node['data'] ?? [], $indent);
+            $code .= $this->renderActionBlock($node, $indent);
             $cursor = $this->adjacency[$cursor][0] ?? null;
         }
 
@@ -523,15 +528,21 @@ class FlowGenerator
         return "        \$step->ask(\n{$expression}        );\n";
     }
 
-    /** Отрендерить action-блок с указанным уровнем отступа. */
-    private function renderActionBlock(string $type, array $data, int $indent): string
+    /** Отрендерить action-блок с указанным уровнем отступа.
+     *
+     * @param  array<string, mixed>  $node  Полный узел графа.
+     * @param  int  $indent  Количество отступов.
+     */
+    private function renderActionBlock(array $node, int $indent): string
     {
+        $type = $node['type'] ?? '';
+        $data = $node['data'] ?? [];
         $pad = str_repeat('    ', $indent);
 
         return match ($type) {
             'save_state' => $this->renderSaveState($data, $pad),
             'reply', 'reply_media' => $this->renderReply($data, $pad),
-            'api_call' => "{$pad}\$response = \$this->apiCall('".($data['method'] ?? 'GET')."', '".addslashes($data['url'] ?? '')."');\n",
+            'api_call' => $this->renderApiCall($node, $pad),
             default => "{$pad}// Unknown block: {$type}\n",
         };
     }
@@ -697,5 +708,163 @@ class FlowGenerator
     private function indent(string $line, int $indent): string
     {
         return str_repeat('    ', $indent).$line;
+    }
+
+    /** Отрендерить api_call-блок: HTTP-запрос через connection + маппинг ответа.
+     *
+     * @param  array<string, mixed>  $node  Узел графа.
+     * @param  string  $pad  Отступ.
+     */
+    private function renderApiCall(array $node, string $pad): string
+    {
+        $data = $node['data'] ?? [];
+        $connectionId = $data['connection_id'] ?? null;
+        $connection = $connectionId ? BotConnection::find($connectionId) : null;
+
+        if (! $connection) {
+            return "{$pad}// api_call: подключение не найдено\n";
+        }
+
+        $onErrorTarget = $this->findOnErrorTarget($node['id'] ?? '');
+
+        $tpl = view('stubs.flow_api_call', [
+            'slug' => $connection->slug,
+            'method' => strtolower($data['method'] ?? 'GET'),
+            'pathExpr' => $this->renderStringExpr($data['path'] ?? ''),
+            'query' => $this->renderPairsExpr($data['query'] ?? []),
+            'headers' => $this->renderPairsExpr($data['headers'] ?? []),
+            'bodyMode' => $data['body_mode'] ?? 'none',
+            'bodyExpr' => $this->renderBodyExpr($data['body_mode'] ?? 'none', $data['body'] ?? null),
+            'mapping' => $data['response_mapping'] ?? [],
+            'onError' => $data['on_error'] ?? 'stop_flow',
+            'onErrorTarget' => $onErrorTarget,
+        ])->render();
+
+        return $this->indentBlock($tpl, $pad);
+    }
+
+    /** Найти target-ноду для ветки on_error (edge с sourceHandle === 'on_error').
+     *
+     * @param  string  $sourceId  ID исходного узла.
+     */
+    private function findOnErrorTarget(string $sourceId): ?string
+    {
+        foreach ($this->graph['edges'] ?? [] as $edge) {
+            if ($edge['source'] === $sourceId && ($edge['sourceHandle'] ?? null) === 'on_error') {
+                return $this->stepNameFor($edge['target']);
+            }
+        }
+
+        return null;
+    }
+
+    /** Рендер строкового выражения в PHP-литерал.
+     *
+     * @param  string  $template  Строка шаблона.
+     */
+    private function renderStringExpr(string $template): string
+    {
+        return "'".addslashes($template)."'";
+    }
+
+    /** Рендер пар key/value в инлайновый PHP-массив.
+     *
+     * @param  array<int, array{key: string, value: string}>  $pairs  Пары ключ/значение.
+     */
+    private function renderPairsExpr(array $pairs): string
+    {
+        if (empty($pairs)) {
+            return '[]';
+        }
+
+        $parts = [];
+
+        foreach ($pairs as $p) {
+            $k = "'".addslashes($p['key'] ?? '')."'";
+            $v = $this->renderStringExpr($p['value'] ?? '');
+            $parts[] = "{$k} => {$v}";
+        }
+
+        return '['.implode(', ', $parts).']';
+    }
+
+    /** Рендер тела запроса в PHP-выражение.
+     *
+     * @param  string  $mode  Режим тела (json/form/none).
+     * @param  mixed  $body  Тело запроса.
+     */
+    private function renderBodyExpr(string $mode, mixed $body): string
+    {
+        if ($mode === 'json' && is_string($body)) {
+            $php = $this->jsonToPhpArrayExpr($body);
+
+            return $php ?? 'null';
+        }
+
+        if ($mode === 'form' && is_array($body)) {
+            return $this->renderPairsExpr($body);
+        }
+
+        return 'null';
+    }
+
+    /** Преобразовать JSON-строку в PHP-выражение array с плейсхолдерами state.
+     *
+     * @param  string  $json  JSON-строка.
+     */
+    private function jsonToPhpArrayExpr(string $json): ?string
+    {
+        $decoded = json_decode($json, true);
+
+        if (! is_array($decoded)) {
+            return null;
+        }
+
+        return $this->arrayToPhpExpr($decoded);
+    }
+
+    /** Рекурсивно преобразовать PHP-значение в строковое PHP-выражение.
+     *
+     * @param  mixed  $value  Произвольное значение.
+     */
+    private function arrayToPhpExpr(mixed $value): string
+    {
+        if (is_array($value)) {
+            $isList = array_keys($value) === range(0, count($value) - 1);
+            $parts = [];
+
+            foreach ($value as $k => $v) {
+                $parts[] = $isList
+                    ? $this->arrayToPhpExpr($v)
+                    : "'".addslashes((string) $k)."' => ".$this->arrayToPhpExpr($v);
+            }
+
+            return '['.implode(', ', $parts).']';
+        }
+
+        if (is_string($value)) {
+            return $this->renderStringExpr($value);
+        }
+
+        return var_export($value, true);
+    }
+
+    /** Найти имя шага для ноды по её ID.
+     *
+     * @param  string  $nodeId  ID узла.
+     */
+    private function stepNameFor(string $nodeId): string
+    {
+        return $this->askStepNames[$nodeId] ?? $nodeId;
+    }
+
+    /** Добавить отступ $pad к каждой строке многострочного блока.
+     *
+     * @param  string  $text  Многострочный текст.
+     * @param  string  $pad  Строка отступа.
+     */
+    private function indentBlock(string $text, string $pad): string
+    {
+        return implode("\n", array_map(fn ($line) => $line === '' ? '' : $pad.$line, explode("\n", trim($text))))."\n";
     }
 }

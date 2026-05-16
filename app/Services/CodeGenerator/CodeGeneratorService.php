@@ -21,6 +21,8 @@ class CodeGeneratorService
 
     private BotProfileGenerator $botProfile;
 
+    private ConnectionGenerator $connection;
+
     /** @var array<int, string> Маппинг flow_id → имя класса. */
     private array $flowClassNames = [];
 
@@ -32,6 +34,7 @@ class CodeGeneratorService
         $this->flow = new FlowGenerator;
         $this->composer = new ComposerGenerator;
         $this->botProfile = new BotProfileGenerator;
+        $this->connection = new ConnectionGenerator;
     }
 
     /** Сгенерировать полный проект в указанную директорию.
@@ -48,6 +51,7 @@ class CodeGeneratorService
         $this->generateRoutes($bot, $outputPath);
         $this->generateControllers($bot, $outputPath, $mediaMap);
         $this->generateFlows($bot, $outputPath, $mediaMap);
+        $this->generateConnections($bot, $outputPath);
         $this->generateComposer($bot, $outputPath);
     }
 
@@ -221,6 +225,13 @@ class CodeGeneratorService
     private function buildMediaMap(Bot $bot): array
     {
         return $bot->media()->pluck('filename', 'id')->all();
+    }
+
+    /** Сгенерировать config/connections.php и дополнить .env.example.
+     */
+    private function generateConnections(Bot $bot, string $outputPath): void
+    {
+        $this->connection->generate($bot, $outputPath);
     }
 
     /** Сгенерировать composer.json.
