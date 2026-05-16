@@ -24,7 +24,9 @@ return new class extends Migration
                     continue;
                 }
 
-                $data = $node['data'] ?? [];
+                $dataBefore = $node['data'] ?? [];
+                $data = $dataBefore;
+
                 $data['connection_id'] = $data['connection_id'] ?? null;
                 $data['method'] = $data['method'] ?? 'GET';
                 $data['path'] = $data['path'] ?? '';
@@ -36,8 +38,10 @@ return new class extends Migration
                 $data['on_error'] = $data['on_error'] ?? 'stop_flow';
                 unset($data['url']);
 
-                $node['data'] = $data;
-                $changed = true;
+                if ($data !== $dataBefore) {
+                    $node['data'] = $data;
+                    $changed = true;
+                }
             }
             unset($node);
 

@@ -35,4 +35,5 @@ it('добавляет недостающие поля в api_call ноды', fu
     expect($api['data']['connection_id'])->toBeNull();
     expect($api['data']['response_mapping'])->toBe([]);
     expect($api['data']['on_error'])->toBe('stop_flow');
+    expect($api['data'])->not->toHaveKey('url');
 });
