@@ -4,6 +4,7 @@ use App\Models\Bot;
 use App\Enums\ConnectionAuthType;
 use App\Models\BotConnection;
 use App\Services\CodeGenerator\ConnectionGenerator;
+use Illuminate\Support\Facades\File;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -33,4 +34,6 @@ it('генерирует config/connections.php и env.example', function () {
 
     expect($env)->toContain('CONN_BITRIX_PROD_BASE_URL=https://acme.bitrix24.ru/rest/1');
     expect($env)->toContain('CONN_BITRIX_PROD_TOKEN=');
+
+    File::deleteDirectory($tmp);
 });

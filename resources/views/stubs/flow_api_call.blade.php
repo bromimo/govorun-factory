@@ -1,3 +1,4 @@
+{{-- Требует govorun/framework с трейтом MakesHttpCalls (реализован отдельно) --}}
 $response = $this->http()->connection('{!! $slug !!}')->{!! $method !!}({!! $pathExpr !!}@if($query !== '[]'), [
     'query' => {!! $query !!},
     'headers' => {!! $headers !!},
@@ -5,10 +6,6 @@ $response = $this->http()->connection('{!! $slug !!}')->{!! $method !!}({!! $pat
     @elseif($bodyMode === 'form')'form_params' => {!! $bodyExpr !!},
     @endif
 ]@endif);
-
-@foreach ($mapping as $m)
-$this->state->set('{!! $m['state_key'] !!}', data_get($response->json(), '{!! $m['json_path'] !!}'));
-@endforeach
 
 @if ($onError === 'stop_flow')
 if ($response->failed()) {
@@ -22,5 +19,13 @@ if ($response->failed()) {
 if ($response->failed()) {
     $this->goTo('{!! $onErrorTarget !!}');
     return;
+}
+@endif
+
+@if ($mapping)
+if ($response->successful()) {
+@foreach ($mapping as $m)
+    $this->state->set('{!! $m['state_key'] !!}', data_get($response->json(), '{!! $m['json_path'] !!}'));
+@endforeach
 }
 @endif
