@@ -31,6 +31,9 @@ const extraProps = computed(() => {
     if (props.type === 'reply') {
         return { 'bot-id': props.botId };
     }
+    if (props.type === 'api_call') {
+        return { 'bot-id': props.botId };
+    }
     return {};
 });
 </script>
