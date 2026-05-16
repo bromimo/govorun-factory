@@ -38,7 +38,7 @@ php artisan db:seed
 
 Schema-first visual bot builder: **Vue UI → JSON Schema (DB) → PHP Code Generator → ZIP Export**.
 
-**Stack:** Laravel 13, PHP 8.3+, Vue 3 + Inertia.js, Tailwind CSS, Vue Flow, Pest, SQLite (dev/test).
+**Stack:** Laravel 13, PHP 8.3+, Vue 3 + Inertia.js, Tailwind CSS, Vue Flow, TipTap, Pest 4 / PHPUnit 12, SQLite (dev/test).
 
 ### Code Generator (ядро проекта)
 
@@ -49,7 +49,10 @@ Schema-first visual bot builder: **Vue UI → JSON Schema (DB) → PHP Code Gene
    - `RouteGenerator` → `routes/messenger.php`
    - `ControllerGenerator` → `app/Controllers/*.php`
    - `FlowGenerator` → `app/Flows/*.php` (step-based, см. ниже)
+   - `BotProfileGenerator` → `config/bot_profile.php` + бинарь аватара (только если включён Telegram)
    - `ComposerGenerator` → `composer.json`
+
+`KeyboardCodeBuilder` — статический сериализатор inline/reply-клавиатуры из схемы в PHP-код `Govorun\Messaging\Keyboard`; используется `Controller`- и `Flow`-генераторами.
 
 ZIP-экспорт делает `ExportService`; артефакты попадают в `storage/exports/`.
 Валидация схемы бота — `App\Services\SchemaValidator` (возвращает `App\Services\ValidationResult`).
@@ -60,9 +63,17 @@ ZIP-экспорт делает `ExportService`; артефакты попада
 Lifecycle-методы: `onComplete()`, `onCancel()`. См. `docs/plan-flow-generator-step-based.md`.
 Локальные репозитории фреймворка — `C:\domains\govorun-framework` и `govorun-skeleton`.
 
+### Runtime Services (не генератор)
+
+- `TelegramHtml` — санитизация HTML до whitelist Telegram (`<b>`, `<i>`, `<a>`, `<span class="tg-spoiler">` и т.д.). Применяется при сохранении текстов reply/ask-нод.
+- `MediaOptimizerService` — оптимизация загружаемых медиа под лимиты Telegram (50 МБ, JPEG quality 85, max 5000px). Возвращает tmp_path + метаданные.
+- `TelegramProfileVideoConverter` — конвертация видео для аватара бота.
+
 ### Data Model
 
-`User` (admin/editor/viewer) → `Bot` (config, messenger_config as JSON) → `BotRoute` (entry points with type/match/handler) + `BotFlow` (dialog graphs stored as JSON with nodes/edges). `Plugin` — extensible block types.
+`User` (admin/editor/viewer) → `Bot` (config, messenger_config as JSON) → `BotRoute` (entry points with type/match/handler) + `BotFlow` (dialog graphs stored as JSON with nodes/edges) + `BotMedia` (библиотека загруженных файлов: photo/video/audio/document/animation, хранение в `bots/{bot_id}/media/`). `Plugin` — extensible block types.
+
+Observers регистрируются атрибутом `#[ObservedBy(...)]` на модели (`Bot`, `BotRoute`, `BotFlow`), не через `Model::observe()` в провайдере.
 
 ### Authorization
 
@@ -70,19 +81,22 @@ Role-based via `UserRole` enum + `BotPolicy`. Admin: full access. Editor: own bo
 
 ### Route Structure
 
-All routes in `routes/web.php` under `auth` middleware, grouped by prefix: `bots/`, `bots/{bot}/routes/`, `bots/{bot}/flows/`, `bots/{bot}/export`, `profile/`, `users/` (admin-only), `plugins/` (admin-only).
+All routes in `routes/web.php` under `auth` middleware, grouped by prefix: `bots/`, `bots/{bot}/routes/`, `bots/{bot}/flows/`, `bots/{bot}/media/`, `bots/{bot}/profile-photo/`, `bots/{bot}/export`, `profile/`, `users/` (admin-only), `plugins/` (admin-only).
 Роуты пробрасываются во фронт через Ziggy (`tightenco/ziggy`).
 
 ### Frontend
 
-Inertia.js SFC pages in `resources/js/Pages/`. Reusable components in `resources/js/Components/`. Alias `@/` → `resources/js/` (см. `jsconfig.json`). Key areas:
-- `Blocks/` — shared block form components (used in both route editor and flow editor)
+Inertia.js SFC pages in `resources/js/Pages/` (точки входа: `Bots/Edit.vue`, `Bots/Media/Index.vue`, `Flows/Edit.vue`). Reusable components in `resources/js/Components/`. Alias `@/` → `resources/js/` (см. `jsconfig.json`). Key areas:
+- `Blocks/` — shared block form components (used in both route editor and flow editor). Диспетчер форм — `BlockFormResolver.vue` (по типу узла рендерит нужную форму).
 - `Routes/` — route list, editor drawer, block list
-- `Flows/` — Vue Flow canvas, node palette, properties panels, custom nodes in `nodes/`
+- `Flows/` — Vue Flow canvas, node palette, properties panels, custom nodes in `nodes/`. Drag-and-drop из палитры на канвас — composable `useFlowDragDrop`.
+- `Bots/MediaLibrary.vue` + `Blocks/MediaLibraryModal.vue` + `Blocks/MediaPicker.vue` — библиотека медиа и выбор файлов в формах reply_media.
+
+**TipTap** используется как rich text editor для текстов нод/сообщений (`Blocks/RichTextEditor.vue` + `FormattingToolbar.vue` + `InsertToolbar.vue`); результат — Telegram-HTML, проходящий через `TelegramHtml::sanitize()`.
 
 ### Flow Editor
 
-Vue Flow canvas with 10 custom node types (ask_text, ask_keyboard, reply_text, reply_keyboard, reply_media, save_state, condition, api_call, on_complete, on_cancel). Drag-and-drop from palette. Selected state managed inside `FlowCanvas.vue` and exposed via `defineExpose`. Node/edge properties edited in right panel.
+Vue Flow canvas with 10 логических типов узлов (ask_text, ask_keyboard, reply_text, reply_keyboard, reply_media, save_state, condition, api_call, on_complete, on_cancel). Vue-компоненты унифицированы: `AskNode` покрывает оба `ask_*`, `ReplyNode` — все `reply_*` (физических .vue ≈ 8 на 10 типов). Drag-and-drop from palette. Selected state managed inside `FlowCanvas.vue` and exposed via `defineExpose`. Node/edge properties edited in right panel.
 
 ### Validation
 
