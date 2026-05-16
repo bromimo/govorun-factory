@@ -110,13 +110,11 @@ class ConnectionRequestService
 
     private function dispatch(PendingRequest $client, RequestDraft $draft, string $url): Response
     {
-        $method = strtolower($draft->method);
-
         if ($draft->bodyMode === 'json' && is_string($draft->body)) {
             $rendered = $this->tpl->render($draft->body, $draft->stateSample);
             $decoded = json_decode($rendered, true);
 
-            return $client->{$method}($url, $decoded ?? []);
+            return $this->callMethod($client, $draft->method, $url, $decoded ?? []);
         }
 
         if ($draft->bodyMode === 'form' && is_array($draft->body)) {
@@ -126,10 +124,22 @@ class ConnectionRequestService
                     = $this->tpl->render($item['value'] ?? '', $draft->stateSample);
             }
 
-            return $client->asForm()->{$method}($url, $form);
+            return $this->callMethod($client->asForm(), $draft->method, $url, $form);
         }
 
-        return $client->{$method}($url);
+        return $this->callMethod($client, $draft->method, $url);
+    }
+
+    private function callMethod(PendingRequest $client, string $method, string $url, array $data = []): Response
+    {
+        return match (strtoupper($method)) {
+            'GET' => $client->get($url, $data),
+            'POST' => $client->post($url, $data),
+            'PUT' => $client->put($url, $data),
+            'PATCH' => $client->patch($url, $data),
+            'DELETE' => $client->delete($url, $data),
+            default => throw new \InvalidArgumentException("Unsupported HTTP method: {$method}"),
+        };
     }
 
     private function buildResult(Response $response, int $duration): TestRequestResult
