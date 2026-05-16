@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Bot;
 use App\Models\BotFlow;
 use App\Models\BotRoute;
+use App\Models\BotConnection;
 use App\Services\CodeGenerator\FlowGenerator;
 
 /** Валидатор схемы бота перед экспортом. */
@@ -85,6 +86,8 @@ class SchemaValidator
                 $this->validateAsk($node['data'] ?? [], $where, $errors);
             } elseif ($type === 'reply') {
                 $this->validateReply($node['data'] ?? [], $where, $errors);
+            } elseif ($type === 'api_call') {
+                $this->validateApiCall($node, $flow->graph['edges'] ?? [], $where, $errors);
             }
         }
     }
@@ -228,5 +231,66 @@ class SchemaValidator
         $counts = array_count_values($names);
 
         return array_keys(array_filter($counts, fn (int $c) => $c > 1));
+    }
+
+    /** Проверить api_call-узел.
+     * @param  array<string, mixed>  $node  Узел графа.
+     * @param  array<int, array<string, mixed>>  $edges  Все рёбра flow.
+     * @param  string  $where  Описание места ошибки.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
+     */
+    private function validateApiCall(array $node, array $edges, string $where, array &$errors): void
+    {
+        $data = $node['data'] ?? [];
+
+        if (empty($data['connection_id'])) {
+            $errors[] = "{$where}: не выбрано подключение";
+
+            return;
+        }
+
+        if (! BotConnection::find($data['connection_id'])) {
+            $errors[] = "{$where}: подключение удалено";
+        }
+
+        if (trim((string) ($data['path'] ?? '')) === '') {
+            $errors[] = "{$where}: не задан путь запроса";
+        }
+
+        $allowed = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+
+        if (! in_array($data['method'] ?? '', $allowed, true)) {
+            $errors[] = "{$where}: неподдерживаемый HTTP-метод";
+        }
+
+        $stateKeys = [];
+
+        foreach ($data['response_mapping'] ?? [] as $idx => $m) {
+            if (empty($m['json_path'])) {
+                $errors[] = "{$where}: маппинг {$idx} без json_path";
+            }
+
+            $key = $m['state_key'] ?? '';
+
+            if (! preg_match('/^[a-z][a-z0-9_]*$/', $key)) {
+                $errors[] = "{$where}: state_key «{$key}» должен быть в snake_case";
+            }
+
+            if (in_array($key, $stateKeys, true)) {
+                $errors[] = "{$where}: state_key «{$key}» дублируется";
+            }
+
+            $stateKeys[] = $key;
+        }
+
+        if (($data['on_error'] ?? '') === 'branch') {
+            $hasOnError = collect($edges)->contains(
+                fn ($e) => ($e['source'] ?? '') === ($node['id'] ?? '') && ($e['sourceHandle'] ?? null) === 'on_error',
+            );
+
+            if (! $hasOnError) {
+                $errors[] = "{$where}: режим on_error=branch требует исходящего ребра с handle on_error";
+            }
+        }
     }
 }
