@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BotMediaController;
 use App\Http\Controllers\BotRouteController;
 use App\Http\Controllers\BotConnectionController;
+use App\Http\Controllers\BotConnectionTestController;
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [BotController::class, 'index'])->name('dashboard');
@@ -52,6 +53,9 @@ Route::middleware('auth')->group(function () {
             Route::post('', [BotConnectionController::class, 'store'])->name('bot-connections.store');
             Route::put('{connection}', [BotConnectionController::class, 'update'])->name('bot-connections.update');
             Route::delete('{connection}', [BotConnectionController::class, 'destroy'])->name('bot-connections.destroy');
+            Route::post('{connection}/test', BotConnectionTestController::class)
+                ->middleware('throttle:30,1')
+                ->name('bot-connections.test');
         });
     });
 
