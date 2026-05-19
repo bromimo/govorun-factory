@@ -1,204 +1,229 @@
 <script setup>
-import { ref } from 'vue';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
-import NavLink from '@/Components/NavLink.vue';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3'
+import { Bot, Users, Puzzle, Bell, LogOut, Search } from 'lucide-vue-next'
 
-const showingNavigationDropdown = ref(false);
+defineProps({
+    title: String,
+    subtitle: String,
+    flush: Boolean,
+})
 </script>
 
 <template>
-    <div>
-        <div class="min-h-screen bg-gray-100">
-            <nav
-                class="border-b border-gray-100 bg-white"
-            >
-                <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 justify-between">
-                        <div class="flex">
-                            <!-- Logo -->
-                            <div class="flex shrink-0 items-center">
-                                <Link :href="route('dashboard')">
-                                    <ApplicationLogo
-                                        class="block h-9 w-auto fill-current text-gray-800"
-                                    />
-                                </Link>
-                            </div>
+    <div class="er-app">
+        <header class="er-topbar">
+            <div class="er-brand">
+                <div class="er-brand-logo">Г</div>
+                <span class="er-brand-name">Говорун</span>
+            </div>
 
-                            <!-- Navigation Links -->
-                            <div
-                                class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex"
-                            >
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                    Боты
-                                </NavLink>
-                                <NavLink v-if="$page.props.auth.user.role === 'admin'" :href="route('users.index')" :active="route().current('users.*')">
-                                    Пользователи
-                                </NavLink>
-                                <NavLink v-if="$page.props.auth.user.role === 'admin'" :href="route('plugins.index')" :active="route().current('plugins.*')">
-                                    Плагины
-                                </NavLink>
-                            </div>
-                        </div>
-
-                        <div class="hidden sm:ms-6 sm:flex sm:items-center">
-                            <!-- Settings Dropdown -->
-                            <div class="relative ms-3">
-                                <Dropdown align="right" width="48">
-                                    <template #trigger>
-                                        <span class="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                {{ $page.props.auth.user.name }}
-
-                                                <svg
-                                                    class="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fill-rule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clip-rule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </template>
-
-                                    <template #content>
-                                        <DropdownLink
-                                            :href="route('profile.edit')"
-                                        >
-                                            Profile
-                                        </DropdownLink>
-                                        <DropdownLink
-                                            :href="route('logout')"
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </DropdownLink>
-                                    </template>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <!-- Hamburger -->
-                        <div class="-me-2 flex items-center sm:hidden">
-                            <button
-                                @click="
-                                    showingNavigationDropdown =
-                                        !showingNavigationDropdown
-                                "
-                                class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
-                            >
-                                <svg
-                                    class="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        :class="{
-                                            hidden: showingNavigationDropdown,
-                                            'inline-flex':
-                                                !showingNavigationDropdown,
-                                        }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        :class="{
-                                            hidden: !showingNavigationDropdown,
-                                            'inline-flex':
-                                                showingNavigationDropdown,
-                                        }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Responsive Navigation Menu -->
-                <div
-                    :class="{
-                        block: showingNavigationDropdown,
-                        hidden: !showingNavigationDropdown,
-                    }"
-                    class="sm:hidden"
+            <nav class="er-tnav">
+                <Link
+                    :href="route('dashboard')"
+                    class="er-tnav-item"
+                    :class="{ act: route().current('dashboard') || route().current('bots.*') }"
                 >
-                    <div class="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                            Боты
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink v-if="$page.props.auth.user.role === 'admin'" :href="route('users.index')" :active="route().current('users.*')">
-                            Пользователи
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink v-if="$page.props.auth.user.role === 'admin'" :href="route('plugins.index')" :active="route().current('plugins.*')">
-                            Плагины
-                        </ResponsiveNavLink>
-                    </div>
-
-                    <!-- Responsive Settings Options -->
-                    <div
-                        class="border-t border-gray-200 pb-1 pt-4"
-                    >
-                        <div class="px-4">
-                            <div
-                                class="text-base font-medium text-gray-800"
-                            >
-                                {{ $page.props.auth.user.name }}
-                            </div>
-                            <div class="text-sm font-medium text-gray-500">
-                                {{ $page.props.auth.user.email }}
-                            </div>
-                        </div>
-
-                        <div class="mt-3 space-y-1">
-                            <ResponsiveNavLink :href="route('profile.edit')">
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('logout')"
-                                method="post"
-                                as="button"
-                            >
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
+                    <Bot :size="14" />Боты
+                </Link>
+                <Link
+                    v-if="$page.props.auth.user.role === 'admin'"
+                    :href="route('users.index')"
+                    class="er-tnav-item"
+                    :class="{ act: route().current('users.*') }"
+                >
+                    <Users :size="14" />Пользователи
+                </Link>
+                <Link
+                    v-if="$page.props.auth.user.role === 'admin'"
+                    :href="route('plugins.index')"
+                    class="er-tnav-item"
+                    :class="{ act: route().current('plugins.*') }"
+                >
+                    <Puzzle :size="14" />Плагины
+                </Link>
             </nav>
 
-            <!-- Page Heading -->
-            <header
-                class="bg-white shadow"
-                v-if="$slots.header"
-            >
-                <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                    <slot name="header" />
-                </div>
-            </header>
+            <div class="er-tsp"></div>
 
-            <!-- Page Content -->
-            <main>
+            <div class="er-search-top">
+                <Search :size="12" /><span>Поиск...</span>
+            </div>
+
+            <div class="er-tright">
+                <button class="er-tib" type="button" title="Уведомления">
+                    <Bell :size="14" />
+                </button>
+                <div class="er-user-block">
+                    <div>
+                        <div class="er-user-name">{{ $page.props.auth.user.name }}</div>
+                        <div class="er-user-role">{{ $page.props.auth.user.role }}</div>
+                    </div>
+                    <button class="er-tib" type="button" title="Выйти" @click="router.post(route('logout'))">
+                        <LogOut :size="14" />
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div v-if="$slots.subbar" class="er-subbar">
+            <slot name="subbar" />
+        </div>
+
+        <div class="er-body">
+            <aside v-if="$slots.sidebar" class="er-side">
+                <slot name="sidebar" />
+            </aside>
+
+            <main class="er-ctt" :class="{ flush }">
+                <nav v-if="$slots.breadcrumbs" class="er-bcr">
+                    <slot name="breadcrumbs" />
+                </nav>
+                <div v-if="title || $slots.actions" class="er-ph">
+                    <div>
+                        <h1 class="er-ph-t">{{ title }}</h1>
+                        <p v-if="subtitle" class="er-ph-s">{{ subtitle }}</p>
+                    </div>
+                    <div v-if="$slots.actions" class="er-ph-a">
+                        <slot name="actions" />
+                    </div>
+                </div>
                 <slot />
             </main>
         </div>
     </div>
 </template>
+
+<style scoped>
+.er-app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    font-family: var(--font);
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--ink);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+}
+.er-app * { box-sizing: border-box; }
+
+.er-topbar {
+    height: 36px;
+    background: linear-gradient(180deg, #264a85 0%, #1d3a6e 100%);
+    border-bottom: 1px solid #0c2050;
+    display: flex;
+    align-items: stretch;
+    flex-shrink: 0;
+    color: var(--nav-text);
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.15);
+}
+.er-brand {
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-right: 1px solid rgba(255,255,255,.1);
+}
+.er-brand-logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 3px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1d3a6e;
+    font-weight: 700;
+    font-size: 11px;
+}
+.er-brand-name { font-weight: 600; color: #fff; font-size: 13px; }
+.er-tnav { display: flex; align-items: stretch; }
+.er-tnav-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 14px;
+    color: var(--nav-text);
+    text-decoration: none;
+    border-right: 1px solid rgba(255,255,255,.06);
+    transition: background .1s;
+    font-weight: 500;
+    font-size: 12px;
+    border-bottom: 2px solid transparent;
+}
+.er-tnav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+.er-tnav-item.act { background: rgba(0,0,0,.20); color: #fff; border-bottom-color: #5a8cd4; }
+.er-tsp { flex: 1; }
+.er-search-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    height: 24px;
+    margin: 6px 10px;
+    background: rgba(0,0,0,.2);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 3px;
+    color: var(--nav-text);
+    font-size: 11px;
+    width: 220px;
+    cursor: default;
+}
+.er-tright { display: flex; align-items: center; padding-right: 8px; }
+.er-tib {
+    padding: 0 10px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--nav-text);
+    background: none;
+    border: none;
+    transition: background .1s;
+}
+.er-tib:hover { background: rgba(255,255,255,.08); color: #fff; }
+.er-user-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    border-left: 1px solid rgba(255,255,255,.08);
+    height: 100%;
+}
+.er-user-name { color: #fff; font-weight: 500; font-size: 12px; }
+.er-user-role { color: var(--nav-text); font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
+
+.er-subbar {
+    height: 32px;
+    background: linear-gradient(180deg, #fff 0%, #eef1f4 100%);
+    border-bottom: 1px solid var(--bdr);
+    display: flex;
+    align-items: stretch;
+    padding: 0 12px;
+    flex-shrink: 0;
+}
+
+.er-body { flex: 1; display: flex; overflow: hidden; }
+.er-side {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--bdr);
+    overflow-y: auto;
+    flex-shrink: 0;
+    padding: 6px 0;
+}
+.er-ctt { flex: 1; overflow-y: auto; padding: 14px 18px; background: var(--bg); }
+.er-ctt.flush { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+
+.er-bcr { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-3); margin-bottom: 8px; }
+.er-bcr :deep(a) { color: var(--blue); text-decoration: none; }
+.er-bcr :deep(a:hover) { text-decoration: underline; }
+.er-bcr :deep(.sep) { color: var(--bdr-d); }
+
+.er-ph { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--bdr-l); gap: 16px; }
+.er-ph-t { font-size: 18px; font-weight: 600; letter-spacing: -.01em; margin: 0; color: var(--ink); }
+.er-ph-s { font-size: 11px; color: var(--ink-3); margin-top: 2px; margin-bottom: 0; }
+.er-ph-a { display: flex; align-items: center; gap: 6px; }
+</style>
