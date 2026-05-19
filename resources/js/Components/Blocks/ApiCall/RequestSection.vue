@@ -23,23 +23,23 @@ function buildQueryString(pairs) {
     return '?' + filled.map(p => p.key + (p.value !== '' ? '=' + p.value : '')).join('&');
 }
 
-const syncing = ref(false);
+let syncing = false;
 
 watch(() => model.value.path, (newPath) => {
-    if (syncing.value) return;
+    if (syncing) return;
     const qIdx = (newPath ?? '').indexOf('?');
     const qs = qIdx === -1 ? '' : newPath.slice(qIdx + 1);
-    syncing.value = true;
+    syncing = true;
     model.value.query = parsePairs(qs);
-    syncing.value = false;
-}, { flush: 'sync' });
+    syncing = false;
+}, { flush: 'sync', immediate: true });
 
-watch(() => model.value.query, () => {
-    if (syncing.value) return;
+watch(() => model.value.query, (newQuery) => {
+    if (syncing) return;
     const pathOnly = (model.value.path ?? '').split('?')[0];
-    syncing.value = true;
-    model.value.path = pathOnly + buildQueryString(model.value.query);
-    syncing.value = false;
+    syncing = true;
+    model.value.path = pathOnly + buildQueryString(newQuery);
+    syncing = false;
 }, { deep: true, flush: 'sync' });
 
 const connections = ref([]);
