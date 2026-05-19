@@ -188,14 +188,14 @@ onMounted(() => {
 .ml-card {
     display: flex;
     flex-direction: column;
-    border: 1px solid #3a3a42;
+    border: 1px solid var(--bdr);
     border-radius: 3px;
     overflow: hidden;
-    background: #1a1a1f;
+    background: #fff;
     cursor: default;
-    transition: border-color .12s;
+    transition: border-color .12s, box-shadow .12s;
 }
-.ml-card:hover { border-color: #5a8cd4; }
+.ml-card:hover { border-color: var(--blue); box-shadow: 0 1px 4px rgba(58,114,196,.15); }
 
 /* Top header strip: badge + delete */
 .ml-card-header {
@@ -203,8 +203,10 @@ onMounted(() => {
     align-items: center;
     gap: 4px;
     padding: 3px 4px;
-    background: #2a2a30;
+    background: linear-gradient(180deg, #f4f6f8 0%, #eef1f4 100%);
+    border-bottom: 1px solid var(--bdr-l);
     min-height: 20px;
+    flex-shrink: 0;
 }
 
 /* Type badge */
@@ -212,7 +214,7 @@ onMounted(() => {
     font-size: 9px;
     font-weight: 700;
     color: #fff;
-    padding: 1px 4px;
+    padding: 1px 5px;
     border-radius: 2px;
     letter-spacing: .04em;
     flex-shrink: 0;
@@ -223,11 +225,11 @@ onMounted(() => {
     width: 16px;
     height: 16px;
     border-radius: 2px;
-    background: rgba(180,30,30,.0);
-    color: #6a7080;
+    background: transparent;
+    color: var(--ink-4);
     border: none;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1;
     display: flex;
     align-items: center;
@@ -236,17 +238,18 @@ onMounted(() => {
     transition: background .1s, color .1s;
     opacity: 0;
 }
-.ml-card:hover .ml-del-btn { opacity: 1; color: #c8ccd4; }
-.ml-del-btn:hover { background: rgba(200,30,30,.8); color: #fff !important; }
+.ml-card:hover .ml-del-btn { opacity: 1; }
+.ml-del-btn:hover { background: var(--red-soft, #fde8e8); color: var(--red) !important; }
 
-/* Thumbnail area */
+/* Thumbnail area — flex:1 pushes caption to bottom */
 .ml-thumb {
-    aspect-ratio: 1 / 1;
-    background: #111114;
+    flex: 1;
+    background: #f8f9fb;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 5px;
+    min-height: 70px;
 }
 .ml-thumb img {
     max-width: 100%;
@@ -256,18 +259,20 @@ onMounted(() => {
 }
 .ml-thumb-icon { font-size: 28px; }
 
-/* Caption strip */
+/* Caption strip — sticks to bottom */
 .ml-caption {
     padding: 3px 5px 4px;
-    background: #2a2a30;
+    background: linear-gradient(180deg, #f4f6f8 0%, #eef1f4 100%);
+    border-top: 1px solid var(--bdr-l);
     display: flex;
     flex-direction: column;
     gap: 1px;
     min-width: 0;
+    flex-shrink: 0;
 }
 .ml-name {
     font-size: 10px;
-    color: #c8ccd4;
+    color: var(--ink-2);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -275,7 +280,7 @@ onMounted(() => {
 }
 .ml-size {
     font-size: 9px;
-    color: #6a7080;
+    color: var(--ink-4);
     font-family: var(--mono);
 }
 </style>
