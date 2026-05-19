@@ -25,7 +25,7 @@ function buildQueryString(pairs) {
 
 let syncing = false;
 
-watch(() => model.value.path, (newPath) => {
+watch(() => model.value?.path, (newPath) => {
     if (syncing) return;
     const qIdx = (newPath ?? '').indexOf('?');
     const qs = qIdx === -1 ? '' : newPath.slice(qIdx + 1);
@@ -34,7 +34,7 @@ watch(() => model.value.path, (newPath) => {
     syncing = false;
 }, { flush: 'sync', immediate: true });
 
-watch(() => model.value.query, (newQuery) => {
+watch(() => model.value?.query, (newQuery) => {
     if (syncing) return;
     const pathOnly = (model.value.path ?? '').split('?')[0];
     syncing = true;
