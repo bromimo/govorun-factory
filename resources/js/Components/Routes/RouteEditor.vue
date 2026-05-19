@@ -3,6 +3,8 @@ import { useForm } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 import BlockList from './BlockList.vue';
 import { toCamelCase, toPascalCase, sanitizeIdentifier, identifierWarning } from '@/utils/translit';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import ErInput from '@/Components/Ui/ErInput.vue';
 
 const props = defineProps({
     botId: Number,
@@ -147,13 +149,13 @@ function submit() {
 
 <template>
     <div class="fixed inset-0 z-50 flex justify-end bg-black/30" @click.self="emit('close')">
-        <div class="h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-xl">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-medium">{{ isEditing ? 'Редактировать' : 'Новый' }}{{ isNested ? ' вложенный' : '' }} маршрут</h3>
+        <div class="drawer h-full w-full max-w-lg overflow-y-auto">
+            <div class="drawer-h">
+                <span>{{ isEditing ? 'Редактировать' : 'Новый' }}{{ isNested ? ' вложенный' : '' }} маршрут</span>
                 <button @click="emit('close')" class="text-gray-400 hover:text-gray-600">x</button>
             </div>
 
-            <form @submit.prevent="submit" class="space-y-5">
+            <form @submit.prevent="submit" class="space-y-5 p-5">
                 <div v-if="!isNested">
                     <label class="block text-sm font-medium text-gray-700">Тип маршрута</label>
                     <select v-model="form.type" class="mt-1 w-full rounded-md border-gray-300 text-sm">
@@ -163,8 +165,11 @@ function submit() {
 
                 <div v-if="showMatch">
                     <label class="block text-sm font-medium text-gray-700">Match</label>
-                    <input v-model="form.match" type="text" class="mt-1 w-full rounded-md border-gray-300 text-sm"
-                        :placeholder="form.type === 'command' ? '/start' : 'hello'" />
+                    <ErInput
+                        v-model="form.match"
+                        class="mt-1"
+                        :placeholder="form.type === 'command' ? '/start' : 'hello'"
+                    />
                 </div>
 
                 <div v-if="form.type === 'event'">
@@ -178,9 +183,12 @@ function submit() {
                     <label class="block text-sm font-medium text-gray-700">
                         Описание для меню Telegram
                     </label>
-                    <input v-model="form.description" type="text" maxlength="256"
-                        class="mt-1 w-full rounded-md border-gray-300 text-sm"
-                        placeholder="Запустить бота" />
+                    <ErInput
+                        v-model="form.description"
+                        class="mt-1"
+                        :long="true"
+                        placeholder="Запустить бота"
+                    />
                     <p class="mt-1 text-xs text-gray-400">
                         Если пусто — команда не попадёт в меню при <code>bot:profile-sync</code>.
                     </p>
@@ -193,9 +201,11 @@ function submit() {
                     <label class="block text-sm font-medium text-gray-700">Алиасы</label>
                     <div class="mt-1 space-y-2">
                         <div v-for="(alias, index) in form.aliases" :key="index" class="flex gap-2">
-                            <input v-model="form.aliases[index]" type="text"
-                                class="w-full rounded-md border-gray-300 text-sm"
-                                placeholder="Синоним фразы" />
+                            <ErInput
+                                v-model="form.aliases[index]"
+                                :long="true"
+                                placeholder="Синоним фразы"
+                            />
                             <button type="button" @click="removeAlias(index)"
                                 class="shrink-0 text-gray-400 hover:text-red-500">
                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -217,7 +227,7 @@ function submit() {
                     <div class="mt-1 flex gap-2">
                         <input :value="form.controller_name" type="text"
                             @input="onControllerNameInput($event)"
-                            class="w-full rounded-md border-gray-300 text-sm font-mono"
+                            class="er-mono-inp w-full rounded-md border-gray-300 text-sm font-mono"
                             :placeholder="autoControllerName || (isNested ? 'method' : 'Controller')" />
                         <button v-if="form.controller_name" type="button" @click="form.controller_name = ''"
                             class="shrink-0 text-gray-400 hover:text-red-500">
@@ -277,22 +287,57 @@ function submit() {
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Middleware (через запятую)</label>
-                    <input :value="form.middleware.join(', ')"
-                        @input="form.middleware = $event.target.value.split(',').map(s => s.trim()).filter(Boolean)"
-                        type="text" class="mt-1 w-full rounded-md border-gray-300 text-sm" placeholder="auth, throttle" />
+                    <ErInput
+                        :value="form.middleware.join(', ')"
+                        @update:modelValue="form.middleware = $event.split(',').map(s => s.trim()).filter(Boolean)"
+                        class="mt-1"
+                        :long="true"
+                        placeholder="auth, throttle"
+                    />
                 </div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t">
-                    <button type="button" @click="emit('close')"
-                        class="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    <ErButton type="button" @click="emit('close')">
                         Отмена
-                    </button>
-                    <button type="submit" :disabled="form.processing"
-                        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
+                    </ErButton>
+                    <ErButton variant="primary" type="submit" :disabled="form.processing">
                         {{ isEditing ? 'Сохранить' : 'Создать' }}
-                    </button>
+                    </ErButton>
                 </div>
             </form>
         </div>
     </div>
 </template>
+
+<style scoped>
+.drawer {
+    background: var(--surface);
+    border-left: 1px solid var(--bdr);
+}
+.drawer-h {
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
+    border-bottom: 1px solid var(--bdr);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.er-mono-inp {
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: monospace;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.06);
+}
+.er-mono-inp:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(58,114,196,.2);
+}
+</style>
