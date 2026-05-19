@@ -25,12 +25,29 @@ function buildQueryString(pairs) {
 }
 
 let syncing = false;
+const strippedDomain = ref(null);
 
 watch(() => model.value?.path, (newPath) => {
     if (syncing) return;
-    const qIdx = (newPath ?? '').indexOf('?');
-    const qs = qIdx === -1 ? '' : newPath.slice(qIdx + 1);
+    let path = newPath ?? '';
+    if (/^https?:\/\//i.test(path)) {
+        try {
+            const u = new URL(path);
+            const pastedHost = u.host;
+            let connectionHost = null;
+            try { connectionHost = new URL(selectedConnection.value?.base_url ?? '').host; } catch {}
+            path = u.pathname + u.search;
+            strippedDomain.value = (!connectionHost || pastedHost !== connectionHost) ? pastedHost : null;
+        } catch {
+            strippedDomain.value = null;
+        }
+    } else {
+        strippedDomain.value = null;
+    }
+    const qIdx = path.indexOf('?');
+    const qs = qIdx === -1 ? '' : path.slice(qIdx + 1);
     syncing = true;
+    if (path !== newPath) model.value.path = path;
     model.value.query = parsePairs(qs);
     syncing = false;
 }, { flush: 'sync', immediate: true });
@@ -63,6 +80,13 @@ const fullUrlPreview = computed(() => {
     if (! selectedConnection.value) return '';
     return (selectedConnection.value.base_url ?? '').replace(/\/$/, '')
         + '/' + (model.value.path ?? '').replace(/^\//, '');
+});
+
+const urlPreviewParts = computed(() => {
+    if (! fullUrlPreview.value) return [];
+    const [base, qs] = fullUrlPreview.value.split('?');
+    if (! qs) return [base];
+    return [base, ...qs.split('&').map((p, i) => (i === 0 ? '?' : '&') + p)];
 });
 
 function addPair(key) {
@@ -101,7 +125,13 @@ function getPairId(pair) {
             <input v-model="model.path" type="text" placeholder="/users/{{state.user_id}}"
                 class="rounded border-gray-300 text-sm font-mono" />
         </div>
-        <div v-if="fullUrlPreview" class="text-xs text-gray-400 font-mono">→ {{ fullUrlPreview }}</div>
+        <div v-if="strippedDomain" class="text-xs text-amber-600">
+            ⚠ Домен {{ strippedDomain }} проигнорирован — используется домен из подключения.
+        </div>
+        <div v-if="fullUrlPreview" class="text-xs text-gray-400 font-mono">
+            <div>→ {{ urlPreviewParts[0] }}</div>
+            <div v-for="(part, i) in urlPreviewParts.slice(1)" :key="i" class="pl-4">{{ part }}</div>
+        </div>
         <VarsHint />
 
         <details class="border rounded p-2">
