@@ -25,6 +25,7 @@ function buildQueryString(pairs) {
 }
 
 let syncing = false;
+const strippedDomain = ref(null);
 
 watch(() => model.value?.path, (newPath) => {
     if (syncing) return;
@@ -32,8 +33,16 @@ watch(() => model.value?.path, (newPath) => {
     if (/^https?:\/\//i.test(path)) {
         try {
             const u = new URL(path);
+            const pastedHost = u.host;
+            let connectionHost = null;
+            try { connectionHost = new URL(selectedConnection.value?.base_url ?? '').host; } catch {}
             path = u.pathname + u.search;
-        } catch {}
+            strippedDomain.value = (!connectionHost || pastedHost !== connectionHost) ? pastedHost : null;
+        } catch {
+            strippedDomain.value = null;
+        }
+    } else {
+        strippedDomain.value = null;
     }
     const qIdx = path.indexOf('?');
     const qs = qIdx === -1 ? '' : path.slice(qIdx + 1);
@@ -115,6 +124,9 @@ function getPairId(pair) {
             </select>
             <input v-model="model.path" type="text" placeholder="/users/{{state.user_id}}"
                 class="rounded border-gray-300 text-sm font-mono" />
+        </div>
+        <div v-if="strippedDomain" class="text-xs text-amber-600">
+            ⚠ Домен {{ strippedDomain }} проигнорирован — используется домен из подключения.
         </div>
         <div v-if="fullUrlPreview" class="text-xs text-gray-400 font-mono">
             <div>→ {{ urlPreviewParts[0] }}</div>
