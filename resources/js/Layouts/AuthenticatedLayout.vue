@@ -1,94 +1,112 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3'
-import { Bot, Users, Puzzle, Bell, LogOut, Search } from 'lucide-vue-next'
+import { Bot, Users, Puzzle, Bell, Search, Settings } from 'lucide-vue-next'
+import { computed } from 'vue'
 
-defineProps({
+const props = defineProps({
     title: String,
     subtitle: String,
     flush: Boolean,
 })
+
+const user = computed(() => window.$page?.props?.auth?.user)
 </script>
 
 <template>
     <div class="er-app">
-        <header class="er-topbar">
-            <div class="er-brand">
+        <nav class="er-leftnav">
+            <div class="er-leftnav-brand">
                 <div class="er-brand-logo">Г</div>
                 <span class="er-brand-name">Говорун</span>
             </div>
 
-            <nav class="er-tnav">
-                <Link
-                    :href="route('dashboard')"
-                    class="er-tnav-item"
-                    :class="{ act: route().current('dashboard') || route().current('bots.*') }"
-                >
-                    <Bot :size="14" />Боты
-                </Link>
-                <Link
-                    v-if="$page.props.auth.user.role === 'admin'"
-                    :href="route('users.index')"
-                    class="er-tnav-item"
-                    :class="{ act: route().current('users.*') }"
-                >
-                    <Users :size="14" />Пользователи
-                </Link>
-                <Link
-                    v-if="$page.props.auth.user.role === 'admin'"
-                    :href="route('plugins.index')"
-                    class="er-tnav-item"
-                    :class="{ act: route().current('plugins.*') }"
-                >
-                    <Puzzle :size="14" />Плагины
-                </Link>
-            </nav>
+            <div class="er-leftnav-sec">Разделы</div>
 
-            <div class="er-tsp"></div>
+            <Link
+                :href="route('dashboard')"
+                class="er-leftnav-item"
+                :class="{ act: route().current('dashboard') || route().current('bots.*') }"
+            >
+                <span class="er-leftnav-icon"><Bot :size="14" /></span>
+                Боты
+            </Link>
+            <Link
+                v-if="$page.props.auth.user.role === 'admin'"
+                :href="route('users.index')"
+                class="er-leftnav-item"
+                :class="{ act: route().current('users.*') }"
+            >
+                <span class="er-leftnav-icon"><Users :size="14" /></span>
+                Пользователи
+            </Link>
+            <Link
+                v-if="$page.props.auth.user.role === 'admin'"
+                :href="route('plugins.index')"
+                class="er-leftnav-item"
+                :class="{ act: route().current('plugins.*') }"
+            >
+                <span class="er-leftnav-icon"><Puzzle :size="14" /></span>
+                Плагины
+            </Link>
 
-            <div class="er-search-top">
-                <Search :size="12" /><span>Поиск...</span>
+            <div class="er-leftnav-sep"></div>
+
+            <div class="er-leftnav-user">
+                <div class="er-leftnav-av">
+                    {{ $page.props.auth.user.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="er-leftnav-uinfo">
+                    <div class="er-leftnav-uname">{{ $page.props.auth.user.name }}</div>
+                    <div class="er-leftnav-urole">{{ $page.props.auth.user.role }}</div>
+                </div>
+                <button class="er-leftnav-logout" type="button" title="Выйти" @click="router.post(route('logout'))">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                </button>
             </div>
+        </nav>
 
-            <div class="er-tright">
-                <button class="er-tib" type="button" title="Уведомления">
+        <div class="er-main">
+            <div class="er-utilbar">
+                <div class="er-utilbar-search">
+                    <Search :size="12" style="flex-shrink:0;color:var(--ink-4)" />
+                    <span>Поиск...</span>
+                </div>
+                <div style="flex:1"></div>
+                <button class="er-utilbtn-icon" type="button" title="Уведомления">
                     <Bell :size="14" />
                 </button>
-                <div class="er-user-block">
-                    <div>
-                        <div class="er-user-name">{{ $page.props.auth.user.name }}</div>
-                        <div class="er-user-role">{{ $page.props.auth.user.role }}</div>
-                    </div>
-                    <button class="er-tib" type="button" title="Выйти" @click="router.post(route('logout'))">
-                        <LogOut :size="14" />
-                    </button>
-                </div>
+                <button class="er-utilbtn-icon" type="button" title="Настройки">
+                    <Settings :size="14" />
+                </button>
             </div>
-        </header>
 
-        <div v-if="$slots.subbar" class="er-subbar">
-            <slot name="subbar" />
-        </div>
+            <div v-if="$slots.subbar" class="er-subbar">
+                <slot name="subbar" />
+            </div>
 
-        <div class="er-body">
-            <aside v-if="$slots.sidebar" class="er-side">
-                <slot name="sidebar" />
-            </aside>
+            <div class="er-body">
+                <aside v-if="$slots.sidebar" class="er-side">
+                    <slot name="sidebar" />
+                </aside>
 
-            <main class="er-ctt" :class="{ flush }">
-                <nav v-if="$slots.breadcrumbs" class="er-bcr">
-                    <slot name="breadcrumbs" />
-                </nav>
-                <div v-if="title || $slots.actions" class="er-ph">
-                    <div>
-                        <h1 class="er-ph-t">{{ title }}</h1>
-                        <p v-if="subtitle" class="er-ph-s">{{ subtitle }}</p>
+                <main class="er-ctt" :class="{ flush }">
+                    <nav v-if="$slots.breadcrumbs" class="er-bcr">
+                        <slot name="breadcrumbs" />
+                    </nav>
+                    <div v-if="title || $slots.actions" class="er-ph">
+                        <div>
+                            <h1 class="er-ph-t">{{ title }}</h1>
+                            <p v-if="subtitle" class="er-ph-s">{{ subtitle }}</p>
+                        </div>
+                        <div v-if="$slots.actions" class="er-ph-a">
+                            <slot name="actions" />
+                        </div>
                     </div>
-                    <div v-if="$slots.actions" class="er-ph-a">
-                        <slot name="actions" />
-                    </div>
-                </div>
-                <slot />
-            </main>
+                    <slot />
+                </main>
+            </div>
         </div>
     </div>
 </template>
@@ -96,7 +114,7 @@ defineProps({
 <style scoped>
 .er-app {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     width: 100%;
     height: 100vh;
     font-family: var(--font);
@@ -108,27 +126,31 @@ defineProps({
 }
 .er-app * { box-sizing: border-box; }
 
-.er-topbar {
-    height: 36px;
-    background: linear-gradient(180deg, #264a85 0%, #1d3a6e 100%);
-    border-bottom: 1px solid #0c2050;
+/* ── Left nav ── */
+.er-leftnav {
+    width: 208px;
+    background: linear-gradient(180deg, #264a85 0%, #1d3a6e 60%, #162d57 100%);
+    border-right: 1px solid #0c2050;
     display: flex;
-    align-items: stretch;
+    flex-direction: column;
     flex-shrink: 0;
     color: var(--nav-text);
-    font-size: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,.15);
+    box-shadow: 2px 0 4px rgba(0,0,0,.10);
+    overflow-y: auto;
+    overflow-x: hidden;
 }
-.er-brand {
-    padding: 0 14px;
+.er-leftnav-brand {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,.10);
     display: flex;
     align-items: center;
-    gap: 8px;
-    border-right: 1px solid rgba(255,255,255,.1);
+    gap: 9px;
+    flex-shrink: 0;
+    background: rgba(0,0,0,.15);
 }
 .er-brand-logo {
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     border-radius: 3px;
     background: #fff;
     display: flex;
@@ -137,63 +159,143 @@ defineProps({
     color: #1d3a6e;
     font-weight: 700;
     font-size: 11px;
+    flex-shrink: 0;
 }
-.er-brand-name { font-weight: 600; color: #fff; font-size: 13px; }
-.er-tnav { display: flex; align-items: stretch; }
-.er-tnav-item {
+.er-brand-name { font-size: 13px; font-weight: 600; color: #fff; }
+
+.er-leftnav-sec {
+    padding: 10px 12px 4px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: rgba(255,255,255,.42);
+}
+.er-leftnav-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 0 14px;
+    gap: 9px;
+    padding: 6px 12px;
     color: var(--nav-text);
     text-decoration: none;
-    border-right: 1px solid rgba(255,255,255,.06);
-    transition: background .1s;
+    cursor: pointer;
     font-weight: 500;
     font-size: 12px;
-    border-bottom: 2px solid transparent;
-}
-.er-tnav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
-.er-tnav-item.act { background: rgba(0,0,0,.20); color: #fff; border-bottom-color: #5a8cd4; }
-.er-tsp { flex: 1; }
-.er-search-top {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0 10px;
-    height: 24px;
-    margin: 6px 10px;
-    background: rgba(0,0,0,.2);
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 3px;
-    color: var(--nav-text);
-    font-size: 11px;
-    width: 220px;
-    cursor: default;
-}
-.er-tright { display: flex; align-items: center; padding-right: 8px; }
-.er-tib {
-    padding: 0 10px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    color: var(--nav-text);
-    background: none;
-    border: none;
     transition: background .1s;
+    border-left: 3px solid transparent;
 }
-.er-tib:hover { background: rgba(255,255,255,.08); color: #fff; }
-.er-user-block {
+.er-leftnav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+.er-leftnav-item.act { background: rgba(0,0,0,.25); color: #fff; border-left-color: #5a8cd4; font-weight: 600; }
+.er-leftnav-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    opacity: .75;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.er-leftnav-item.act .er-leftnav-icon { opacity: 1; }
+
+.er-leftnav-sep {
+    height: 1px;
+    background: rgba(255,255,255,.10);
+    margin: 6px 12px;
+}
+
+.er-leftnav-user {
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,.10);
+    padding: 9px 12px;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 0 10px;
-    border-left: 1px solid rgba(255,255,255,.08);
-    height: 100%;
+    background: rgba(0,0,0,.15);
+    flex-shrink: 0;
 }
-.er-user-name { color: #fff; font-weight: 500; font-size: 12px; }
-.er-user-role { color: var(--nav-text); font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
+.er-leftnav-av {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5a8cd4, #2a5ca0);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,.2);
+}
+.er-leftnav-uinfo { flex: 1; min-width: 0; }
+.er-leftnav-uname { font-size: 12px; color: #fff; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.er-leftnav-urole { font-size: 10px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .04em; }
+.er-leftnav-logout {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255,255,255,.5);
+    border-radius: 3px;
+    flex-shrink: 0;
+    transition: background .1s, color .1s;
+}
+.er-leftnav-logout:hover { background: rgba(255,255,255,.10); color: #fff; }
+
+/* ── Main area ── */
+.er-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.er-utilbar {
+    height: 38px;
+    background: #fff;
+    border-bottom: 1px solid var(--bdr);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 10px;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(20,30,50,.05);
+}
+.er-utilbar-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    height: 26px;
+    background: var(--surface-2);
+    border: 1px solid var(--bdr);
+    border-radius: 3px;
+    color: var(--ink-3);
+    font-size: 12px;
+    flex: 1;
+    max-width: 380px;
+    cursor: default;
+}
+.er-utilbtn-icon {
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    cursor: pointer;
+    color: var(--ink-3);
+    background: none;
+    border: none;
+    position: relative;
+    transition: background .1s;
+}
+.er-utilbtn-icon:hover { background: var(--surface-2); }
 
 .er-subbar {
     height: 32px;
