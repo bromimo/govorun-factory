@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import Modal from '@/Components/Modal.vue';
 import AuthConfigFields from './AuthConfigFields.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import ErInput from '@/Components/Ui/ErInput.vue';
@@ -11,7 +12,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['close', 'saved']);
 
-const isEdit = computed(() => !! props.connection);
+const isEdit = computed(() => !!props.connection);
 
 const form = useForm({
     name: props.connection?.name ?? '',
@@ -27,7 +28,7 @@ const form = useForm({
 const slugManuallyEdited = ref(isEdit.value);
 
 watch(() => form.name, (n) => {
-    if (! slugManuallyEdited.value) {
+    if (!slugManuallyEdited.value) {
         form.slug = transliterate(n);
     }
 });
@@ -78,111 +79,82 @@ function removeHeader(i) {
 </script>
 
 <template>
-    <div class="drawer-overlay">
-        <div class="drawer-backdrop" @click="emit('close')" />
-        <div class="drawer-panel">
-            <div class="drawer-h">
-                <span>{{ isEdit ? `Подключение: ${connection.name}` : 'Новое подключение' }}</span>
-                <button class="drawer-close" @click="emit('close')">✕</button>
+    <Modal
+        :show="true"
+        :title="isEdit ? `Подключение: ${connection.name}` : 'Новое подключение'"
+        max-width="lg"
+        @close="emit('close')"
+    >
+        <div class="cd-body">
+            <div class="field-row">
+                <label class="field-lbl">Имя</label>
+                <ErInput v-model="form.name" long />
+                <div v-if="form.errors.name" class="field-err">{{ form.errors.name }}</div>
             </div>
 
-            <div class="drawer-body">
-                <div class="field-row">
-                    <label class="field-lbl">Имя</label>
-                    <ErInput v-model="form.name" long />
-                    <div v-if="form.errors.name" class="field-err">{{ form.errors.name }}</div>
-                </div>
-
-                <div class="field-row">
-                    <label class="field-lbl">Slug</label>
-                    <ErInput
-                        :modelValue="form.slug"
-                        @update:modelValue="onSlugInput"
-                        long
-                    />
-                    <div class="field-hint">Используется в config/connections.php экспортируемого бота</div>
-                    <div v-if="form.errors.slug" class="field-err">{{ form.errors.slug }}</div>
-                </div>
-
-                <div class="field-row">
-                    <label class="field-lbl">Base URL</label>
-                    <ErInput
-                        v-model="form.base_url"
-                        placeholder="https://api.example.com"
-                        long
-                    />
-                    <div v-if="form.errors.base_url" class="field-err">{{ form.errors.base_url }}</div>
-                </div>
-
-                <div class="field-row">
-                    <label class="field-lbl">Авторизация</label>
-                    <div class="auth-radio-row">
-                        <label v-for="t in ['none', 'api_key', 'bearer', 'basic']" :key="t" class="radio-lbl">
-                            <input type="radio" v-model="form.auth_type" :value="t" />
-                            {{ t }}
-                        </label>
-                    </div>
-                    <AuthConfigFields
-                        :type="form.auth_type"
-                        v-model="form.auth_config"
-                        :is-edit="isEdit"
-                        :errors="form.errors"
-                    />
-                </div>
-
-                <details class="headers-section">
-                    <summary class="headers-summary">
-                        Заголовки по умолчанию ({{ form.default_headers.length }})
-                    </summary>
-                    <div v-for="(h, i) in form.default_headers" :key="i" class="header-row">
-                        <ErInput v-model="h.key" placeholder="Header" />
-                        <ErInput v-model="h.value" placeholder="Value" />
-                        <button class="hdr-remove" @click="removeHeader(i)">✕</button>
-                    </div>
-                    <button class="hdr-add" @click="addHeader">+ Добавить заголовок</button>
-                </details>
+            <div class="field-row">
+                <label class="field-lbl">Slug</label>
+                <ErInput :modelValue="form.slug" @update:modelValue="onSlugInput" long />
+                <div class="field-hint">Используется в config/connections.php экспортируемого бота</div>
+                <div v-if="form.errors.slug" class="field-err">{{ form.errors.slug }}</div>
             </div>
 
-            <div class="drawer-footer">
-                <ErButton @click="emit('close')">Отмена</ErButton>
-                <ErButton
-                    variant="primary"
-                    @click="submit"
-                    :disabled="form.processing"
-                >
-                    {{ isEdit ? 'Сохранить' : 'Создать' }}
-                </ErButton>
+            <div class="field-row">
+                <label class="field-lbl">Base URL</label>
+                <ErInput v-model="form.base_url" placeholder="https://api.example.com" long />
+                <div v-if="form.errors.base_url" class="field-err">{{ form.errors.base_url }}</div>
             </div>
+
+            <div class="field-row">
+                <label class="field-lbl">Авторизация</label>
+                <div class="auth-radio-row">
+                    <label v-for="t in ['none', 'api_key', 'bearer', 'basic']" :key="t" class="radio-lbl">
+                        <input type="radio" v-model="form.auth_type" :value="t" />
+                        {{ t }}
+                    </label>
+                </div>
+                <AuthConfigFields
+                    :type="form.auth_type"
+                    v-model="form.auth_config"
+                    :is-edit="isEdit"
+                    :errors="form.errors"
+                />
+            </div>
+
+            <details class="headers-section">
+                <summary class="headers-summary">
+                    Заголовки по умолчанию ({{ form.default_headers.length }})
+                </summary>
+                <div v-for="(h, i) in form.default_headers" :key="i" class="header-row">
+                    <ErInput v-model="h.key" placeholder="Header" />
+                    <ErInput v-model="h.value" placeholder="Value" />
+                    <button class="hdr-remove" type="button" @click="removeHeader(i)">✕</button>
+                </div>
+                <button class="hdr-add" type="button" @click="addHeader">+ Добавить заголовок</button>
+            </details>
         </div>
-    </div>
+
+        <div class="cd-foot">
+            <ErButton @click="emit('close')">Отмена</ErButton>
+            <ErButton variant="primary" @click="submit" :disabled="form.processing">
+                {{ isEdit ? 'Сохранить' : 'Создать' }}
+            </ErButton>
+        </div>
+    </Modal>
 </template>
 
 <style scoped>
-.drawer-overlay { position: fixed; inset: 0; z-index: 40; display: flex; }
-.drawer-backdrop { flex: 1; background: rgba(0,0,0,.3); }
-.drawer-panel { width: 480px; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,.15); }
-.drawer-h {
-    padding: 10px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
-    border-bottom: 1px solid var(--bdr);
+.cd-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
 }
-.drawer-close {
-    background: none;
-    border: none;
-    font-size: 14px;
-    color: var(--ink-3);
-    cursor: pointer;
-    padding: 2px 4px;
-    line-height: 1;
-}
-.drawer-close:hover { color: var(--ink); }
-.drawer-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
-.drawer-footer {
+.cd-foot {
+    flex-shrink: 0;
     padding: 10px 14px;
     border-top: 1px solid var(--bdr);
     background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
@@ -191,7 +163,7 @@ function removeHeader(i) {
     gap: 8px;
 }
 .field-row { display: flex; flex-direction: column; gap: 4px; }
-.field-lbl { font-size: 11px; color: var(--ink-2); font-weight: 500; }
+.field-lbl { font-size: 11px; font-weight: 600; color: var(--ink-2); }
 .field-hint { font-size: 11px; color: var(--ink-3); }
 .field-err { font-size: 11px; color: var(--red); }
 .auth-radio-row { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; margin-bottom: 8px; }

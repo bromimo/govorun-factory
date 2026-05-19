@@ -136,9 +136,8 @@ function deleteBot() {
         <MessengerConfigForm v-else-if="activeTab === 'messengers'" :bot="bot" :can="can" />
         <MediaLibrary v-else-if="activeTab === 'media'" :bot="bot" />
 
-        <Modal :show="confirmingDeletion" max-width="md" @close="confirmingDeletion = false">
+        <Modal :show="confirmingDeletion" :title="`Удалить бота «${bot.name}»?`" max-width="md" @close="confirmingDeletion = false">
             <div class="modal-body">
-                <h2 class="modal-title">Удалить бота «{{ bot.name }}»?</h2>
                 <p class="modal-desc">Будут удалены все маршруты, flow-диалоги и настройки. Действие необратимо.</p>
                 <div class="modal-acts">
                     <ErButton @click="confirmingDeletion = false">Отмена</ErButton>
@@ -152,13 +151,13 @@ function deleteBot() {
 <style scoped>
 .side-group { padding: 0; }
 .side-grp-h {
-    padding: 6px 12px 6px 8px;
-    font-size: 11px;
+    padding: 6px 10px 5px;
+    font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: .07em;
     color: var(--ink-3);
-    letter-spacing: .04em;
-    background: var(--surface-2);
+    background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
     border-top: 1px solid var(--bdr-l);
     border-bottom: 1px solid var(--bdr-l);
 }
@@ -187,8 +186,7 @@ function deleteBot() {
 .side-cnt { font-size: 10px; color: var(--ink-4); font-family: var(--mono); margin-left: auto; }
 
 .export-errors { background: var(--red-soft); border: 1px solid #e0a8a8; border-radius: var(--r-md); padding: 8px 12px; margin-bottom: 12px; font-size: 12px; color: var(--red); }
-.modal-body { padding: 20px 24px; }
-.modal-title { font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 8px; }
+.modal-body { padding: 16px 20px 20px; }
 .modal-desc { font-size: 12px; color: var(--ink-2); margin: 0 0 20px; }
 .modal-acts { display: flex; justify-content: flex-end; gap: 8px; }
 </style>
