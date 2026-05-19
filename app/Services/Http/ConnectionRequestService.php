@@ -48,29 +48,29 @@ class ConnectionRequestService
 
     private function buildUrl(BotConnection $connection, RequestDraft $draft): string
     {
-        $path = $this->tpl->render($draft->path, $draft->stateSample);
+        $rendered = $this->tpl->render($draft->path, $draft->stateSample);
+        $pathOnly = '/'.ltrim(explode('?', $rendered, 2)[0], '/');
         $base = rtrim($connection->base_url, '/');
-        $path = '/'.ltrim($path, '/');
-        $url = $base.$path;
+        $url = $base.$pathOnly;
 
-        $query = [];
+        $queryParts = [];
 
         foreach ($draft->query as $item) {
             $key = $this->tpl->render($item['key'] ?? '', $draft->stateSample);
             $value = $this->tpl->render($item['value'] ?? '', $draft->stateSample);
             if ($key !== '') {
-                $query[$key] = $value;
+                $queryParts[] = rawurlencode($key).'='.$value;
             }
         }
 
         if ($connection->auth_type === ConnectionAuthType::ApiKey) {
             $cfg = $connection->auth_config ?? [];
             if (($cfg['in'] ?? 'header') === 'query' && ! empty($cfg['key'])) {
-                $query[$cfg['key']] = $cfg['value'] ?? '';
+                $queryParts[] = rawurlencode($cfg['key']).'='.($cfg['value'] ?? '');
             }
         }
 
-        return $query === [] ? $url : $url.'?'.http_build_query($query);
+        return $queryParts === [] ? $url : $url.'?'.implode('&', $queryParts);
     }
 
     private function applyAuth(PendingRequest $client, BotConnection $connection): PendingRequest
@@ -133,7 +133,7 @@ class ConnectionRequestService
     private function callMethod(PendingRequest $client, string $method, string $url, array $data = []): Response
     {
         return match (strtoupper($method)) {
-            'GET' => $client->get($url, $data),
+            'GET' => $data === [] ? $client->get($url) : $client->get($url, $data),
             'POST' => $client->post($url, $data),
             'PUT' => $client->put($url, $data),
             'PATCH' => $client->patch($url, $data),
