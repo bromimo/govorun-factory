@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { controllerBlockTypes, defaultBlockParams, colorClasses } from '../Blocks/blockTypes.js';
 import BlockFormResolver from '../Blocks/BlockFormResolver.vue';
 
@@ -6,6 +7,22 @@ const model = defineModel({ type: Array, default: () => [] });
 const props = defineProps({
     botId: { type: [Number, String], default: null },
 });
+
+function blockStateKeys(block) {
+    if (block.type === 'save_state') {
+        return (block.params?.variables ?? []).map(v => v.key).filter(Boolean);
+    }
+    if (block.type === 'api_call') {
+        return (block.params?.response_mapping ?? []).map(m => m.state_key).filter(Boolean);
+    }
+    return [];
+}
+
+const allStateKeys = computed(() => [...new Set(model.value.flatMap(blockStateKeys))]);
+
+function declaredBefore(index) {
+    return [...new Set(model.value.slice(0, index).flatMap(blockStateKeys))];
+}
 
 function addBlock(type) {
     model.value = [...model.value, { type, params: { ...defaultBlockParams[type] } }];
@@ -39,7 +56,10 @@ function moveBlock(index, direction) {
                     <button type="button" @click="removeBlock(i)" class="text-red-400 hover:text-red-600 text-xs ml-2">x</button>
                 </div>
             </div>
-            <BlockFormResolver :type="block.type" v-model="block.params" :bot-id="props.botId" />
+            <BlockFormResolver :type="block.type" v-model="block.params" :bot-id="props.botId"
+                :all-state-keys="allStateKeys"
+                :declared-state-keys="declaredBefore(i)"
+                :possibly-declared-state-keys="declaredBefore(i)" />
         </div>
 
         <div class="flex flex-wrap gap-2 pt-2">

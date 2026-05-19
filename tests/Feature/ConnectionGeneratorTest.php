@@ -28,11 +28,12 @@ it('генерирует config/connections.php и env.example', function () {
     $env = file_get_contents($tmp.'/.env.example');
 
     expect($config)->toContain("'bitrix_prod'");
-    expect($config)->toContain("env('CONN_BITRIX_PROD_BASE_URL')");
+    expect($config)->toContain("'base_url' => 'https://acme.bitrix24.ru/rest/1'");
     expect($config)->toContain("env('CONN_BITRIX_PROD_TOKEN')");
     expect($config)->not->toContain('secret');
+    expect($config)->not->toContain('CONN_BITRIX_PROD_BASE_URL');
 
-    expect($env)->toContain('CONN_BITRIX_PROD_BASE_URL=https://acme.bitrix24.ru/rest/1');
+    expect($env)->not->toContain('CONN_BITRIX_PROD_BASE_URL');
     expect($env)->toContain('CONN_BITRIX_PROD_TOKEN=');
 
     File::deleteDirectory($tmp);

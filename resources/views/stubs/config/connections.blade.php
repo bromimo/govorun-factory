@@ -1,7 +1,7 @@
 return [
 @foreach ($connections as $conn)
     '{!! $conn->slug !!}' => [
-        'base_url' => env('{!! $conn->envPrefix !!}_BASE_URL'),
+        'base_url' => '{!! addslashes($conn->base_url) !!}',
         'auth' => [
             'type' => '{!! $conn->auth_type->value !!}',
 @if($conn->auth_type->value === 'bearer')

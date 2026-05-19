@@ -30,8 +30,6 @@ class ConnectionGenerator
         $envLines = [];
 
         foreach ($connections as $c) {
-            $envLines[] = "{$c->envPrefix}_BASE_URL={$c->base_url}";
-
             match ($c->auth_type) {
                 ConnectionAuthType::Bearer => $envLines[] = "{$c->envPrefix}_TOKEN=",
                 ConnectionAuthType::ApiKey => $envLines[] = "{$c->envPrefix}_VALUE=",

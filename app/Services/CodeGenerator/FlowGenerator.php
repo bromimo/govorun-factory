@@ -767,7 +767,7 @@ class FlowGenerator
         return "'".addslashes($template)."'";
     }
 
-    /** Рендер пар key/value в инлайновый PHP-массив.
+    /** Рендер пар key/value в многострочный PHP-массив.
      *
      * @param  array<int, array{key: string, value: string}>  $pairs  Пары ключ/значение.
      */
@@ -782,10 +782,10 @@ class FlowGenerator
         foreach ($pairs as $p) {
             $k = "'".addslashes($p['key'] ?? '')."'";
             $v = $this->renderStringExpr($p['value'] ?? '');
-            $parts[] = "{$k} => {$v}";
+            $parts[] = "        {$k} => {$v},";
         }
 
-        return '['.implode(', ', $parts).']';
+        return "[\n".implode("\n", $parts)."\n    ]";
     }
 
     /** Рендер тела запроса в PHP-выражение.
