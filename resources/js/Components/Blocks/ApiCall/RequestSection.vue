@@ -101,7 +101,7 @@ function getPairId(pair) {
             <input v-model="model.path" type="text" placeholder="/users/{{state.user_id}}"
                 class="rounded border-gray-300 text-sm font-mono" />
         </div>
-        <div v-if="fullUrlPreview" class="text-xs text-gray-400 font-mono">→ {{ fullUrlPreview }}</div>
+        <div v-if="fullUrlPreview" class="text-xs text-gray-400 font-mono break-all">→ {{ fullUrlPreview }}</div>
         <VarsHint />
 
         <details class="border rounded p-2">
