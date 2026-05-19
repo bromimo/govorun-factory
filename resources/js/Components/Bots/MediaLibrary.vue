@@ -49,6 +49,14 @@ const typeFallback = {
     video: '#7c3aed', audio: '#c87820', document: '#3a72c4',
 };
 
+function pluralFiles(n) {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return `${n} файл`;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return `${n} файла`;
+    return `${n} файлов`;
+}
+
 function fileExt(name) {
     const m = name?.match(/\.([^.]+)$/);
     return m ? m[1].toUpperCase() : '?';
@@ -122,7 +130,7 @@ onMounted(() => {
 <template>
     <div class="ml-root">
         <div class="ml-toolbar">
-            <span class="ml-count">{{ items.length }} файлов</span>
+            <span class="ml-count">{{ pluralFiles(items.length) }}</span>
             <div style="flex: 1;" />
             <input ref="fileInput" type="file" multiple style="display: none;"
                 @change="handleFiles($event.target.files)" />
