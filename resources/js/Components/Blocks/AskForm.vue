@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 import VarsHint from './VarsHint.vue';
 import StateWarning from './StateWarning.vue';
 import MediaPicker from './MediaPicker.vue';
@@ -23,6 +24,8 @@ const props = defineProps({
 
 const stepNameWarning = ref('');
 let stepNameWarningTimer = null;
+
+const pendingMode = ref(null);
 
 const { uninitializedKeys, partiallyInitializedKeys, undeclaredKeys } = useStateWarnings(
     () => stripTelegramHtml(model.value.text ?? ''),
@@ -77,12 +80,25 @@ function setMode(newMode) {
     if (newMode === model.value.mode) return;
 
     if (newMode === 'callback') {
-        // Уходим в callback — слетит validation (text-only), нужен confirm если есть правила
         if ((model.value.validation?.length ?? 0) > 0) {
-            if (!confirm('При переключении в режим «Выбор кнопкой» правила валидации будут удалены. Продолжить?')) {
-                return;
-            }
+            pendingMode.value = newMode;
+            return;
         }
+        applyMode(newMode);
+    } else {
+        const hasButtons = Array.isArray(model.value.keyboard?.buttons)
+            && model.value.keyboard.buttons.some(row => Array.isArray(row) && row.length > 0);
+        if (hasButtons) {
+            pendingMode.value = newMode;
+            return;
+        }
+        applyMode(newMode);
+    }
+}
+
+function applyMode(newMode) {
+    pendingMode.value = null;
+    if (newMode === 'callback') {
         model.value = {
             ...model.value,
             mode: 'callback',
@@ -90,14 +106,6 @@ function setMode(newMode) {
             keyboard: model.value.keyboard ?? { type: 'inline', buttons: [] },
         };
     } else {
-        // Уходим в text — слетит keyboard (callback-only), нужен confirm если есть кнопки
-        const hasButtons = Array.isArray(model.value.keyboard?.buttons)
-            && model.value.keyboard.buttons.some(row => Array.isArray(row) && row.length > 0);
-        if (hasButtons) {
-            if (!confirm('При переключении в режим «Текст» настроенная клавиатура будет удалена. Продолжить?')) {
-                return;
-            }
-        }
         model.value = {
             ...model.value,
             mode: 'text',
@@ -174,4 +182,16 @@ const isCallback = computed(() => model.value.mode === 'callback');
 
         <KeyboardSection v-if="isCallback" v-model="keyboard" :required="true" :declared-keys="declaredStateKeys" />
     </div>
+
+    <ConfirmModal
+        :show="!!pendingMode"
+        title="Сменить режим?"
+        :message="pendingMode === 'callback'
+            ? 'Правила валидации будут удалены при переключении в режим «Выбор кнопкой».'
+            : 'Настроенная клавиатура будет удалена при переключении в режим «Текст».'"
+        confirm-label="Продолжить"
+        variant="primary"
+        @confirm="applyMode(pendingMode)"
+        @cancel="pendingMode = null"
+    />
 </template>

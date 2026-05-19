@@ -7,6 +7,7 @@ import ConnectionDrawer from '@/Components/Connections/ConnectionDrawer.vue';
 import ErTable from '@/Components/Ui/ErTable.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import ErBadge from '@/Components/Ui/ErBadge.vue';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 
 const props = defineProps({
     bot: Object,
@@ -15,6 +16,7 @@ const props = defineProps({
 
 const drawerOpen = ref(false);
 const editingConnection = ref(null);
+const confirmConn = ref(null);
 
 function openCreate() {
     editingConnection.value = null;
@@ -32,12 +34,14 @@ function onSaved() {
 }
 
 function destroy(connection) {
-    if (! confirm(`Удалить подключение «${connection.name}»?`)) {
-        return;
-    }
-    router.delete(route('bot-connections.destroy', [props.bot.id, connection.id]), {
+    confirmConn.value = connection;
+}
+
+function doDestroy() {
+    router.delete(route('bot-connections.destroy', [props.bot.id, confirmConn.value.id]), {
         preserveScroll: true,
     });
+    confirmConn.value = null;
 }
 </script>
 
@@ -91,6 +95,15 @@ function destroy(connection) {
             :connection="editingConnection"
             @close="drawerOpen = false"
             @saved="onSaved"
+        />
+
+        <ConfirmModal
+            :show="!!confirmConn"
+            title="Удалить подключение?"
+            :message="`Подключение «${confirmConn?.name}» будет удалено безвозвратно.`"
+            confirm-label="Удалить"
+            @confirm="doDestroy"
+            @cancel="confirmConn = null"
         />
     </AuthenticatedLayout>
 </template>

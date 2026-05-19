@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import KeyboardPreview from './KeyboardPreview.vue';
 import KeyboardEditorModal from './KeyboardEditorModal.vue';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 
 const model = defineModel({ type: Object, default: null });
 const props = defineProps({
@@ -10,6 +11,7 @@ const props = defineProps({
 });
 
 const editorOpen = ref(false);
+const pendingType = ref(null);
 
 const keyboardType = computed(() => model.value?.type ?? 'inline');
 
@@ -37,7 +39,15 @@ const hasButtons = computed(() => {
 
 function switchType(newType) {
     if (newType === keyboardType.value) return;
-    if (hasButtons.value && !confirm('При переключении типа все кнопки будут удалены. Продолжить?')) return;
+    if (hasButtons.value) {
+        pendingType.value = newType;
+        return;
+    }
+    applyType(newType);
+}
+
+function applyType(newType = pendingType.value) {
+    pendingType.value = null;
     if (newType === 'reply') {
         model.value = { type: 'reply', resize: false, oneTime: false, buttons: [] };
     } else {
@@ -91,5 +101,15 @@ function clear() {
 
         <KeyboardEditorModal v-model="buttons" v-model:open="editorOpen"
             :declared-keys="props.declaredKeys" :keyboard-type="keyboardType" />
+
+        <ConfirmModal
+            :show="!!pendingType"
+            title="Сменить тип клавиатуры?"
+            message="Все настроенные кнопки будут удалены."
+            confirm-label="Продолжить"
+            variant="primary"
+            @confirm="applyType()"
+            @cancel="pendingType = null"
+        />
     </div>
 </template>

@@ -1,7 +1,11 @@
 <script setup>
+import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 
 const props = defineProps({ plugin: Object });
+
+const confirmDelete = ref(false);
 
 function toggleActive() {
     router.put(route('plugins.update', props.plugin.id), {
@@ -9,10 +13,9 @@ function toggleActive() {
     });
 }
 
-function deletePlugin() {
-    if (confirm(`Удалить плагин ${props.plugin.name}?`)) {
-        router.delete(route('plugins.destroy', props.plugin.id));
-    }
+function doDelete() {
+    router.delete(route('plugins.destroy', props.plugin.id));
+    confirmDelete.value = false;
 }
 </script>
 
@@ -35,7 +38,15 @@ function deletePlugin() {
         </div>
 
         <div class="mt-3 flex justify-end">
-            <button @click="deletePlugin" class="text-xs text-red-600 hover:text-red-800">Удалить</button>
+            <button @click="confirmDelete = true" class="text-xs text-red-600 hover:text-red-800">Удалить</button>
         </div>
     </div>
+
+    <ConfirmModal
+        :show="confirmDelete"
+        title="Удалить плагин?"
+        :message="`Плагин «${plugin.name}» будет удалён безвозвратно.`"
+        @confirm="doDelete"
+        @cancel="confirmDelete = false"
+    />
 </template>

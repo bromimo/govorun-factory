@@ -7,6 +7,7 @@ import ErTable from '@/Components/Ui/ErTable.vue';
 import ErBadge from '@/Components/Ui/ErBadge.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import { GripVertical, Plus } from 'lucide-vue-next';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 
 const props = defineProps({
     botId: Number,
@@ -53,10 +54,15 @@ function closeEditor() {
     editorParentId.value = null;
 }
 
+const confirmRoute = ref(null);
+
 function deleteRoute(route) {
-    if (confirm('Удалить маршрут?')) {
-        router.delete(window.route('bot-routes.destroy', [props.botId, route.id]));
-    }
+    confirmRoute.value = route;
+}
+
+function doDeleteRoute() {
+    router.delete(window.route('bot-routes.destroy', [props.botId, confirmRoute.value.id]));
+    confirmRoute.value = null;
 }
 
 function onDragStart(e, index) {
@@ -257,6 +263,14 @@ const blockSummaries = computed(() => {
             :has-fallback="hasFallback"
             :flows="flows"
             @close="closeEditor"
+        />
+
+        <ConfirmModal
+            :show="!!confirmRoute"
+            title="Удалить маршрут?"
+            :message="confirmRoute ? `Маршрут «${confirmRoute.match || confirmRoute.command || confirmRoute.type}» будет удалён безвозвратно.` : ''"
+            @confirm="doDeleteRoute"
+            @cancel="confirmRoute = null"
         />
     </div>
 </template>

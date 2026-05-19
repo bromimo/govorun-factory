@@ -4,6 +4,7 @@ import draggable from 'vuedraggable';
 import EmojiPickerPopover from './EmojiPickerPopover.vue';
 import VariablePickerPopover from './VariablePickerPopover.vue';
 import { insertAtCursor } from '@/utils/insertAtCursor';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
@@ -16,6 +17,7 @@ const emit = defineEmits(['update:modelValue', 'update:open']);
 
 const localRows = ref([]);
 const paramErrors = ref({});
+const confirmRowIdx = ref(null);
 const labelInputs = ref({});
 const emojiOpen = ref(null);
 const varsOpen = ref(null);
@@ -42,10 +44,17 @@ function addRow() {
 
 function removeRow(ri) {
     const row = localRows.value[ri];
-    if (row.length > 0 && !confirm(`Удалить ряд из ${row.length} кнопк(и)?`)) return;
+    if (row.length > 0) {
+        confirmRowIdx.value = ri;
+        return;
+    }
+    doRemoveRow(ri);
+}
+
+function doRemoveRow(ri = confirmRowIdx.value) {
     localRows.value.splice(ri, 1);
-    // Индексы сдвинулись — проще очистить карту ошибок (она восстановится по инпуту).
     paramErrors.value = {};
+    confirmRowIdx.value = null;
 }
 
 function addButton(ri) {
@@ -312,4 +321,12 @@ function onVar(varKey) {
         :declared-keys="declaredKeys"
         @select="onVar"
         @close="varsOpen = null" />
+
+<ConfirmModal
+    :show="confirmRowIdx !== null"
+    title="Удалить ряд?"
+    :message="confirmRowIdx !== null ? `В ряду ${localRows[confirmRowIdx]?.length} кнопок. Удалить безвозвратно?` : ''"
+    @confirm="doRemoveRow()"
+    @cancel="confirmRowIdx = null"
+/>
 </template>

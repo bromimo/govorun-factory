@@ -5,6 +5,7 @@ import { Plus } from 'lucide-vue-next';
 import ErTable from '@/Components/Ui/ErTable.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import Modal from '@/Components/Modal.vue';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 
 const props = defineProps({
     botId: Number,
@@ -53,10 +54,15 @@ function save() {
     }
 }
 
+const confirmFlow = ref(null);
+
 function deleteFlow(flow) {
-    if (confirm(`Удалить диалог «${flow.name}»?`)) {
-        router.delete(route('bot-flows.destroy', [props.botId, flow.id]));
-    }
+    confirmFlow.value = flow;
+}
+
+function doDeleteFlow() {
+    router.delete(route('bot-flows.destroy', [props.botId, confirmFlow.value.id]));
+    confirmFlow.value = null;
 }
 </script>
 
@@ -140,6 +146,14 @@ function deleteFlow(flow) {
                 </ErButton>
             </div>
         </Modal>
+
+        <ConfirmModal
+            :show="!!confirmFlow"
+            title="Удалить диалог?"
+            :message="`Диалог «${confirmFlow?.name}» будет удалён безвозвратно.`"
+            @confirm="doDeleteFlow"
+            @cancel="confirmFlow = null"
+        />
     </div>
 </template>
 
