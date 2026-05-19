@@ -35,8 +35,16 @@ watch(() => model.value?.path, (newPath) => {
             const u = new URL(path);
             const pastedHost = u.host;
             let connectionHost = null;
-            try { connectionHost = new URL(selectedConnection.value?.base_url ?? '').host; } catch {}
+            let connectionBasePath = '';
+            try {
+                const connUrl = new URL(selectedConnection.value?.base_url ?? '');
+                connectionHost = connUrl.host;
+                connectionBasePath = connUrl.pathname.replace(/\/$/, '');
+            } catch {}
             path = u.pathname + u.search;
+            if (connectionBasePath && path.startsWith(connectionBasePath + '/')) {
+                path = path.slice(connectionBasePath.length);
+            }
             strippedDomain.value = (!connectionHost || pastedHost !== connectionHost) ? pastedHost : null;
         } catch {
             strippedDomain.value = null;
