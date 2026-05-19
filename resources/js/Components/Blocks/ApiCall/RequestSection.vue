@@ -65,6 +65,13 @@ const fullUrlPreview = computed(() => {
         + '/' + (model.value.path ?? '').replace(/^\//, '');
 });
 
+const urlPreviewParts = computed(() => {
+    if (! fullUrlPreview.value) return [];
+    const [base, qs] = fullUrlPreview.value.split('?');
+    if (! qs) return [base];
+    return [base, ...qs.split('&').map((p, i) => (i === 0 ? '?' : '&') + p)];
+});
+
 function addPair(key) {
     model.value[key].push({ key: '', value: '' });
 }
@@ -101,7 +108,10 @@ function getPairId(pair) {
             <input v-model="model.path" type="text" placeholder="/users/{{state.user_id}}"
                 class="rounded border-gray-300 text-sm font-mono" />
         </div>
-        <div v-if="fullUrlPreview" class="text-xs text-gray-400 font-mono break-all">→ {{ fullUrlPreview }}</div>
+        <div v-if="fullUrlPreview" class="text-xs text-gray-400 font-mono">
+            <div>→ {{ urlPreviewParts[0] }}</div>
+            <div v-for="(part, i) in urlPreviewParts.slice(1)" :key="i" class="pl-4">{{ part }}</div>
+        </div>
         <VarsHint />
 
         <details class="border rounded p-2">
