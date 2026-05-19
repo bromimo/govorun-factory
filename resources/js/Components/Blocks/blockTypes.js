@@ -56,14 +56,14 @@ export function getControllerBlockTypesWithPlugins(plugins = []) {
 }
 
 export const NODE_TYPE_COLORS = {
-    ask:         { stripe: '#2a5ca0', fill: '#e8f0fc' },
-    reply:       { stripe: '#b03030', fill: '#fce4e4' },
-    save_state:  { stripe: '#3a7a3a', fill: '#e8f4e0' },
-    condition:   { stripe: '#c87020', fill: '#fdefd8' },
-    api_call:    { stripe: '#7c3aed', fill: '#f0ebff' },
-    on_complete: { stripe: '#5a6878', fill: '#eef1f4' },
-    on_cancel:   { stripe: '#5a6878', fill: '#eef1f4' },
-    start:       { stripe: '#5a6878', fill: '#eef1f4' },
+    ask:         { stripe: '#2a5ca0', fill: '#e8f0fc', gradFrom: '#5a8cd4', gradTo: '#2a5ca0' },
+    reply:       { stripe: '#b03030', fill: '#fce4e4', gradFrom: '#d06060', gradTo: '#b03030' },
+    save_state:  { stripe: '#3a7a3a', fill: '#e8f4e0', gradFrom: '#6aa860', gradTo: '#3a7a3a' },
+    condition:   { stripe: '#c87020', fill: '#fdefd8', gradFrom: '#e0a050', gradTo: '#c87020' },
+    api_call:    { stripe: '#7c3aed', fill: '#f0ebff', gradFrom: '#a06aed', gradTo: '#7c3aed' },
+    on_complete: { stripe: '#5a6878', fill: '#eef1f4', gradFrom: '#8a9aaa', gradTo: '#5a6878' },
+    on_cancel:   { stripe: '#5a6878', fill: '#eef1f4', gradFrom: '#8a9aaa', gradTo: '#5a6878' },
+    start:       { stripe: '#5a6878', fill: '#eef1f4', gradFrom: '#8a9aaa', gradTo: '#5a6878' },
 };
 
 export const colorClasses = {

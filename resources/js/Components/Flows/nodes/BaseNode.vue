@@ -16,6 +16,8 @@ const props = defineProps({
 });
 
 const stripeColor = computed(() => NODE_TYPE_COLORS[props.type]?.stripe ?? '#9aa5b2');
+const gradFrom = computed(() => NODE_TYPE_COLORS[props.type]?.gradFrom ?? '#9aa5b2');
+const gradTo = computed(() => NODE_TYPE_COLORS[props.type]?.gradTo ?? '#6a7a8a');
 </script>
 
 <template>
@@ -44,10 +46,12 @@ const stripeColor = computed(() => NODE_TYPE_COLORS[props.type]?.stripe ?? '#9aa
 
 <style scoped>
 .base-node {
-    background: var(--surface);
+    background:
+        linear-gradient(180deg, v-bind(gradFrom) 0%, v-bind(gradTo) 100%) 0 0 / 10px 100% no-repeat,
+        var(--surface);
     border: 1px solid var(--bdr);
     border-radius: var(--r-md);
-    border-left: 10px solid v-bind(stripeColor);
+    padding-left: 10px;
     font-family: var(--font);
     font-size: 12px;
     min-width: 158px;
