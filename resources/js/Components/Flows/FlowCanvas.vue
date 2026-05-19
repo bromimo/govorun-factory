@@ -384,3 +384,9 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
         <FlowMinimap />
     </VueFlow>
 </template>
+
+<style scoped>
+:deep(.vue-flow__background) {
+    background-color: #eaedf0;
+}
+</style>

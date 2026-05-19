@@ -109,7 +109,7 @@ function autoLayout() {
 
 <template>
     <Head :title="`Flow: ${flow.name}`" />
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :flush="true" :title="flow.name">
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -139,7 +139,7 @@ function autoLayout() {
             </div>
         </template>
 
-        <div class="relative flex h-[calc(100vh-10rem)] overflow-hidden">
+        <div class="flow-layout">
             <NodePalette v-if="can.update" class="w-48 shrink-0" />
 
             <KeyboardHints />
@@ -185,3 +185,12 @@ function autoLayout() {
         </div>
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.flow-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+}
+</style>
