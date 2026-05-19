@@ -33,12 +33,16 @@ const selectedEdge = ref(null);
 const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, getNodes, getEdges, onNodesChange } = useVueFlow();
 
 onNodesChange((changes) => {
-    return changes.filter(change => {
-        if (change.type === 'remove' && getNodes.value.find(n => n.id === change.id)?.type === 'start') {
-            return false;
+    for (const change of changes) {
+        if (change.type === 'remove') {
+            if (getNodes.value.find(n => n.id === change.id)?.type === 'start') {
+                return changes.filter(c => c.id !== change.id);
+            }
+            if (selectedNode.value?.id === change.id) {
+                selectedNode.value = null;
+            }
         }
-        return true;
-    });
+    }
 });
 
 function isValidConnection(connection) {
