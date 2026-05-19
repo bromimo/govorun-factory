@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import VarsHint from '../VarsHint.vue';
 
 const model = defineModel({ type: Object });
@@ -22,6 +22,25 @@ function buildQueryString(pairs) {
     if (!filled.length) return '';
     return '?' + filled.map(p => p.key + (p.value !== '' ? '=' + p.value : '')).join('&');
 }
+
+const syncing = ref(false);
+
+watch(() => model.value.path, (newPath) => {
+    if (syncing.value) return;
+    const qIdx = (newPath ?? '').indexOf('?');
+    const qs = qIdx === -1 ? '' : newPath.slice(qIdx + 1);
+    syncing.value = true;
+    model.value.query = parsePairs(qs);
+    syncing.value = false;
+}, { flush: 'sync' });
+
+watch(() => model.value.query, () => {
+    if (syncing.value) return;
+    const pathOnly = (model.value.path ?? '').split('?')[0];
+    syncing.value = true;
+    model.value.path = pathOnly + buildQueryString(model.value.query);
+    syncing.value = false;
+}, { deep: true, flush: 'sync' });
 
 const connections = ref([]);
 
