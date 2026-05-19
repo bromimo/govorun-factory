@@ -55,6 +55,17 @@ export function getControllerBlockTypesWithPlugins(plugins = []) {
     return [...controllerBlockTypes, ...pluginTypes];
 }
 
+export const NODE_TYPE_COLORS = {
+    ask:         { stripe: '#2a5ca0', fill: '#e8f0fc' },
+    reply:       { stripe: '#b03030', fill: '#fce4e4' },
+    save_state:  { stripe: '#3a7a3a', fill: '#e8f4e0' },
+    condition:   { stripe: '#c87020', fill: '#fdefd8' },
+    api_call:    { stripe: '#3a72c4', fill: '#e8f0fc' },
+    on_complete: { stripe: '#5a6878', fill: '#eef1f4' },
+    on_cancel:   { stripe: '#5a6878', fill: '#eef1f4' },
+    start:       { stripe: '#5a6878', fill: '#eef1f4' },
+};
+
 export const colorClasses = {
     blue: { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-800', badge: 'bg-blue-100' },
     pink: { bg: 'bg-pink-50', border: 'border-pink-300', text: 'text-pink-800', badge: 'bg-pink-100' },

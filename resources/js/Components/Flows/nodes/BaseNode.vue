@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Handle, Position } from '@vue-flow/core';
+import { NODE_TYPE_COLORS } from '@/Components/Blocks/blockTypes.js';
 
 defineOptions({ inheritAttrs: false });
 
@@ -14,17 +15,7 @@ const props = defineProps({
     selected: Boolean,
 });
 
-const nodeColor = computed(() => {
-    const colors = {
-        ask_text: '#2a5ca0', ask_keyboard: '#2a5ca0',
-        reply_text: '#b03030', reply_keyboard: '#b03030', reply_media: '#b03030',
-        save_state: '#3a7a3a',
-        condition: '#c87020',
-        api_call: '#3a72c4',
-        on_complete: '#5a6878', on_cancel: '#5a6878', start: '#5a6878',
-    };
-    return colors[props.type] ?? '#9aa5b2';
-});
+const stripeColor = computed(() => NODE_TYPE_COLORS[props.type]?.stripe ?? '#9aa5b2');
 </script>
 
 <template>
@@ -56,14 +47,14 @@ const nodeColor = computed(() => {
     background: var(--surface);
     border: 1px solid var(--bdr);
     border-radius: var(--r-md);
-    border-left: 3px solid v-bind(nodeColor);
+    border-left: 10px solid v-bind(stripeColor);
     font-family: var(--font);
     font-size: 12px;
     min-width: 158px;
     box-shadow: var(--sh);
 }
 .base-node--selected {
-    outline: 2px solid v-bind(nodeColor);
+    outline: 2px solid v-bind(stripeColor);
     outline-offset: 1px;
 }
 .node-header {
@@ -72,7 +63,7 @@ const nodeColor = computed(() => {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .04em;
-    color: v-bind(nodeColor);
+    color: v-bind(stripeColor);
     border-bottom: 1px solid var(--bdr-l);
     display: flex;
     align-items: center;

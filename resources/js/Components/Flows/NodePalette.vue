@@ -1,20 +1,15 @@
 <script setup>
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { getFlowNodeTypesWithPlugins } from '../Blocks/blockTypes.js';
+import { getFlowNodeTypesWithPlugins, NODE_TYPE_COLORS } from '../Blocks/blockTypes.js';
 import { useFlowDragDrop } from './useFlowDragDrop.js';
 
 const { onDragStart } = useFlowDragDrop();
 const plugins = computed(() => usePage().props.plugins ?? []);
 const nodeTypes = computed(() => getFlowNodeTypesWithPlugins(plugins.value));
 
-const nodeColors = {
-    ask_text: '#2a5ca0', ask_keyboard: '#2a5ca0',
-    reply_text: '#b03030', reply_keyboard: '#b03030', reply_media: '#b03030',
-    save_state: '#3a7a3a', condition: '#c87020',
-    api_call: '#3a72c4', on_complete: '#5a6878',
-    on_cancel: '#5a6878', start: '#5a6878',
-    ask: '#2a5ca0', reply: '#b03030',
+function stripeColor(type) {
+    return NODE_TYPE_COLORS[type]?.stripe ?? '#9aa5b2';
 }
 </script>
 
@@ -26,7 +21,7 @@ const nodeColors = {
                 draggable="true"
                 @dragstart="(e) => onDragStart(e, nt.type)"
                 class="palette-item select-none">
-                <div class="item-stripe" :style="{ background: nodeColors[nt.type] ?? '#9aa5b2' }"></div>
+                <div class="item-stripe" :style="{ background: stripeColor(nt.type) }"></div>
                 {{ nt.label }}
                 <span v-if="nt.isPlugin" class="plugin-badge">(plugin)</span>
             </div>
@@ -69,9 +64,9 @@ const nodeColors = {
 }
 .palette-item:hover { background: var(--surface-2); }
 .item-stripe {
-    width: 3px;
-    height: 18px;
-    border-radius: 1px;
+    width: 10px;
+    height: 20px;
+    border-radius: 2px;
     flex-shrink: 0;
 }
 .plugin-badge {
