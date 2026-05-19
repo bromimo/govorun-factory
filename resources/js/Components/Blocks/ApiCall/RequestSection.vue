@@ -5,6 +5,24 @@ import VarsHint from '../VarsHint.vue';
 const model = defineModel({ type: Object });
 const props = defineProps({ botId: [Number, String] });
 
+function parsePairs(queryString) {
+    if (!queryString) return [];
+    return queryString.split('&')
+        .map(p => {
+            const idx = p.indexOf('=');
+            return idx === -1
+                ? { key: p, value: '' }
+                : { key: p.slice(0, idx), value: p.slice(idx + 1) };
+        })
+        .filter(p => p.key !== '');
+}
+
+function buildQueryString(pairs) {
+    const filled = pairs.filter(p => p.key !== '');
+    if (!filled.length) return '';
+    return '?' + filled.map(p => p.key + (p.value !== '' ? '=' + p.value : '')).join('&');
+}
+
 const connections = ref([]);
 
 onMounted(async () => {
