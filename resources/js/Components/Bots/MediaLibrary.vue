@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import ErFormSection from '@/Components/Ui/ErFormSection.vue';
 
 const props = defineProps({
     bot: { type: Object, required: true },
@@ -75,23 +77,22 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-3">
         <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-500">{{ items.length }} файл(ов)</span>
+            <span class="text-xs text-gray-500">{{ items.length }} файл(ов)</span>
             <div>
                 <input ref="fileInput" type="file" multiple class="hidden"
                     @change="handleFiles($event.target.files)" />
-                <button type="button" @click="fileInput.click()" :disabled="uploading"
-                    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-500 disabled:opacity-50">
+                <ErButton type="button" variant="primary" @click="fileInput.click()" :disabled="uploading">
                     {{ uploading ? 'Загрузка…' : '+ Загрузить' }}
-                </button>
+                </ErButton>
             </div>
         </div>
 
-        <div v-if="loading" class="py-8 text-center text-sm text-gray-400">Загрузка…</div>
+        <div v-if="loading" class="py-8 text-center text-xs text-gray-400">Загрузка…</div>
 
         <div v-else-if="!items.length"
-            class="rounded-lg border-2 border-dashed border-gray-300 py-12 text-center text-sm text-gray-400">
+            class="rounded-lg border-2 border-dashed border-gray-300 py-12 text-center text-xs text-gray-400">
             Нет загруженных файлов
         </div>
 
