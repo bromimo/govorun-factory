@@ -16,11 +16,11 @@ const dragOver = ref(false);
 
 const typeLabel = { photo: 'IMG', video: 'VID', audio: 'AUD', document: 'DOC', animation: 'GIF' };
 const typeColor = {
-    photo: '#2a7a3a',
+    photo:     '#5a7a9a',
     animation: '#2a7a3a',
-    video: '#7c3aed',
-    audio: '#c87020',
-    document: '#3a72c4',
+    video:     '#7c3aed',
+    audio:     '#c87020',
+    document:  '#3a72c4',
 };
 
 function formatSize(bytes) {
@@ -118,10 +118,9 @@ onMounted(() => {
         >
             <div v-for="item in items" :key="item.id" class="ml-card" :title="item.original_name">
                 <div class="ml-card-header">
-                    <span v-if="item.type !== 'photo'"
-                        class="ml-type-badge"
-                        :style="{ background: typeColor[item.type] }"
-                    >{{ typeLabel[item.type] }}</span>
+                    <span class="ml-type-badge" :style="{ background: typeColor[item.type] }">
+                        {{ typeLabel[item.type] }}
+                    </span>
                     <div style="flex: 1;" />
                     <button class="ml-del-btn" type="button" @click.stop="remove(item)" title="Удалить">×</button>
                 </div>
@@ -191,7 +190,7 @@ onMounted(() => {
     border: 1px solid var(--bdr);
     border-radius: 3px;
     overflow: hidden;
-    background: #fff;
+    background: var(--surface-3);
     cursor: default;
     transition: border-color .12s, box-shadow .12s;
 }
@@ -203,7 +202,7 @@ onMounted(() => {
     align-items: center;
     gap: 4px;
     padding: 3px 4px;
-    background: linear-gradient(180deg, #f4f6f8 0%, #eef1f4 100%);
+    background: var(--surface-3);
     border-bottom: 1px solid var(--bdr-l);
     min-height: 20px;
     flex-shrink: 0;
@@ -244,11 +243,11 @@ onMounted(() => {
 /* Thumbnail area — flex:1 pushes caption to bottom */
 .ml-thumb {
     flex: 1;
-    background: #f8f9fb;
+    background: var(--surface-2);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 5px;
+    padding: 3px;
     min-height: 70px;
 }
 .ml-thumb img {
@@ -261,8 +260,8 @@ onMounted(() => {
 
 /* Caption strip — sticks to bottom */
 .ml-caption {
-    padding: 3px 5px 4px;
-    background: linear-gradient(180deg, #f4f6f8 0%, #eef1f4 100%);
+    padding: 3px 4px 4px;
+    background: var(--surface-3);
     border-top: 1px solid var(--bdr-l);
     display: flex;
     flex-direction: column;
