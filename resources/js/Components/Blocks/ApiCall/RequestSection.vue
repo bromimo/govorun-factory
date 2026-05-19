@@ -28,9 +28,17 @@ let syncing = false;
 
 watch(() => model.value?.path, (newPath) => {
     if (syncing) return;
-    const qIdx = (newPath ?? '').indexOf('?');
-    const qs = qIdx === -1 ? '' : newPath.slice(qIdx + 1);
+    let path = newPath ?? '';
+    if (/^https?:\/\//i.test(path)) {
+        try {
+            const u = new URL(path);
+            path = u.pathname + u.search;
+        } catch {}
+    }
+    const qIdx = path.indexOf('?');
+    const qs = qIdx === -1 ? '' : path.slice(qIdx + 1);
     syncing = true;
+    if (path !== newPath) model.value.path = path;
     model.value.query = parsePairs(qs);
     syncing = false;
 }, { flush: 'sync', immediate: true });
