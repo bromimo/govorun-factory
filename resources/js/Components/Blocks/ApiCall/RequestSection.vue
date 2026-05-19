@@ -12,8 +12,8 @@ function parsePairs(queryString) {
         .map(p => {
             const idx = p.indexOf('=');
             return idx === -1
-                ? { _id: Math.random(), key: p, value: '' }
-                : { _id: Math.random(), key: p.slice(0, idx), value: p.slice(idx + 1) };
+                ? { key: p, value: '' }
+                : { key: p.slice(0, idx), value: p.slice(idx + 1) };
         })
         .filter(p => p.key !== '');
 }
@@ -66,11 +66,18 @@ const fullUrlPreview = computed(() => {
 });
 
 function addPair(key) {
-    const item = key === 'query' ? { _id: Math.random(), key: '', value: '' } : { key: '', value: '' };
-    model.value[key].push(item);
+    model.value[key].push({ key: '', value: '' });
 }
 function removePair(key, i) {
     model.value[key].splice(i, 1);
+}
+
+const pairIds = new WeakMap();
+function getPairId(pair) {
+    if (!pairIds.has(pair)) {
+        pairIds.set(pair, Math.random());
+    }
+    return pairIds.get(pair);
 }
 </script>
 
@@ -99,7 +106,7 @@ function removePair(key, i) {
 
         <details class="border rounded p-2">
             <summary class="cursor-pointer text-xs text-gray-600">Параметры запроса ({{ model.query.length }})</summary>
-            <draggable v-model="model.query" item-key="_id" handle=".drag-handle" :animation="150">
+            <draggable v-model="model.query" :item-key="getPairId" handle=".drag-handle" :animation="150">
                 <template #item="{ element: p, index: i }">
                     <div class="flex gap-2 mt-2 items-center">
                         <span class="drag-handle cursor-grab text-gray-300 hover:text-gray-500 select-none px-1">⠿</span>
