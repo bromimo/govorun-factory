@@ -31,30 +31,27 @@ const activeTab = ref('settings')
 const exportErrors = ref([])
 const confirmingDeletion = ref(false)
 
-const tabs = [
-    { key: 'settings', label: 'Параметры', icon: Settings },
-    { key: 'routes', label: 'Маршруты', icon: Route, count: () => props.bot.routes?.length ?? 0 },
-    { key: 'flows', label: 'Flow-диалоги', icon: Workflow, count: () => props.bot.flows?.length ?? 0 },
-    { key: 'validation', label: 'Валидация', icon: ShieldCheck },
-    { key: 'messengers', label: 'Мессенджеры', icon: MessageSquare },
-    { key: 'media', label: 'Медиатека', icon: Image },
-]
-
 const sidebarGroups = [
     {
         label: 'Конфигурация',
         items: [
-            { key: 'settings', label: 'Основные' },
-            { key: 'messengers', label: 'Мессенджеры' },
-            { key: 'validation', label: 'Валидация' },
+            { key: 'settings', label: 'Основные', icon: Settings },
+            { key: 'messengers', label: 'Мессенджеры', icon: MessageSquare },
+            { key: 'validation', label: 'Валидация', icon: ShieldCheck },
         ],
     },
     {
         label: 'Контент',
         items: [
-            { key: 'routes', label: 'Маршруты', count: () => props.bot.routes?.length ?? 0 },
-            { key: 'flows', label: 'Flow-диалоги', count: () => props.bot.flows?.length ?? 0 },
-            { key: 'media', label: 'Медиатека' },
+            { key: 'routes', label: 'Маршруты', icon: Route, count: () => props.bot.routes?.length ?? 0 },
+            { key: 'flows', label: 'Flow-диалоги', icon: Workflow, count: () => props.bot.flows?.length ?? 0 },
+            { key: 'media', label: 'Медиатека', icon: Image },
+        ],
+    },
+    {
+        label: 'Интеграции',
+        items: [
+            { key: 'connections', label: 'Подключения', icon: Plug, link: () => route('bot-connections.index', props.bot.id) },
         ],
     },
 ]
@@ -86,28 +83,6 @@ function deleteBot() {
 <template>
     <Head :title="bot.name" />
     <AuthenticatedLayout :title="bot.name">
-        <template #subbar>
-            <button
-                v-for="tab in tabs"
-                :key="tab.key"
-                class="er-tab"
-                :class="{ act: activeTab === tab.key }"
-                @click="activeTab = tab.key"
-            >
-                <component :is="tab.icon" :size="13" />
-                {{ tab.label }}
-                <span v-if="tab.count" class="tab-cnt">{{ tab.count() }}</span>
-            </button>
-            <div style="flex: 1;"></div>
-            <Link
-                :href="route('bot-connections.index', bot.id)"
-                class="er-tab"
-                :class="{ act: route().current('bot-connections.*') }"
-            >
-                <Plug :size="13" />Подключения
-            </Link>
-        </template>
-
         <template #sidebar>
             <div
                 v-for="group in sidebarGroups"
@@ -115,16 +90,27 @@ function deleteBot() {
                 class="side-group"
             >
                 <div class="side-grp-h">{{ group.label }}</div>
-                <button
-                    v-for="item in group.items"
-                    :key="item.key"
-                    class="side-item"
-                    :class="{ act: activeTab === item.key }"
-                    @click="activeTab = item.key"
-                >
-                    {{ item.label }}
-                    <span v-if="item.count" class="side-cnt">{{ item.count() }}</span>
-                </button>
+                <template v-for="item in group.items" :key="item.key">
+                    <Link
+                        v-if="item.link"
+                        :href="item.link()"
+                        class="side-item"
+                        :class="{ act: route().current('bot-connections.*') }"
+                    >
+                        <component :is="item.icon" :size="13" class="side-icon" />
+                        {{ item.label }}
+                    </Link>
+                    <button
+                        v-else
+                        class="side-item"
+                        :class="{ act: activeTab === item.key }"
+                        @click="activeTab = item.key"
+                    >
+                        <component :is="item.icon" :size="13" class="side-icon" />
+                        {{ item.label }}
+                        <span v-if="item.count" class="side-cnt">{{ item.count() }}</span>
+                    </button>
+                </template>
             </div>
         </template>
 
@@ -164,29 +150,6 @@ function deleteBot() {
 </template>
 
 <style scoped>
-.er-tab {
-    padding: 0 12px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: var(--ink-2);
-    cursor: pointer;
-    font-weight: 500;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    font-size: 12px;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    font-family: var(--font);
-    transition: color .1s;
-    white-space: nowrap;
-}
-.er-tab:hover { color: var(--ink); }
-.er-tab.act { color: var(--blue-d); border-bottom-color: var(--blue); font-weight: 600; }
-.tab-cnt { font-size: 10px; color: var(--ink-4); font-family: var(--mono); }
-
 .side-group { padding: 0; }
 .side-grp-h {
     padding: 6px 12px 6px 8px;
@@ -202,9 +165,9 @@ function deleteBot() {
 .side-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 7px;
     width: 100%;
-    padding: 5px 12px 5px 24px;
+    padding: 5px 12px 5px 12px;
     color: var(--ink-2);
     cursor: pointer;
     font-size: 12px;
@@ -215,10 +178,13 @@ function deleteBot() {
     border-bottom: none;
     font-family: var(--font);
     text-align: left;
+    text-decoration: none;
 }
 .side-item:hover { background: var(--surface-3); }
 .side-item.act { background: var(--blue-soft); color: var(--blue-d); font-weight: 600; border-left-color: var(--blue); }
-.side-cnt { font-size: 10px; color: var(--ink-4); font-family: var(--mono); }
+.side-icon { flex-shrink: 0; opacity: .65; }
+.side-item.act .side-icon { opacity: 1; }
+.side-cnt { font-size: 10px; color: var(--ink-4); font-family: var(--mono); margin-left: auto; }
 
 .export-errors { background: var(--red-soft); border: 1px solid #e0a8a8; border-radius: var(--r-md); padding: 8px 12px; margin-bottom: 12px; font-size: 12px; color: var(--red); }
 .modal-body { padding: 20px 24px; }
