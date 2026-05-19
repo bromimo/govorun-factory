@@ -76,12 +76,12 @@ function onPick(path, value) {
             <div v-else>
                 <div class="text-gray-500 mb-2">Статус: <span :class="result.status >= 400 ? 'text-red-600' : 'text-green-700'">{{ result.status }}</span> · {{ result.duration_ms }} мс<span v-if="result.truncated"> · обрезано</span></div>
                 <div v-if="result.body_json">
-                    <JsonTree :value="result.body_json" :mapping="model.value.response_mapping" @pick="onPick" />
+                    <JsonTree :value="result.body_json" :mapping="model.response_mapping" @pick="onPick" />
                 </div>
                 <pre v-else class="whitespace-pre-wrap text-gray-700">{{ result.body_raw }}</pre>
             </div>
         </div>
 
-        <ResponseMappingList v-model="model.value.response_mapping" />
+        <ResponseMappingList v-model="model.response_mapping" />
     </div>
 </template>
