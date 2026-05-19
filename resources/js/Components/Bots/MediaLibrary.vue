@@ -14,17 +14,49 @@ const uploading = ref(false);
 const fileInput = ref(null);
 const dragOver = ref(false);
 
-const typeColor = {
-    photo:     '#5a7a9a',
-    animation: '#2a7a3a',
-    video:     '#7c3aed',
-    audio:     '#c87020',
-    document:  '#3a72c4',
+const extColor = {
+    // фото — тёплые оттенки
+    jpg:  '#e07820', jpeg: '#e07820',
+    png:  '#2a7ab5',
+    webp: '#1a8a7a',
+    heic: '#c06818', heif: '#c06818',
+    tiff: '#8a4ab5', tif: '#8a4ab5',
+    bmp:  '#7a8a7a',
+    svg:  '#e84a2a',
+    // RAW — красные
+    raw: '#b03030', cr2: '#b03030', cr3: '#b03030',
+    nef: '#b03030', arw: '#b03030', dng: '#b03030',
+    orf: '#b03030', rw2: '#b03030',
+    // GIF / анимация
+    gif:  '#2a9a3a',
+    // видео — фиолетовые
+    mp4: '#7c3aed', mov: '#7c3aed', avi: '#6a2acd',
+    mkv: '#5a2acd', webm: '#7a3acd', wmv: '#6a2acd',
+    // аудио — янтарные
+    mp3: '#c87820', wav: '#b86010',
+    ogg: '#a85010', flac: '#986000', aac: '#c87820',
+    // документы
+    pdf:  '#c03030',
+    doc:  '#2a5ca0', docx: '#2a5ca0',
+    xls:  '#2a7a3a', xlsx: '#2a7a3a',
+    ppt:  '#c05820', pptx: '#c05820',
+    txt:  '#7a8a9a', csv: '#2a7a3a',
+    zip:  '#8a6a2a', rar: '#8a6a2a', '7z': '#8a6a2a',
+};
+
+const typeFallback = {
+    photo: '#5a7a9a', animation: '#2a9a3a',
+    video: '#7c3aed', audio: '#c87820', document: '#3a72c4',
 };
 
 function fileExt(name) {
     const m = name?.match(/\.([^.]+)$/);
     return m ? m[1].toUpperCase() : '?';
+}
+
+function badgeColor(item) {
+    const ext = item.original_name?.match(/\.([^.]+)$/)?.[1]?.toLowerCase();
+    return extColor[ext] ?? typeFallback[item.type] ?? '#7a8a9a';
 }
 
 function formatSize(bytes) {
@@ -122,7 +154,7 @@ onMounted(() => {
         >
             <div v-for="item in items" :key="item.id" class="ml-card" :title="item.original_name">
                 <div class="ml-card-header">
-                    <span class="ml-type-badge" :style="{ background: typeColor[item.type] }">
+                    <span class="ml-type-badge" :style="{ background: badgeColor(item) }">
                         {{ fileExt(item.original_name) }}
                     </span>
                     <div style="flex: 1;" />
