@@ -66,7 +66,7 @@ function onPick(path, value) {
     <div class="space-y-3">
         <StateSampleEditor v-model="stateSample" :keys="referencedStateKeys" />
 
-        <button @click="run" :disabled="loading"
+        <button type="button" @click="run" :disabled="loading"
             class="px-3 py-2 bg-indigo-600 text-white rounded text-sm">
             {{ loading ? 'Выполняется…' : '▶ Выполнить тестовый запрос' }}
         </button>
