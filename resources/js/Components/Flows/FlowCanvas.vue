@@ -22,7 +22,7 @@ const props = defineProps({
     initialViewport: { type: Object, default: null },
 });
 
-const nodes = ref([...props.initialNodes]);
+const nodes = ref(props.initialNodes.map(n => n.type === 'start' ? { ...n, deletable: false } : n));
 const arrowMarker = { type: MarkerType.ArrowClosed, width: 20, height: 20 };
 const edgeDefaults = { markerEnd: arrowMarker, interactionWidth: 20, updatable: 'target', type: 'editable' };
 const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e, data: e.data || {} })));
