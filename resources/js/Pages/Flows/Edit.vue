@@ -7,6 +7,7 @@ import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
 import NodePalette from '@/Components/Flows/NodePalette.vue';
 import NodeProperties from '@/Components/Flows/NodeProperties.vue';
 import EdgeProperties from '@/Components/Flows/EdgeProperties.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
 
 const props = defineProps({
     bot: Object,
@@ -109,33 +110,20 @@ function autoLayout() {
 
 <template>
     <Head :title="`Flow: ${flow.name}`" />
-    <AuthenticatedLayout :flush="true" :title="flow.name">
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <a :href="route('bots.edit', bot.id)" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ bot.name }}</a>
-                    <span class="text-gray-300">/</span>
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-800">{{ flow.name }}</h2>
-                        <input v-if="can.update" v-model="description" type="text"
-                            class="mt-0.5 w-full border-0 border-b border-transparent bg-transparent px-0 py-0 text-xs text-gray-500 placeholder-gray-400 focus:border-gray-300 focus:ring-0"
-                            placeholder="Добавить описание..." />
-                        <p v-else-if="description" class="text-xs text-gray-500">{{ description }}</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button v-if="can.update" @click="autoLayout" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-                        Авто
-                    </button>
-                    <button @click="fitView" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-                        Вписать
-                    </button>
-                    <button v-if="can.update" @click="save" :disabled="saving"
-                        class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
-                        {{ saving ? 'Сохранение...' : 'Сохранить' }}
-                    </button>
-                    <span v-if="saved" class="text-sm text-green-600">Сохранено</span>
-                </div>
+    <AuthenticatedLayout :flush="true">
+        <template #subbar>
+            <div class="fl-toolbar">
+                <a :href="route('bots.edit', bot.id)" class="fl-back">← {{ bot.name }}</a>
+                <span class="fl-sep">/</span>
+                <span class="fl-title">{{ flow.name }}</span>
+                <div style="flex: 1;" />
+                <span v-if="saved" class="fl-saved">Сохранено</span>
+                <ErButton v-if="can.update" size="sm" @click="autoLayout">Авто</ErButton>
+                <ErButton size="sm" @click="fitView">Фит</ErButton>
+                <a :href="route('bots.edit', bot.id)" class="fl-exit-btn">Выйти</a>
+                <ErButton v-if="can.update" variant="primary" size="sm" :disabled="saving" @click="save">
+                    {{ saving ? 'Сохранение…' : 'Сохранить' }}
+                </ErButton>
             </div>
         </template>
 
@@ -193,4 +181,41 @@ function autoLayout() {
     overflow: hidden;
     height: 100%;
 }
+
+.fl-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+.fl-back {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--ink-3);
+    text-decoration: none;
+    padding: 0 4px;
+    flex-shrink: 0;
+}
+.fl-back:hover { color: var(--ink); }
+.fl-sep { color: var(--bdr-d); font-size: 14px; padding: 0 2px; }
+.fl-title { font-size: 12px; font-weight: 600; color: var(--ink); }
+.fl-saved { font-size: 11px; color: var(--green-d, #2d6a2d); padding: 0 6px; }
+.fl-exit-btn {
+    display: flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 11px;
+    font-family: var(--font);
+    color: var(--ink-2);
+    background: var(--surface);
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.fl-exit-btn:hover { background: var(--surface-2); color: var(--ink); }
 </style>
