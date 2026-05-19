@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
-import { Plus, Pencil, Trash2 } from 'lucide-vue-next';
+import { Plus } from 'lucide-vue-next';
 import ErTable from '@/Components/Ui/ErTable.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import Modal from '@/Components/Modal.vue';
@@ -89,12 +89,8 @@ function deleteFlow(flow) {
                     <td class="flow-desc">{{ f.description || '—' }}</td>
                     <td>
                         <div class="tbl-acts">
-                            <button v-if="canUpdate" class="tbl-act-btn" title="Изменить" @click.stop="openEdit(f)">
-                                <Pencil :size="12" />
-                            </button>
-                            <button v-if="canUpdate" class="tbl-act-btn" title="Удалить" @click.stop="deleteFlow(f)">
-                                <Trash2 :size="12" />
-                            </button>
+                            <button v-if="canUpdate" class="tbl-act-btn" @click.stop="openEdit(f)">Изменить</button>
+                            <button v-if="canUpdate" class="tbl-act-btn tbl-act-btn--danger" @click.stop="deleteFlow(f)">Удалить</button>
                         </div>
                     </td>
                 </tr>
@@ -152,9 +148,11 @@ function deleteFlow(flow) {
 .flow-row:hover td { background: var(--surface-2); }
 .flow-name { font-weight: 500; color: var(--blue-d); }
 .flow-desc { color: var(--ink-3); font-size: 11px; }
-.tbl-acts { display: flex; gap: 2px; }
-.tbl-act-btn { padding: 2px 5px; border: 1px solid var(--bdr-l); border-radius: 2px; background: var(--surface); color: var(--ink-3); cursor: pointer; display: flex; align-items: center; }
-.tbl-act-btn:hover { background: var(--blue-soft); color: var(--blue-d); }
+.tbl-acts { display: flex; gap: 4px; }
+.tbl-act-btn { font-size: 11px; color: var(--blue); padding: 1px 6px; border: 1px solid var(--bdr-l); border-radius: 2px; background: var(--surface); cursor: pointer; }
+.tbl-act-btn:hover { background: var(--blue-soft); }
+.tbl-act-btn--danger { color: var(--red); }
+.tbl-act-btn--danger:hover { background: var(--red-soft); }
 .tbl-empty { text-align: center; padding: 20px; color: var(--ink-4); font-size: 12px; }
 
 .fl-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }

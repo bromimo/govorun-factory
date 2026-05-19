@@ -6,7 +6,7 @@ import RouteEditor from './RouteEditor.vue';
 import ErTable from '@/Components/Ui/ErTable.vue';
 import ErBadge from '@/Components/Ui/ErBadge.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
-import { GripVertical, Pencil, Trash2, Plus } from 'lucide-vue-next';
+import { GripVertical, Plus } from 'lucide-vue-next';
 
 const props = defineProps({
     botId: Number,
@@ -204,12 +204,8 @@ const blockSummaries = computed(() => {
                                 >
                                     <Plus :size="12" />
                                 </button>
-                                <button class="tbl-act-btn" title="Изменить" @click="openEdit(route)">
-                                    <Pencil :size="12" />
-                                </button>
-                                <button class="tbl-act-btn" title="Удалить" @click="deleteRoute(route)">
-                                    <Trash2 :size="12" />
-                                </button>
+                                <button class="tbl-act-btn" @click="openEdit(route)">Изменить</button>
+                                <button class="tbl-act-btn tbl-act-btn--danger" @click="deleteRoute(route)">Удалить</button>
                             </div>
                         </td>
                     </tr>
@@ -235,12 +231,8 @@ const blockSummaries = computed(() => {
                         </td>
                         <td>
                             <div v-if="canUpdate" class="tbl-acts">
-                                <button class="tbl-act-btn" title="Изменить" @click="openEdit(child)">
-                                    <Pencil :size="12" />
-                                </button>
-                                <button class="tbl-act-btn" title="Удалить" @click="deleteRoute(child)">
-                                    <Trash2 :size="12" />
-                                </button>
+                                <button class="tbl-act-btn" @click="openEdit(child)">Изменить</button>
+                                <button class="tbl-act-btn tbl-act-btn--danger" @click="deleteRoute(child)">Удалить</button>
                             </div>
                         </td>
                     </tr>
@@ -275,8 +267,10 @@ const blockSummaries = computed(() => {
 .tbl-mono { font-family: var(--mono); font-size: 11px; }
 .tbl-handler { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tbl-acts { display: flex; gap: 2px; }
-.tbl-act-btn { padding: 2px 5px; border: 1px solid var(--bdr-l); border-radius: 2px; background: var(--surface); color: var(--ink-3); cursor: pointer; display: flex; align-items: center; }
-.tbl-act-btn:hover { background: var(--blue-soft); color: var(--blue-d); }
+.tbl-act-btn { font-size: 11px; color: var(--blue); padding: 1px 6px; border: 1px solid var(--bdr-l); border-radius: 2px; background: var(--surface); cursor: pointer; display: flex; align-items: center; }
+.tbl-act-btn:hover { background: var(--blue-soft); }
+.tbl-act-btn--danger { color: var(--red); }
+.tbl-act-btn--danger:hover { background: var(--red-soft); }
 .tbl-child-idx { color: var(--ink-4); }
 .tbl-empty { text-align: center; padding: 20px; color: var(--ink-4); font-size: 12px; }
 .er-inp { height: 26px; padding: 0 8px; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: #fff; color: var(--ink); font-size: 12px; font-family: var(--font); width: 100%; box-shadow: inset 0 1px 1px rgba(0,0,0,.06); }
