@@ -63,9 +63,9 @@ function removePair(key, i) {
             <div v-for="(p, i) in model.query" :key="i" class="flex gap-2 mt-2">
                 <input v-model="p.key" placeholder="name" class="flex-1 rounded border-gray-300 text-sm" />
                 <input v-model="p.value" placeholder="value" class="flex-1 rounded border-gray-300 text-sm" />
-                <button @click="removePair('query', i)" class="text-red-500 px-2">✕</button>
+                <button type="button" @click="removePair('query', i)" class="text-red-500 px-2">✕</button>
             </div>
-            <button @click="addPair('query')" class="mt-2 text-xs text-indigo-600">+ параметр</button>
+            <button type="button" @click="addPair('query')" class="mt-2 text-xs text-indigo-600">+ параметр</button>
         </details>
 
         <details class="border rounded p-2">
@@ -73,9 +73,9 @@ function removePair(key, i) {
             <div v-for="(h, i) in model.headers" :key="i" class="flex gap-2 mt-2">
                 <input v-model="h.key" placeholder="Header" class="flex-1 rounded border-gray-300 text-sm" />
                 <input v-model="h.value" placeholder="Value" class="flex-1 rounded border-gray-300 text-sm" />
-                <button @click="removePair('headers', i)" class="text-red-500 px-2">✕</button>
+                <button type="button" @click="removePair('headers', i)" class="text-red-500 px-2">✕</button>
             </div>
-            <button @click="addPair('headers')" class="mt-2 text-xs text-indigo-600">+ заголовок</button>
+            <button type="button" @click="addPair('headers')" class="mt-2 text-xs text-indigo-600">+ заголовок</button>
         </details>
 
         <details class="border rounded p-2" :open="model.body_mode !== 'none'">
@@ -93,7 +93,7 @@ function removePair(key, i) {
                     <input v-model="p.key" class="flex-1 rounded border-gray-300 text-sm" />
                     <input v-model="p.value" class="flex-1 rounded border-gray-300 text-sm" />
                 </div>
-                <button @click="(model.body ??= []).push({key:'', value:''})" class="mt-2 text-xs text-indigo-600">+ поле</button>
+                <button type="button" @click="(model.body ??= []).push({key:'', value:''})" class="mt-2 text-xs text-indigo-600">+ поле</button>
             </div>
         </details>
     </div>
