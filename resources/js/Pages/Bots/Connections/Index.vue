@@ -1,8 +1,12 @@
 <script setup>
 import { ref } from 'vue';
 import { router, Head, Link } from '@inertiajs/vue3';
+import { Plus } from 'lucide-vue-next';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ConnectionDrawer from '@/Components/Connections/ConnectionDrawer.vue';
+import ErTable from '@/Components/Ui/ErTable.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import ErBadge from '@/Components/Ui/ErBadge.vue';
 
 const props = defineProps({
     bot: Object,
@@ -39,60 +43,76 @@ function destroy(connection) {
 
 <template>
     <Head :title="`Подключения · ${bot.name}`" />
-    <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl px-4 py-6">
-            <div class="mb-4 flex items-center gap-3">
-                <Link :href="route('bots.edit', bot.id)" class="text-sm text-gray-500 hover:text-gray-700">
-                    ← Назад к боту
-                </Link>
-                <h1 class="text-xl font-semibold">Подключения «{{ bot.name }}»</h1>
+    <AuthenticatedLayout title="Подключения" :subtitle="bot.name">
+        <div class="page-wrap">
+            <div class="back-row">
+                <Link :href="route('bots.edit', bot.id)" class="back-link">← Назад к боту</Link>
             </div>
 
-            <div class="mb-4 flex justify-end">
-                <button @click="openCreate" class="rounded bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-500">
-                    + Добавить
-                </button>
-            </div>
-
-            <div class="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-900/5">
-                <table class="w-full text-sm">
-                    <thead class="border-b border-gray-200 bg-gray-50 text-left text-xs text-gray-500">
-                        <tr>
-                            <th class="px-4 py-3">Имя</th>
-                            <th class="px-4 py-3">Slug</th>
-                            <th class="px-4 py-3">Base URL</th>
-                            <th class="px-4 py-3">Авторизация</th>
-                            <th class="px-4 py-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <tr v-for="c in connections" :key="c.id" class="hover:bg-gray-50">
-                            <td class="px-4 py-3 font-medium">{{ c.name }}</td>
-                            <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ c.slug }}</td>
-                            <td class="px-4 py-3 font-mono text-xs">{{ c.base_url }}</td>
-                            <td class="px-4 py-3">
-                                {{ c.auth_type }}
-                                <span v-if="c.auth_config_preview" class="ml-2 font-mono text-xs text-gray-400">{{ c.auth_config_preview }}</span>
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                <button @click="openEdit(c)" class="mr-3 text-indigo-600 hover:text-indigo-800">✎</button>
-                                <button @click="destroy(c)" class="text-red-600 hover:text-red-800">🗑</button>
-                            </td>
-                        </tr>
-                        <tr v-if="connections.length === 0">
-                            <td colspan="5" class="px-4 py-8 text-center text-gray-400">Пока нет подключений</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <ConnectionDrawer
-                v-if="drawerOpen"
-                :bot="bot"
-                :connection="editingConnection"
-                @close="drawerOpen = false"
-                @saved="onSaved"
-            />
+            <ErTable>
+                <template #toolbar>
+                    <ErButton variant="primary" size="sm" @click="openCreate">
+                        <Plus :size="12" />Добавить подключение
+                    </ErButton>
+                </template>
+                <template #thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Slug</th>
+                        <th>Base URL</th>
+                        <th>Тип авторизации</th>
+                        <th style="width: 80px;"></th>
+                    </tr>
+                </template>
+                <tr v-if="connections.length === 0">
+                    <td colspan="5" style="text-align: center; color: var(--ink-3); padding: 24px;">Нет подключений</td>
+                </tr>
+                <tr v-for="c in connections" :key="c.id">
+                    <td>{{ c.name }}</td>
+                    <td class="tbl-mono">{{ c.slug }}</td>
+                    <td class="tbl-mono">{{ c.base_url }}</td>
+                    <td>
+                        <ErBadge color="nt">{{ c.auth_type }}</ErBadge>
+                        <span v-if="c.auth_config_preview" class="auth-preview">{{ c.auth_config_preview }}</span>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 4px;">
+                            <button class="tbl-act-btn" @click="openEdit(c)">Изменить</button>
+                            <button class="tbl-act-btn tbl-act-btn--danger" @click="destroy(c)">Удалить</button>
+                        </div>
+                    </td>
+                </tr>
+            </ErTable>
         </div>
+
+        <ConnectionDrawer
+            v-if="drawerOpen"
+            :bot="bot"
+            :connection="editingConnection"
+            @close="drawerOpen = false"
+            @saved="onSaved"
+        />
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.page-wrap { padding: 16px 20px; }
+.back-row { margin-bottom: 12px; }
+.back-link { font-size: 12px; color: var(--ink-3); text-decoration: none; }
+.back-link:hover { color: var(--ink); }
+.tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+.auth-preview { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: 6px; }
+.tbl-act-btn {
+    font-size: 11px;
+    color: var(--blue);
+    text-decoration: none;
+    padding: 1px 6px;
+    border: 1px solid var(--bdr-l);
+    border-radius: 2px;
+    background: var(--surface);
+    cursor: pointer;
+}
+.tbl-act-btn:hover { background: var(--blue-soft); }
+.tbl-act-btn--danger { color: var(--red); }
+.tbl-act-btn--danger:hover { background: var(--red-soft); }
+</style>
