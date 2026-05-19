@@ -1,9 +1,47 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import draggable from 'vuedraggable';
 import VarsHint from '../VarsHint.vue';
 
 const model = defineModel({ type: Object });
 const props = defineProps({ botId: [Number, String] });
+
+function parsePairs(queryString) {
+    if (!queryString) return [];
+    return queryString.split('&')
+        .map(p => {
+            const idx = p.indexOf('=');
+            return idx === -1
+                ? { key: p, value: '' }
+                : { key: p.slice(0, idx), value: p.slice(idx + 1) };
+        })
+        .filter(p => p.key !== '');
+}
+
+function buildQueryString(pairs) {
+    const filled = pairs.filter(p => p.key !== '');
+    if (!filled.length) return '';
+    return '?' + filled.map(p => p.key + (p.value !== '' ? '=' + p.value : '')).join('&');
+}
+
+let syncing = false;
+
+watch(() => model.value?.path, (newPath) => {
+    if (syncing) return;
+    const qIdx = (newPath ?? '').indexOf('?');
+    const qs = qIdx === -1 ? '' : newPath.slice(qIdx + 1);
+    syncing = true;
+    model.value.query = parsePairs(qs);
+    syncing = false;
+}, { flush: 'sync', immediate: true });
+
+watch(() => model.value?.query, (newQuery) => {
+    if (syncing) return;
+    const pathOnly = (model.value.path ?? '').split('?')[0];
+    syncing = true;
+    model.value.path = pathOnly + buildQueryString(newQuery);
+    syncing = false;
+}, { deep: true, flush: 'sync' });
 
 const connections = ref([]);
 
@@ -33,6 +71,14 @@ function addPair(key) {
 function removePair(key, i) {
     model.value[key].splice(i, 1);
 }
+
+const pairIds = new WeakMap();
+function getPairId(pair) {
+    if (!pairIds.has(pair)) {
+        pairIds.set(pair, Math.random());
+    }
+    return pairIds.get(pair);
+}
 </script>
 
 <template>
@@ -60,11 +106,16 @@ function removePair(key, i) {
 
         <details class="border rounded p-2">
             <summary class="cursor-pointer text-xs text-gray-600">Параметры запроса ({{ model.query.length }})</summary>
-            <div v-for="(p, i) in model.query" :key="i" class="flex gap-2 mt-2">
-                <input v-model="p.key" placeholder="name" class="flex-1 rounded border-gray-300 text-sm" />
-                <input v-model="p.value" placeholder="value" class="flex-1 rounded border-gray-300 text-sm" />
-                <button type="button" @click="removePair('query', i)" class="text-red-500 px-2">✕</button>
-            </div>
+            <draggable v-model="model.query" :item-key="getPairId" handle=".drag-handle" :animation="150">
+                <template #item="{ element: p, index: i }">
+                    <div class="flex gap-2 mt-2 items-center">
+                        <span class="drag-handle cursor-grab text-gray-300 hover:text-gray-500 select-none px-1">⠿</span>
+                        <input v-model="p.key" placeholder="name" class="flex-1 rounded border-gray-300 text-sm" />
+                        <input v-model="p.value" placeholder="value" class="flex-1 rounded border-gray-300 text-sm" />
+                        <button type="button" @click="removePair('query', i)" class="text-red-500 px-2">✕</button>
+                    </div>
+                </template>
+            </draggable>
             <button type="button" @click="addPair('query')" class="mt-2 text-xs text-indigo-600">+ параметр</button>
         </details>
 
