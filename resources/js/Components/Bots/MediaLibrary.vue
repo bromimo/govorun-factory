@@ -117,18 +117,20 @@ onMounted(() => {
             @drop.prevent="onDrop"
         >
             <div v-for="item in items" :key="item.id" class="ml-card" :title="item.original_name">
+                <div class="ml-card-header">
+                    <span v-if="item.type !== 'photo'"
+                        class="ml-type-badge"
+                        :style="{ background: typeColor[item.type] }"
+                    >{{ typeLabel[item.type] }}</span>
+                    <div style="flex: 1;" />
+                    <button class="ml-del-btn" type="button" @click.stop="remove(item)" title="Удалить">×</button>
+                </div>
                 <div class="ml-thumb">
                     <img v-if="item.type === 'photo' || item.type === 'animation'"
                         :src="item.file_url" :alt="item.original_name" />
                     <span v-else class="ml-thumb-icon">
-                        {{ { photo:'🖼', video:'🎬', audio:'🎵', document:'📄', animation:'🎞' }[item.type] }}
+                        {{ { video:'🎬', audio:'🎵', document:'📄', animation:'🎞' }[item.type] }}
                     </span>
-                    <span class="ml-type-badge" :style="{ background: typeColor[item.type] }">
-                        {{ typeLabel[item.type] }}
-                    </span>
-                    <div class="ml-hover-overlay">
-                        <button class="ml-del-btn" type="button" @click.stop="remove(item)" title="Удалить">×</button>
-                    </div>
                 </div>
                 <div class="ml-caption">
                     <span class="ml-name">{{ item.original_name }}</span>
@@ -186,66 +188,43 @@ onMounted(() => {
 .ml-card {
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--bdr);
+    border: 1px solid #3a3a42;
     border-radius: 3px;
     overflow: hidden;
     background: #1a1a1f;
     cursor: default;
     transition: border-color .12s;
 }
-.ml-card:hover { border-color: var(--blue); }
+.ml-card:hover { border-color: #5a8cd4; }
 
-/* Thumbnail area */
-.ml-thumb {
-    position: relative;
-    aspect-ratio: 1 / 1;
-    background: #111114;
-    overflow: hidden;
+/* Top header strip: badge + delete */
+.ml-card-header {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 4px;
+    padding: 3px 4px;
+    background: #2a2a30;
+    min-height: 20px;
 }
-.ml-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-.ml-thumb-icon { font-size: 28px; }
 
 /* Type badge */
 .ml-type-badge {
-    position: absolute;
-    top: 4px;
-    left: 4px;
     font-size: 9px;
     font-weight: 700;
     color: #fff;
     padding: 1px 4px;
     border-radius: 2px;
     letter-spacing: .04em;
-    opacity: .85;
+    flex-shrink: 0;
 }
 
-/* Hover overlay with delete */
-.ml-hover-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-    padding: 4px;
-    background: rgba(0,0,0,.35);
-    opacity: 0;
-    transition: opacity .12s;
-}
-.ml-card:hover .ml-hover-overlay { opacity: 1; }
+/* Delete button — visible on card hover */
 .ml-del-btn {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: rgba(200,30,30,.85);
-    color: #fff;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    background: rgba(180,30,30,.0);
+    color: #6a7080;
     border: none;
     cursor: pointer;
     font-size: 14px;
@@ -253,8 +232,29 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    transition: background .1s, color .1s;
+    opacity: 0;
 }
-.ml-del-btn:hover { background: #c81e1e; }
+.ml-card:hover .ml-del-btn { opacity: 1; color: #c8ccd4; }
+.ml-del-btn:hover { background: rgba(200,30,30,.8); color: #fff !important; }
+
+/* Thumbnail area */
+.ml-thumb {
+    aspect-ratio: 1 / 1;
+    background: #111114;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+}
+.ml-thumb img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+.ml-thumb-icon { font-size: 28px; }
 
 /* Caption strip */
 .ml-caption {
