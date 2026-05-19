@@ -116,6 +116,8 @@ function formatDate(d) {
                 v-for="bot in bots"
                 :key="bot.id"
                 :class="{ sel: selected.has(bot.id) }"
+                class="bot-row"
+                @dblclick="router.visit(route('bots.edit', bot.id))"
             >
                 <td><input type="checkbox" :checked="selected.has(bot.id)" @change="toggleRow(bot.id)" /></td>
                 <td><span class="status-dot"></span></td>
@@ -171,4 +173,5 @@ function formatDate(d) {
 .tbl-acts { display: flex; gap: 4px; }
 .tbl-act-btn { font-size: 11px; color: var(--blue); text-decoration: none; padding: 1px 6px; border: 1px solid var(--bdr-l); border-radius: 2px; background: var(--surface); }
 .tbl-act-btn:hover { background: var(--blue-soft); }
+.bot-row { cursor: pointer; }
 </style>
