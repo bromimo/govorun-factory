@@ -6,7 +6,7 @@ import { stripTelegramHtml } from '@/utils/telegramHtml.js';
 
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps(['id', 'data', 'selected']);
+const props = defineProps(['id', 'type', 'data', 'selected']);
 
 const typeLabels = { photo: 'Фото', video: 'Видео', audio: 'Аудио', document: 'Документ', animation: 'GIF' };
 
@@ -32,7 +32,7 @@ const mediaLabel = computed(() => {
 </script>
 
 <template>
-    <BaseNode :id="id" :selected="selected" label="Ответ" color="pink">
+    <BaseNode :id="id" :type="type" :selected="selected" label="Ответ">
         <img v-if="mediaPhotoUrl" :src="mediaPhotoUrl" class="mb-1 max-h-24 w-full rounded object-cover" />
         <p v-else-if="mediaLabel" class="truncate text-gray-500">{{ mediaLabel }}</p>
         <p v-if="data.text" class="line-clamp-3" v-html="html"></p>

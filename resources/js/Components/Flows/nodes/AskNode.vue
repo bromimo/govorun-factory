@@ -6,7 +6,7 @@ import { stripTelegramHtml } from '@/utils/telegramHtml.js';
 
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps(['id', 'data', 'selected']);
+const props = defineProps(['id', 'type', 'data', 'selected']);
 
 const typeLabels = { photo: 'Фото', video: 'Видео', audio: 'Аудио', document: 'Документ', animation: 'GIF' };
 
@@ -36,7 +36,7 @@ const hasValidation = computed(() => !isCallback.value && (props.data.validation
 </script>
 
 <template>
-    <BaseNode :id="id" :selected="selected" label="Вопрос" color="blue" :has-validation="hasValidation">
+    <BaseNode :id="id" :type="type" :selected="selected" label="Вопрос" :has-validation="hasValidation">
         <template #header-right>
             <span class="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
                 {{ isCallback ? 'Кнопка' : 'Текст' }}
