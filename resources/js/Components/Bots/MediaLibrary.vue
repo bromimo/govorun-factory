@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import ErButton from '@/Components/Ui/ErButton.vue';
-import ErFormSection from '@/Components/Ui/ErFormSection.vue';
 
 const props = defineProps({
     bot: { type: Object, required: true },
@@ -13,13 +12,15 @@ const items = ref(props.initialItems.length ? [...props.initialItems] : []);
 const loading = ref(false);
 const uploading = ref(false);
 const fileInput = ref(null);
+const dragOver = ref(false);
 
-const typeIcons = {
-    photo: '🖼',
-    video: '🎬',
-    audio: '🎵',
-    document: '📄',
-    animation: '🎞',
+const typeLabel = { photo: 'IMG', video: 'VID', audio: 'AUD', document: 'DOC', animation: 'GIF' };
+const typeColor = {
+    photo: '#2a7a3a',
+    animation: '#2a7a3a',
+    video: '#7c3aed',
+    audio: '#c87020',
+    document: '#3a72c4',
 };
 
 function formatSize(bytes) {
@@ -71,49 +72,210 @@ async function remove(item) {
     items.value = items.value.filter(i => i.id !== item.id);
 }
 
+function onDrop(e) {
+    dragOver.value = false;
+    const files = e.dataTransfer?.files;
+    if (files?.length) handleFiles(files);
+}
+
 onMounted(() => {
     if (!items.value.length) load();
 });
 </script>
 
 <template>
-    <div class="space-y-3">
-        <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-500">{{ items.length }} файл(ов)</span>
-            <div>
-                <input ref="fileInput" type="file" multiple class="hidden"
-                    @change="handleFiles($event.target.files)" />
-                <ErButton type="button" variant="primary" @click="fileInput.click()" :disabled="uploading">
-                    {{ uploading ? 'Загрузка…' : '+ Загрузить' }}
-                </ErButton>
-            </div>
+    <div class="ml-root">
+        <div class="ml-toolbar">
+            <span class="ml-count">{{ items.length }} файлов</span>
+            <div style="flex: 1;" />
+            <input ref="fileInput" type="file" multiple style="display: none;"
+                @change="handleFiles($event.target.files)" />
+            <ErButton variant="primary" size="sm" :disabled="uploading" @click="fileInput.click()">
+                {{ uploading ? 'Загрузка…' : '+ Загрузить' }}
+            </ErButton>
         </div>
 
-        <div v-if="loading" class="py-8 text-center text-xs text-gray-400">Загрузка…</div>
+        <div v-if="loading" class="ml-state">Загрузка…</div>
 
         <div v-else-if="!items.length"
-            class="rounded-lg border-2 border-dashed border-gray-300 py-12 text-center text-xs text-gray-400">
-            Нет загруженных файлов
+            class="ml-drop-zone"
+            :class="{ over: dragOver }"
+            @dragover.prevent="dragOver = true"
+            @dragleave="dragOver = false"
+            @drop.prevent="onDrop"
+            @click="fileInput.click()"
+        >
+            <div class="ml-drop-icon">⊕</div>
+            <div class="ml-drop-text">Перетащите файлы или нажмите для загрузки</div>
         </div>
 
-        <div v-else class="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-            <div v-for="item in items" :key="item.id"
-                class="group relative overflow-hidden rounded-lg border border-gray-200 bg-white">
-                <div class="flex aspect-square items-center justify-center bg-gray-50">
+        <div v-else
+            class="ml-grid"
+            :class="{ over: dragOver }"
+            @dragover.prevent="dragOver = true"
+            @dragleave="dragOver = false"
+            @drop.prevent="onDrop"
+        >
+            <div v-for="item in items" :key="item.id" class="ml-card" :title="item.original_name">
+                <div class="ml-thumb">
                     <img v-if="item.type === 'photo' || item.type === 'animation'"
-                        :src="item.file_url" :alt="item.original_name"
-                        class="h-full w-full object-cover" />
-                    <span v-else class="text-3xl">{{ typeIcons[item.type] }}</span>
+                        :src="item.file_url" :alt="item.original_name" />
+                    <span v-else class="ml-thumb-icon">
+                        {{ { photo:'🖼', video:'🎬', audio:'🎵', document:'📄', animation:'🎞' }[item.type] }}
+                    </span>
+                    <span class="ml-type-badge" :style="{ background: typeColor[item.type] }">
+                        {{ typeLabel[item.type] }}
+                    </span>
+                    <div class="ml-hover-overlay">
+                        <button class="ml-del-btn" type="button" @click.stop="remove(item)" title="Удалить">×</button>
+                    </div>
                 </div>
-                <div class="p-1.5">
-                    <p class="truncate text-xs text-gray-600">{{ item.original_name }}</p>
-                    <p class="text-xs text-gray-400">{{ formatSize(item.size) }}</p>
+                <div class="ml-caption">
+                    <span class="ml-name">{{ item.original_name }}</span>
+                    <span class="ml-size">{{ formatSize(item.size) }}</span>
                 </div>
-                <button type="button" @click="remove(item)"
-                    class="absolute right-1 top-1 hidden rounded bg-red-500 px-1 py-0.5 text-xs text-white group-hover:block">
-                    ×
-                </button>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.ml-root {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ml-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ml-count { font-size: 11px; color: var(--ink-3); }
+
+/* Drop zone (empty state) */
+.ml-drop-zone {
+    border: 2px dashed var(--bdr-d);
+    border-radius: var(--r-md);
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--ink-3);
+    transition: background .15s, border-color .15s;
+}
+.ml-drop-zone:hover, .ml-drop-zone.over {
+    background: var(--blue-soft);
+    border-color: var(--blue);
+    color: var(--blue-d);
+}
+.ml-drop-icon { font-size: 32px; margin-bottom: 8px; }
+.ml-drop-text { font-size: 12px; }
+
+/* Grid */
+.ml-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 4px;
+    padding: 2px;
+    border-radius: var(--r-md);
+    transition: background .15s;
+}
+.ml-grid.over { background: var(--blue-soft); }
+
+/* Card */
+.ml-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--bdr);
+    border-radius: 3px;
+    overflow: hidden;
+    background: #1a1a1f;
+    cursor: default;
+    transition: border-color .12s;
+}
+.ml-card:hover { border-color: var(--blue); }
+
+/* Thumbnail area */
+.ml-thumb {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: #111114;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ml-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.ml-thumb-icon { font-size: 28px; }
+
+/* Type badge */
+.ml-type-badge {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+    padding: 1px 4px;
+    border-radius: 2px;
+    letter-spacing: .04em;
+    opacity: .85;
+}
+
+/* Hover overlay with delete */
+.ml-hover-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 4px;
+    background: rgba(0,0,0,.35);
+    opacity: 0;
+    transition: opacity .12s;
+}
+.ml-card:hover .ml-hover-overlay { opacity: 1; }
+.ml-del-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(200,30,30,.85);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ml-del-btn:hover { background: #c81e1e; }
+
+/* Caption strip */
+.ml-caption {
+    padding: 3px 5px 4px;
+    background: #2a2a30;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.ml-name {
+    font-size: 10px;
+    color: #c8ccd4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--mono);
+}
+.ml-size {
+    font-size: 9px;
+    color: #6a7080;
+    font-family: var(--mono);
+}
+</style>
