@@ -1,7 +1,8 @@
 {{-- Требует govorun/framework с трейтом MakesHttpCalls (реализован отдельно) --}}
 $response = $this->http()->connection('{!! $slug !!}')->{!! $method !!}({!! $pathExpr !!}@if($query !== '[]'), [
     'query' => {!! $query !!},
-    'headers' => {!! $headers !!},
+    @if($headers !== '[]')'headers' => {!! $headers !!},
+    @endif
     @if($bodyMode === 'json' && $bodyExpr !== 'null')'json' => {!! $bodyExpr !!},
     @elseif($bodyMode === 'form')'form_params' => {!! $bodyExpr !!},
     @endif
@@ -9,7 +10,11 @@ $response = $this->http()->connection('{!! $slug !!}')->{!! $method !!}({!! $pat
 
 @if ($onError === 'stop_flow')
 if ($response->failed()) {
+@if ($isController ?? false)
+    return;
+@else
     return $this->cancel();
+@endif
 }
 @elseif ($onError === 'continue')
 if ($response->failed()) {

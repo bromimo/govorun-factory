@@ -177,9 +177,10 @@ class ControllerGenerator
             'mapping' => $params['response_mapping'] ?? [],
             'onError' => $onError === 'branch' ? 'stop_flow' : $onError,
             'onErrorTarget' => null,
+            'isController' => true,
         ])->render();
 
-        return $this->indentBlock($tpl)."\n";
+        return $tpl."\n";
     }
 
     private function renderStringExpr(string $template): string
