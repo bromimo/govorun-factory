@@ -60,7 +60,7 @@ export const NODE_TYPE_COLORS = {
     reply:       { stripe: '#b03030', fill: '#fce4e4' },
     save_state:  { stripe: '#3a7a3a', fill: '#e8f4e0' },
     condition:   { stripe: '#c87020', fill: '#fdefd8' },
-    api_call:    { stripe: '#3a72c4', fill: '#e8f0fc' },
+    api_call:    { stripe: '#7c3aed', fill: '#f0ebff' },
     on_complete: { stripe: '#5a6878', fill: '#eef1f4' },
     on_cancel:   { stripe: '#5a6878', fill: '#eef1f4' },
     start:       { stripe: '#5a6878', fill: '#eef1f4' },
