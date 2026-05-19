@@ -1,3 +1,4 @@
+@import './erp-tokens.css';
 @import './rich-text.css';
 @tailwind base;
 @tailwind components;

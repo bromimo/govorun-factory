@@ -1,0 +1,44 @@
+:root {
+  --nav: #1d3a6e;
+  --nav-d: #162d57;
+  --nav-l: #2c4d85;
+  --nav-text: #c8d4e8;
+  --nav-text-a: #ffffff;
+
+  --blue: #3a72c4;
+  --blue-d: #2a5ca0;
+  --blue-l: #5a8cd4;
+  --blue-soft: #e8f0fc;
+
+  --bg: #f0f3f5;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;
+  --surface-3: #eef1f4;
+
+  --bdr: #c5cdd5;
+  --bdr-l: #dde2e8;
+  --bdr-d: #9aa5b2;
+
+  --ink: #1a2230;
+  --ink-2: #3d4a5c;
+  --ink-3: #5a6878;
+  --ink-4: #8a96a8;
+
+  --green: #3a7a3a;
+  --green-soft: #e8f4e0;
+  --red: #b03030;
+  --red-soft: #fce4e4;
+  --orange: #c87020;
+  --orange-soft: #fdefd8;
+  --yellow: #a08020;
+  --yellow-soft: #fef8d8;
+
+  --r-sm: 2px;
+  --r-md: 3px;
+
+  --font: 'Segoe UI', Tahoma, Verdana, Arial, sans-serif;
+  --mono: 'Consolas', 'Lucida Console', monospace;
+
+  --sh: 0 1px 2px rgba(20,30,50,.08);
+  --sh-md: 0 2px 6px rgba(20,30,50,.10), 0 1px 2px rgba(20,30,50,.08);
+}
