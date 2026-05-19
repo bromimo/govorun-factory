@@ -200,10 +200,10 @@ class ControllerGenerator
         foreach ($pairs as $p) {
             $k = "'".addslashes($p['key'] ?? '')."'";
             $v = $this->renderStringExpr($p['value'] ?? '');
-            $parts[] = "{$k} => {$v}";
+            $parts[] = "        {$k} => {$v},";
         }
 
-        return '['.implode(', ', $parts).']';
+        return "[\n".implode("\n", $parts)."\n    ]";
     }
 
     private function renderBodyExpr(string $mode, mixed $body): string
