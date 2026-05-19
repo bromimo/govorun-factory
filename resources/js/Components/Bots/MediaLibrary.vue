@@ -14,7 +14,6 @@ const uploading = ref(false);
 const fileInput = ref(null);
 const dragOver = ref(false);
 
-const typeLabel = { photo: 'IMG', video: 'VID', audio: 'AUD', document: 'DOC', animation: 'GIF' };
 const typeColor = {
     photo:     '#5a7a9a',
     animation: '#2a7a3a',
@@ -22,6 +21,11 @@ const typeColor = {
     audio:     '#c87020',
     document:  '#3a72c4',
 };
+
+function fileExt(name) {
+    const m = name?.match(/\.([^.]+)$/);
+    return m ? m[1].toUpperCase() : '?';
+}
 
 function formatSize(bytes) {
     if (bytes < 1024 * 1024) {
@@ -118,8 +122,8 @@ onMounted(() => {
         >
             <div v-for="item in items" :key="item.id" class="ml-card" :title="item.original_name">
                 <div class="ml-card-header">
-                    <span v-if="item.type !== 'photo'" class="ml-type-badge" :style="{ background: typeColor[item.type] }">
-                        {{ typeLabel[item.type] }}
+                    <span class="ml-type-badge" :style="{ background: typeColor[item.type] }">
+                        {{ fileExt(item.original_name) }}
                     </span>
                     <div style="flex: 1;" />
                     <button class="ml-del-btn" type="button" @click.stop="remove(item)" title="Удалить">×</button>
