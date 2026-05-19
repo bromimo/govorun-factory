@@ -118,7 +118,7 @@ onMounted(() => {
         >
             <div v-for="item in items" :key="item.id" class="ml-card" :title="item.original_name">
                 <div class="ml-card-header">
-                    <span class="ml-type-badge" :style="{ background: typeColor[item.type] }">
+                    <span v-if="item.type !== 'photo'" class="ml-type-badge" :style="{ background: typeColor[item.type] }">
                         {{ typeLabel[item.type] }}
                     </span>
                     <div style="flex: 1;" />
