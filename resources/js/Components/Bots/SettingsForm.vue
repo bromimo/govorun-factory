@@ -1,5 +1,11 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
+import ErFormSection from '@/Components/Ui/ErFormSection.vue'
+import ErFormField from '@/Components/Ui/ErFormField.vue'
+import ErButton from '@/Components/Ui/ErButton.vue'
+import ErInput from '@/Components/Ui/ErInput.vue'
+import ErTextarea from '@/Components/Ui/ErTextarea.vue'
+import ErSelect from '@/Components/Ui/ErSelect.vue'
 
 const props = defineProps({
     bot: Object,
@@ -19,55 +25,95 @@ const form = useForm({
 function save() {
     form.put(route('bots.update', props.bot.id));
 }
+
+function reset() {
+    form.reset();
+}
 </script>
 
 <template>
-    <form @submit.prevent="save" class="space-y-6">
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Название</label>
-            <input v-model="form.name" type="text"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-            <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</p>
-        </div>
+    <form @submit.prevent="save">
+        <ErFormSection title="Основные настройки" :collapsible="false">
+            <ErFormField label="Название" :required="true">
+                <ErInput v-model="form.name" long />
+                <p v-if="form.errors.name" class="fld-err">{{ form.errors.name }}</p>
+            </ErFormField>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Описание</label>
-            <textarea v-model="form.description" rows="3"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-            <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">{{ form.errors.description }}</p>
-        </div>
+            <ErFormField label="Описание">
+                <ErTextarea v-model="form.description" :rows="3" />
+                <p v-if="form.errors.description" class="fld-err">{{ form.errors.description }}</p>
+            </ErFormField>
+        </ErFormSection>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Окружение</label>
-            <select v-model="form.config.environment"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                <option value="development">Development</option>
-                <option value="production">Production</option>
-            </select>
-        </div>
+        <ErFormSection title="Конфигурация" :collapsible="true">
+            <ErFormField label="Окружение">
+                <ErSelect v-model="form.config.environment">
+                    <option value="development">Development</option>
+                    <option value="production">Production</option>
+                </ErSelect>
+            </ErFormField>
 
-        <div class="flex items-center gap-2">
-            <input v-model="form.config.debug" type="checkbox" id="debug"
-                class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-            <label for="debug" class="text-sm font-medium text-gray-700">Debug mode</label>
-        </div>
+            <ErFormField label="State Storage">
+                <ErSelect v-model="form.config.state_storage">
+                    <option value="file">File</option>
+                    <option value="database">Database</option>
+                    <option value="cache">Cache</option>
+                </ErSelect>
+            </ErFormField>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700">State Storage</label>
-            <select v-model="form.config.state_storage"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                <option value="file">File</option>
-                <option value="database">Database</option>
-                <option value="cache">Cache</option>
-            </select>
-        </div>
+            <ErFormField label="Debug mode">
+                <label class="chk-row">
+                    <input v-model="form.config.debug" type="checkbox" id="debug" class="chk" />
+                    <span class="chk-lbl">Включить режим отладки</span>
+                </label>
+            </ErFormField>
+        </ErFormSection>
 
-        <div v-if="can.update" class="pt-4">
-            <button type="submit" :disabled="form.processing"
-                class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
-                Сохранить настройки
-            </button>
-            <span v-if="form.recentlySuccessful" class="ml-3 text-sm text-green-600">Сохранено</span>
+        <div v-if="can.update" class="form-acts">
+            <ErButton variant="primary" type="submit" :disabled="form.processing">Сохранить</ErButton>
+            <ErButton type="button" @click="reset">Отменить</ErButton>
+            <span v-if="form.recentlySuccessful" class="saved-msg">Сохранено</span>
         </div>
     </form>
 </template>
+
+<style scoped>
+.fld-err {
+    font-size: 11px;
+    color: var(--red);
+    margin: 0;
+}
+
+.chk-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.chk {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: var(--blue);
+}
+
+.chk-lbl {
+    font-size: 12px;
+    color: var(--ink-2);
+}
+
+.form-acts {
+    padding: 10px 0;
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--bdr-l);
+    margin-top: 8px;
+    align-items: center;
+}
+
+.saved-msg {
+    font-size: 12px;
+    color: var(--green, #2e7d32);
+}
+</style>
