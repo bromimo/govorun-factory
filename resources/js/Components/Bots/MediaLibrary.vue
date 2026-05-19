@@ -190,7 +190,7 @@ onMounted(() => {
     border: 1px solid var(--bdr);
     border-radius: 3px;
     overflow: hidden;
-    background: var(--surface-3);
+    background: var(--blue-soft);
     cursor: default;
     transition: border-color .12s, box-shadow .12s;
 }
@@ -202,7 +202,7 @@ onMounted(() => {
     align-items: center;
     gap: 4px;
     padding: 3px 4px;
-    background: var(--surface-3);
+    background: var(--blue-soft);
     border-bottom: 1px solid var(--bdr-l);
     min-height: 20px;
     flex-shrink: 0;
@@ -261,7 +261,7 @@ onMounted(() => {
 /* Caption strip — sticks to bottom */
 .ml-caption {
     padding: 3px 4px 4px;
-    background: var(--surface-3);
+    background: var(--blue-soft);
     border-top: 1px solid var(--bdr-l);
     display: flex;
     flex-direction: column;
