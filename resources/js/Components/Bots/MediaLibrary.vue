@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import ErButton from '@/Components/Ui/ErButton.vue';
+import Modal from '@/Components/Modal.vue';
 
 const props = defineProps({
     bot: { type: Object, required: true },
@@ -13,6 +14,7 @@ const loading = ref(false);
 const uploading = ref(false);
 const fileInput = ref(null);
 const dragOver = ref(false);
+const confirmItem = ref(null);
 
 const extColor = {
     // фото — тёплые оттенки
@@ -110,8 +112,13 @@ async function handleFiles(files) {
     if (fileInput.value) fileInput.value.value = '';
 }
 
-async function remove(item) {
-    if (!confirm(`Удалить «${item.original_name}»?`)) return;
+function remove(item) {
+    confirmItem.value = item;
+}
+
+async function confirmRemove() {
+    const item = confirmItem.value;
+    confirmItem.value = null;
     await axios.delete(route('bots.media.destroy', [props.bot.id, item.id]));
     items.value = items.value.filter(i => i.id !== item.id);
 }
@@ -182,6 +189,16 @@ onMounted(() => {
             </div>
         </div>
     </div>
+
+    <Modal :show="!!confirmItem" title="Удалить файл?" max-width="sm" @close="confirmItem = null">
+        <div class="del-body">
+            <p class="del-desc">Файл <strong>{{ confirmItem?.original_name }}</strong> будет удалён безвозвратно.</p>
+        </div>
+        <div class="del-foot">
+            <ErButton @click="confirmItem = null">Отмена</ErButton>
+            <ErButton variant="danger" @click="confirmRemove">Удалить</ErButton>
+        </div>
+    </Modal>
 </template>
 
 <style scoped>
@@ -326,4 +343,9 @@ onMounted(() => {
     color: var(--ink-4);
     font-family: var(--mono);
 }
+
+.del-body { padding: 16px 20px; }
+.del-desc { font-size: 12px; color: var(--ink-2); margin: 0; }
+.del-desc strong { color: var(--ink); font-weight: 600; word-break: break-all; }
+.del-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 20px 14px; border-top: 1px solid var(--bdr-l); background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%); }
 </style>
