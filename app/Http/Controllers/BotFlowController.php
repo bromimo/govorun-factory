@@ -54,6 +54,10 @@ class BotFlowController extends Controller
     {
         $flow->update($request->validated());
 
+        if (! $request->has('graph')) {
+            return redirect()->back();
+        }
+
         return redirect()->route('bot-flows.show', [$bot, $flow]);
     }
 

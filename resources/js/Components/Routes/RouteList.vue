@@ -166,6 +166,7 @@ const blockSummaries = computed(() => {
                     <tr
                         :class="{ sel: overIndex === index && dragIndex !== index }"
                         :draggable="canUpdate && route.type !== 'fallback'"
+                        @dblclick="canUpdate && openEdit(route)"
                         @dragstart="onDragStart($event, index)"
                         @dragover="onDragOver($event, index)"
                         @drop="onDrop"
@@ -213,7 +214,9 @@ const blockSummaries = computed(() => {
                         </td>
                     </tr>
                     <!-- Дочерние маршруты -->
-                    <tr v-for="child in route.children ?? []" :key="child.id" class="child-row">
+                    <tr v-for="child in route.children ?? []" :key="child.id" class="child-row"
+                        @dblclick="canUpdate && openEdit(child)"
+                    >
                         <td></td>
                         <td><input type="checkbox" /></td>
                         <td class="tbl-mono tbl-child-idx">↳</td>

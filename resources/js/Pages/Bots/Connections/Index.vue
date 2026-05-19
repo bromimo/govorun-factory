@@ -67,7 +67,7 @@ function destroy(connection) {
                 <tr v-if="connections.length === 0">
                     <td colspan="5" style="text-align: center; color: var(--ink-3); padding: 24px;">Нет подключений</td>
                 </tr>
-                <tr v-for="c in connections" :key="c.id">
+                <tr v-for="c in connections" :key="c.id" @dblclick="openEdit(c)" style="cursor: pointer;">
                     <td>{{ c.name }}</td>
                     <td class="tbl-mono">{{ c.slug }}</td>
                     <td class="tbl-mono">{{ c.base_url }}</td>
