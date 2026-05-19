@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue';
 import axios from 'axios';
 import Modal from '@/Components/Modal.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
 
 const props = defineProps({
     show: { type: Boolean, default: false },
@@ -26,33 +27,6 @@ const filters = [
     { key: 'document', label: 'Документ' },
 ];
 
-const extColors = {
-    jpg:  'bg-amber-500',
-    jpeg: 'bg-amber-500',
-    png:  'bg-sky-500',
-    webp: 'bg-cyan-500',
-    heic: 'bg-violet-500',
-    heif: 'bg-violet-500',
-    tiff: 'bg-teal-500',
-    tif:  'bg-teal-500',
-    gif:  'bg-green-500',
-    mp4:  'bg-blue-600',
-    mov:  'bg-blue-600',
-    avi:  'bg-blue-700',
-    mkv:  'bg-blue-700',
-    webm: 'bg-indigo-500',
-    mp3:  'bg-rose-500',
-    ogg:  'bg-rose-500',
-    wav:  'bg-rose-600',
-    m4a:  'bg-rose-500',
-    pdf:  'bg-red-500',
-};
-
-function extColor(filename) {
-    const ext = filename.split('.').pop().toLowerCase();
-    return extColors[ext] ?? 'bg-gray-400';
-}
-
 const typeIcons = {
     photo: '🖼',
     video: '🎬',
@@ -61,6 +35,17 @@ const typeIcons = {
     animation: '🎞',
 };
 
+const extPalette = {
+    jpg: '#d97706', jpeg: '#d97706', png: '#0284c7', webp: '#0891b2', gif: '#16a34a',
+    mp4: '#2563eb', mov: '#2563eb', avi: '#1d4ed8', mkv: '#1d4ed8', webm: '#4f46e5',
+    mp3: '#dc2626', ogg: '#dc2626', wav: '#b91c1c', m4a: '#dc2626', pdf: '#ef4444',
+};
+
+function extColor(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    return extPalette[ext] ?? '#6b7280';
+}
+
 const filtered = computed(() => {
     if (activeFilter.value === 'all') {
         return items.value;
@@ -68,18 +53,15 @@ const filtered = computed(() => {
     return items.value.filter((i) => i.type === activeFilter.value);
 });
 
-watch(
-    () => props.show,
-    async (val) => {
-        if (!val) {
-            return;
-        }
-        tempSelected.value = null;
-        if (!items.value.length) {
-            await load();
-        }
-    },
-);
+watch(() => props.show, async (val) => {
+    if (!val) {
+        return;
+    }
+    tempSelected.value = null;
+    if (!items.value.length) {
+        await load();
+    }
+});
 
 async function load() {
     loading.value = true;
@@ -131,90 +113,190 @@ async function upload(e) {
 </script>
 
 <template>
-    <Modal :show="show" max-width="screen" @close="emit('close')">
-        <div class="flex h-[90vh] flex-col">
-            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                <h3 class="text-lg font-medium text-gray-900">Медиатека</h3>
-                <button type="button" @click="emit('close')"
-                    class="text-gray-400 hover:text-gray-600">✕</button>
-            </div>
-
-            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-3">
-                <div class="flex flex-wrap gap-1">
-                    <button v-for="f in filters" :key="f.key" type="button"
+    <Modal :show="show" title="Медиатека" max-width="screen" @close="emit('close')">
+        <div class="ml-root">
+            <div class="ml-toolbar">
+                <div class="ml-filters">
+                    <button
+                        v-for="f in filters"
+                        :key="f.key"
+                        type="button"
+                        class="ml-filter-btn"
+                        :class="{ act: activeFilter === f.key }"
                         @click="activeFilter = f.key"
-                        :class="['rounded-full px-3 py-1 text-xs font-medium transition',
-                            activeFilter === f.key
-                                ? 'bg-indigo-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200']">
-                        {{ f.label }}
-                    </button>
+                    >{{ f.label }}</button>
                 </div>
-                <div class="ml-3 shrink-0">
-                    <input ref="fileInputRef" type="file" class="hidden" @change="upload" />
-                    <button type="button" @click="fileInputRef.click()" :disabled="uploading"
-                        class="rounded-md bg-white px-3 py-1.5 text-xs font-medium text-indigo-600 ring-1 ring-indigo-300 hover:bg-indigo-50 disabled:opacity-50">
+                <div>
+                    <input ref="fileInputRef" type="file" style="display:none" @change="upload" />
+                    <ErButton size="sm" @click="fileInputRef.click()" :disabled="uploading">
                         {{ uploading ? 'Загрузка…' : '+ Загрузить' }}
-                    </button>
+                    </ErButton>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-3">
-                <div v-if="loading"
-                    class="flex h-48 items-center justify-center text-sm text-gray-400">
-                    Загрузка…
-                </div>
-                <div v-else-if="!filtered.length"
-                    class="flex h-48 items-center justify-center text-sm text-gray-400">
-                    Нет файлов
-                </div>
-                <div v-else class="grid grid-cols-5 gap-2 sm:grid-cols-7 lg:grid-cols-9">
-                    <button v-for="item in filtered" :key="item.id" type="button"
+            <div class="ml-grid-wrap">
+                <div v-if="loading" class="ml-empty">Загрузка…</div>
+                <div v-else-if="!filtered.length" class="ml-empty">Нет файлов</div>
+                <div v-else class="ml-grid">
+                    <button
+                        v-for="item in filtered"
+                        :key="item.id"
+                        type="button"
+                        class="ml-item"
+                        :class="{ sel: tempSelected?.id === item.id }"
                         @click="tempSelected = item"
                         @dblclick="() => { tempSelected = item; confirm(); }"
-                        :class="['flex flex-col overflow-hidden rounded border-2 transition',
-                            tempSelected?.id === item.id
-                                ? 'border-indigo-500'
-                                : 'border-transparent bg-white hover:border-gray-300']">
-                        <div class="flex justify-end bg-gray-50 px-1 py-0.5">
-                            <span :class="['rounded px-1 py-px text-[9px] font-bold uppercase leading-none text-white', extColor(item.original_name)]">
+                    >
+                        <div class="ml-item-top">
+                            <span class="ml-ext" :style="{ background: extColor(item.original_name) }">
                                 {{ item.original_name.split('.').pop() }}
                             </span>
                         </div>
-                        <div class="aspect-square w-full overflow-hidden bg-gray-100">
+                        <div class="ml-item-thumb">
                             <img v-if="item.type === 'photo' || item.type === 'animation'"
                                 :src="item.file_url" :alt="item.original_name"
-                                class="h-full w-full object-contain" />
-                            <div v-else class="flex h-full w-full items-center justify-center">
-                                <span class="text-4xl">{{ typeIcons[item.type] }}</span>
-                            </div>
+                                style="width:100%;height:100%;object-fit:contain" />
+                            <span v-else class="ml-item-icon">{{ typeIcons[item.type] }}</span>
                         </div>
-                        <p class="truncate bg-gray-50 px-1.5 py-1 text-center text-[10px] text-gray-600"
-                            :title="item.original_name">
+                        <p class="ml-item-name" :title="item.original_name">
                             {{ item.original_name.replace(/\.[^.]+$/, '') }}
                         </p>
                     </button>
                 </div>
             </div>
 
-            <div class="flex items-center justify-between border-t border-gray-200 px-6 py-4">
-                <span v-if="tempSelected" class="truncate text-xs text-gray-500">
+            <div class="ml-foot">
+                <span v-if="tempSelected" class="ml-foot-sel">
                     Выбрано: {{ tempSelected.original_name }}
                 </span>
-                <span v-else class="text-xs text-gray-400">
+                <span v-else class="ml-foot-hint">
                     Кликните на файл для выбора, двойной клик — сразу вставить
                 </span>
-                <div class="ml-4 flex shrink-0 gap-3">
-                    <button type="button" @click="emit('close')"
-                        class="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50">
-                        Отмена
-                    </button>
-                    <button type="button" @click="confirm" :disabled="!tempSelected"
-                        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
-                        Выбрать
-                    </button>
+                <div class="ml-foot-acts">
+                    <ErButton @click="emit('close')">Отмена</ErButton>
+                    <ErButton variant="primary" @click="confirm" :disabled="!tempSelected">Выбрать</ErButton>
                 </div>
             </div>
         </div>
     </Modal>
 </template>
+
+<style scoped>
+.ml-root {
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    min-height: 0;
+    overflow: hidden;
+}
+.ml-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--bdr-l);
+    flex-shrink: 0;
+    gap: 8px;
+    background: var(--surface-2);
+}
+.ml-filters { display: flex; flex-wrap: wrap; gap: 4px; }
+.ml-filter-btn {
+    padding: 2px 10px;
+    height: 22px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 11px;
+    border: 1px solid var(--bdr);
+    background: var(--surface);
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: background .1s, color .1s, border-color .1s;
+    font-family: var(--font);
+}
+.ml-filter-btn:hover { background: var(--surface-3); }
+.ml-filter-btn.act { background: var(--blue); border-color: var(--blue-d); color: #fff; }
+
+.ml-grid-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    min-height: 0;
+}
+.ml-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 160px;
+    color: var(--ink-4);
+    font-size: 12px;
+}
+.ml-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 6px;
+}
+.ml-item {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--r-sm);
+    border: 2px solid transparent;
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color .1s;
+    text-align: left;
+    padding: 0;
+}
+.ml-item:hover { border-color: var(--bdr-d); }
+.ml-item.sel { border-color: var(--blue); }
+
+.ml-item-top {
+    display: flex;
+    justify-content: flex-end;
+    background: var(--surface-2);
+    padding: 2px 4px;
+}
+.ml-ext {
+    border-radius: 2px;
+    padding: 1px 4px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #fff;
+    font-family: var(--mono);
+    line-height: 1.4;
+}
+.ml-item-thumb {
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--surface-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ml-item-icon { font-size: 28px; }
+.ml-item-name {
+    padding: 3px 5px;
+    font-size: 10px;
+    color: var(--ink-2);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    background: var(--surface-2);
+    margin: 0;
+}
+
+.ml-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-top: 1px solid var(--bdr);
+    background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
+    flex-shrink: 0;
+    gap: 12px;
+}
+.ml-foot-sel { font-size: 12px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
+.ml-foot-hint { font-size: 11px; color: var(--ink-4); }
+.ml-foot-acts { display: flex; gap: 8px; flex-shrink: 0; }
+</style>

@@ -1,24 +1,14 @@
 <script setup>
 import { computed } from 'vue';
 import { useVueFlow } from '@vue-flow/core';
+import { NODE_TYPE_COLORS } from '@/Components/Blocks/blockTypes.js';
 
 const { getNodes, viewport, dimensions } = useVueFlow();
 
-const NODE_COLORS = {
-    ask:        { fill: '#eff6ff', stroke: '#93c5fd' },
-    reply:      { fill: '#fdf2f8', stroke: '#f9a8d4' },
-    save_state: { fill: '#f0fdf4', stroke: '#86efac' },
-    condition:  { fill: '#fff7ed', stroke: '#fdba74' },
-    api_call:   { fill: '#faf5ff', stroke: '#d8b4fe' },
-    on_complete:{ fill: '#f9fafb', stroke: '#d1d5db' },
-    on_cancel:  { fill: '#f9fafb', stroke: '#d1d5db' },
-    start:      { fill: '#f9fafb', stroke: '#d1d5db' },
-};
-
-const DEFAULT_COLOR = { fill: '#f9fafb', stroke: '#d1d5db' };
+const DEFAULT_COLOR = { stripe: '#9aa5b2', fill: '#eef1f4' };
 
 function nodeColor(type) {
-    return NODE_COLORS[type] ?? DEFAULT_COLOR;
+    return NODE_TYPE_COLORS[type] ?? DEFAULT_COLOR;
 }
 
 const graphBounds = computed(() => {
@@ -67,7 +57,7 @@ const viewRect = computed(() => {
                 :width="n.dimensions?.width ?? 180"
                 :height="n.dimensions?.height ?? 60"
                 :fill="nodeColor(n.type).fill"
-                :stroke="nodeColor(n.type).stroke"
+                :stroke="nodeColor(n.type).stripe"
                 stroke-width="2"
                 vector-effect="non-scaling-stroke"
                 rx="4"

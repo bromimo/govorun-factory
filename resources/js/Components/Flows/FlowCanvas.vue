@@ -22,7 +22,7 @@ const props = defineProps({
     initialViewport: { type: Object, default: null },
 });
 
-const nodes = ref([...props.initialNodes]);
+const nodes = ref(props.initialNodes.map(n => n.type === 'start' ? { ...n, deletable: false } : n));
 const arrowMarker = { type: MarkerType.ArrowClosed, width: 20, height: 20 };
 const edgeDefaults = { markerEnd: arrowMarker, interactionWidth: 20, updatable: 'target', type: 'editable' };
 const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e, data: e.data || {} })));
@@ -33,12 +33,16 @@ const selectedEdge = ref(null);
 const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, getNodes, getEdges, onNodesChange } = useVueFlow();
 
 onNodesChange((changes) => {
-    return changes.filter(change => {
-        if (change.type === 'remove' && getNodes.value.find(n => n.id === change.id)?.type === 'start') {
-            return false;
+    for (const change of changes) {
+        if (change.type === 'remove') {
+            if (getNodes.value.find(n => n.id === change.id)?.type === 'start') {
+                return changes.filter(c => c.id !== change.id);
+            }
+            if (selectedNode.value?.id === change.id) {
+                selectedNode.value = null;
+            }
         }
-        return true;
-    });
+    }
 });
 
 function isValidConnection(connection) {
@@ -384,3 +388,9 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
         <FlowMinimap />
     </VueFlow>
 </template>
+
+<style scoped>
+:deep(.vue-flow__background) {
+    background-color: #eaedf0;
+}
+</style>

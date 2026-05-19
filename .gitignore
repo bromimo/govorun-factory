@@ -29,3 +29,4 @@ Thumbs.db
 /storage/*.key
 .env.backup
 /.backups/
+/docs/design_handoff_erp_style/

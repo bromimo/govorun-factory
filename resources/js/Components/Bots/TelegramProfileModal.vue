@@ -2,12 +2,10 @@
 import { computed, ref, watch } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
 
 const props = defineProps({
-    show: {
-        type: Boolean,
-        default: false,
-    },
+    show: { type: Boolean, default: false },
     bot: Object,
     can: Object,
 });
@@ -37,7 +35,7 @@ const photoBusy = ref(false);
 const photoError = ref('');
 
 const photoUrl = computed(() => {
-    if (! profile.value.photo_path) {
+    if (!profile.value.photo_path) {
         return null;
     }
 
@@ -61,7 +59,7 @@ const commandRoutes = computed(() => {
 
 function uploadPhoto(event) {
     const file = event.target.files?.[0];
-    if (! file) {
+    if (!file) {
         return;
     }
 
@@ -119,142 +117,216 @@ watch(() => form.recentlySuccessful, (val) => {
 </script>
 
 <template>
-    <Modal :show="show" max-width="2xl" @close="emit('close')">
-        <form @submit.prevent="save" class="flex max-h-[85vh] flex-col">
-            <div class="border-b border-gray-200 px-6 py-4">
-                <h3 class="text-lg font-medium text-gray-900">Профиль Telegram-бота</h3>
-            </div>
-
-            <div class="flex-1 overflow-y-auto px-6 py-4">
-                <div class="rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
+    <Modal :show="show" title="Профиль Telegram-бота" max-width="2xl" @close="emit('close')">
+        <form @submit.prevent="save" class="tp-form">
+            <div class="tp-body">
+                <div class="tp-notice">
                     При синхронизации <strong>пустые поля очистят</strong> соответствующие значения в Telegram.
                     Если что-то уже настроено через @BotFather — перенесите сюда перед первым
                     <code>bot:profile-sync</code>.
                 </div>
 
-                <div class="mt-6 space-y-5">
-                    <div>
-                        <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-gray-700">Имя бота</label>
-                            <span class="text-xs text-gray-500">{{ profile.name.length }}/64</span>
-                        </div>
-                        <input v-model="profile.name" type="text" maxlength="64"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-                        <p v-if="form.errors['messenger_config.telegram.profile.name']"
-                            class="mt-1 text-sm text-red-600">
-                            {{ form.errors['messenger_config.telegram.profile.name'] }}
-                        </p>
+                <div class="tp-field">
+                    <div class="tp-field-hdr">
+                        <label class="tp-lbl">Имя бота</label>
+                        <span class="tp-cnt">{{ profile.name.length }}/64</span>
                     </div>
+                    <input v-model="profile.name" type="text" maxlength="64" class="tp-inp" />
+                    <p v-if="form.errors['messenger_config.telegram.profile.name']" class="tp-err">
+                        {{ form.errors['messenger_config.telegram.profile.name'] }}
+                    </p>
+                </div>
 
-                    <div>
-                        <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-gray-700">
-                                Короткое описание (about)
-                            </label>
-                            <span class="text-xs text-gray-500">
-                                {{ profile.short_description.length }}/120
-                            </span>
-                        </div>
-                        <textarea v-model="profile.short_description" rows="2" maxlength="120"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-                        <p v-if="form.errors['messenger_config.telegram.profile.short_description']"
-                            class="mt-1 text-sm text-red-600">
-                            {{ form.errors['messenger_config.telegram.profile.short_description'] }}
-                        </p>
+                <div class="tp-field">
+                    <div class="tp-field-hdr">
+                        <label class="tp-lbl">Короткое описание (about)</label>
+                        <span class="tp-cnt">{{ profile.short_description.length }}/120</span>
                     </div>
+                    <textarea v-model="profile.short_description" rows="2" maxlength="120" class="tp-tx" />
+                    <p v-if="form.errors['messenger_config.telegram.profile.short_description']" class="tp-err">
+                        {{ form.errors['messenger_config.telegram.profile.short_description'] }}
+                    </p>
+                </div>
 
-                    <div>
-                        <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-gray-700">Описание</label>
-                            <span class="text-xs text-gray-500">{{ profile.description.length }}/512</span>
-                        </div>
-                        <textarea v-model="profile.description" rows="4" maxlength="512"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-                        <p v-if="form.errors['messenger_config.telegram.profile.description']"
-                            class="mt-1 text-sm text-red-600">
-                            {{ form.errors['messenger_config.telegram.profile.description'] }}
-                        </p>
+                <div class="tp-field">
+                    <div class="tp-field-hdr">
+                        <label class="tp-lbl">Описание</label>
+                        <span class="tp-cnt">{{ profile.description.length }}/512</span>
                     </div>
+                    <textarea v-model="profile.description" rows="4" maxlength="512" class="tp-tx" />
+                    <p v-if="form.errors['messenger_config.telegram.profile.description']" class="tp-err">
+                        {{ form.errors['messenger_config.telegram.profile.description'] }}
+                    </p>
+                </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Аватар</label>
-                        <div class="mt-1 rounded-md border border-gray-200 p-3">
-                            <div v-if="profile.photo_path" class="flex items-start gap-3">
-                                <video v-if="photoIsVideo" :src="photoUrl"
-                                    class="h-32 w-32 rounded-md bg-gray-100 object-cover"
-                                    muted loop autoplay playsinline />
-                                <img v-else :src="photoUrl" alt="Аватар"
-                                    class="h-32 w-32 rounded-md bg-gray-100 object-cover" />
-                                <div class="flex-1 space-y-2">
-                                    <p class="text-sm text-gray-700">
-                                        Файл загружен. <button type="button" @click="deletePhoto"
-                                            :disabled="photoBusy"
-                                            class="text-red-600 hover:text-red-500 disabled:opacity-50">
-                                            Удалить
-                                        </button>
-                                    </p>
-                                    <p class="text-xs text-gray-500">
-                                        Чтобы заменить — удалите текущий и загрузите новый.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div v-else>
-                                <input type="file" accept="image/jpeg,image/png,video/mp4"
-                                    :disabled="photoBusy" @change="uploadPhoto"
-                                    class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-indigo-700 hover:file:bg-indigo-100" />
-                                <p class="mt-2 text-xs text-gray-500">
-                                    JPG/PNG или MP4 до 10 MB. Видео автоматически нормализуется под Telegram
-                                    (640×640, ≤5 сек, без аудио). BotFather UI принимает только фото —
-                                    анимированный аватар встанет через <code>bot:profile-sync</code>.
+                <div class="tp-field">
+                    <label class="tp-lbl">Аватар</label>
+                    <div class="tp-photo-box">
+                        <div v-if="profile.photo_path" class="tp-photo-row">
+                            <video v-if="photoIsVideo" :src="photoUrl"
+                                class="tp-photo-preview" muted loop autoplay playsinline />
+                            <img v-else :src="photoUrl" alt="Аватар" class="tp-photo-preview" />
+                            <div class="tp-photo-info">
+                                <p class="tp-hint">
+                                    Файл загружен.
+                                    <button type="button" @click="deletePhoto" :disabled="photoBusy" class="tp-del-btn">
+                                        Удалить
+                                    </button>
                                 </p>
+                                <p class="tp-hint">Чтобы заменить — удалите текущий и загрузите новый.</p>
                             </div>
-
-                            <p v-if="photoError" class="mt-2 text-sm text-red-600">{{ photoError }}</p>
                         </div>
+                        <div v-else>
+                            <input type="file" accept="image/jpeg,image/png,video/mp4"
+                                :disabled="photoBusy" @change="uploadPhoto" class="tp-file-inp" />
+                            <p class="tp-hint" style="margin-top:6px">
+                                JPG/PNG или MP4 до 10 MB. Видео автоматически нормализуется под Telegram
+                                (640×640, ≤5 сек, без аудио). BotFather UI принимает только фото —
+                                анимированный аватар встанет через <code>bot:profile-sync</code>.
+                            </p>
+                        </div>
+                        <p v-if="photoError" class="tp-err" style="margin-top:6px">{{ photoError }}</p>
                     </div>
+                </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Команды меню</label>
-                        <div class="mt-1 rounded-md border border-gray-200 bg-gray-50 p-3">
-                            <p class="text-xs text-gray-500">
-                                Список собирается автоматически из маршрутов типа <strong>command</strong>
-                                с заполненным описанием. Управлять командами — на вкладке «Маршруты».
-                            </p>
-                            <ul v-if="commandRoutes.length" class="mt-2 space-y-1">
-                                <li v-for="cmd in commandRoutes" :key="cmd.command"
-                                    class="flex items-baseline gap-2 text-sm">
-                                    <code class="text-gray-800">/{{ cmd.command }}</code>
-                                    <span v-if="cmd.description" class="text-gray-600">— {{ cmd.description }}</span>
-                                    <span v-else class="text-amber-600">
-                                        — без описания, в меню не попадёт
-                                    </span>
-                                </li>
-                            </ul>
-                            <p v-else class="mt-2 text-sm text-gray-500 italic">
-                                Команд-маршрутов пока нет.
-                            </p>
-                        </div>
+                <div class="tp-field">
+                    <label class="tp-lbl">Команды меню</label>
+                    <div class="tp-cmd-box">
+                        <p class="tp-hint">
+                            Список собирается автоматически из маршрутов типа <strong>command</strong>
+                            с заполненным описанием. Управлять командами — на вкладке «Маршруты».
+                        </p>
+                        <ul v-if="commandRoutes.length" class="tp-cmd-list">
+                            <li v-for="cmd in commandRoutes" :key="cmd.command" class="tp-cmd-item">
+                                <code>/{{ cmd.command }}</code>
+                                <span v-if="cmd.description" class="tp-cmd-desc">— {{ cmd.description }}</span>
+                                <span v-else class="tp-cmd-warn">— без описания, в меню не попадёт</span>
+                            </li>
+                        </ul>
+                        <p v-else class="tp-hint" style="margin-top:6px;font-style:italic">Команд-маршрутов пока нет.</p>
                     </div>
                 </div>
             </div>
 
-            <div class="border-t border-gray-200 px-6 py-4">
-                <p class="text-xs text-gray-500">
+            <div class="tp-foot">
+                <p class="tp-foot-note">
                     Изменения сохраняются в фабрике. В Telegram попадут после
                     <code>php artisan bot:profile-sync</code> в развёрнутом боте.
                 </p>
-                <div class="mt-3 flex justify-end gap-3">
-                    <button type="button" @click="emit('close')"
-                        class="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50">
-                        Отмена
-                    </button>
-                    <button type="submit" :disabled="form.processing"
-                        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
-                        Сохранить профиль
-                    </button>
+                <div class="tp-foot-acts">
+                    <ErButton type="button" @click="emit('close')">Отмена</ErButton>
+                    <ErButton variant="primary" type="submit" :disabled="form.processing">Сохранить профиль</ErButton>
                 </div>
             </div>
         </form>
     </Modal>
 </template>
+
+<style scoped>
+.tp-form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+.tp-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+}
+.tp-foot {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    border-top: 1px solid var(--bdr);
+    background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+.tp-foot-note {
+    font-size: 11px;
+    color: var(--ink-3);
+    flex: 1;
+    margin: 0;
+    padding-top: 2px;
+}
+.tp-foot-note code { font-family: var(--mono); background: var(--surface-3); padding: 1px 3px; border-radius: 2px; }
+.tp-foot-acts { display: flex; gap: 8px; flex-shrink: 0; }
+
+.tp-notice {
+    background: var(--orange-soft);
+    border: 1px solid #e8a850;
+    border-radius: var(--r-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--orange);
+}
+.tp-notice code { font-family: var(--mono); }
+
+.tp-field { display: flex; flex-direction: column; gap: 4px; }
+.tp-field-hdr { display: flex; align-items: center; justify-content: space-between; }
+.tp-lbl { font-size: 11px; font-weight: 600; color: var(--ink-2); }
+.tp-cnt { font-size: 11px; color: var(--ink-4); font-family: var(--mono); }
+
+.tp-inp, .tp-tx {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: var(--font);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+    transition: border-color .12s, box-shadow .12s;
+    box-sizing: border-box;
+}
+.tp-inp { height: 26px; }
+.tp-tx { min-height: 60px; line-height: 1.5; resize: vertical; }
+.tp-inp:focus, .tp-tx:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(58,114,196,.18);
+}
+
+.tp-hint { font-size: 11px; color: var(--ink-3); margin: 0; }
+.tp-hint code { font-family: var(--mono); background: var(--surface-3); padding: 1px 3px; border-radius: 2px; }
+.tp-err  { font-size: 11px; color: var(--red); margin: 0; }
+
+.tp-photo-box {
+    border: 1px solid var(--bdr);
+    border-radius: var(--r-sm);
+    padding: 10px 12px;
+    background: var(--surface-2);
+}
+.tp-photo-row { display: flex; align-items: flex-start; gap: 12px; }
+.tp-photo-preview { width: 96px; height: 96px; border-radius: var(--r-md); object-fit: cover; background: var(--surface-3); border: 1px solid var(--bdr); }
+.tp-photo-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.tp-del-btn { background: none; border: none; color: var(--red); cursor: pointer; padding: 0; font-size: 12px; font-family: var(--font); }
+.tp-del-btn:hover { text-decoration: underline; }
+.tp-del-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.tp-file-inp {
+    width: 100%;
+    font-size: 12px;
+    color: var(--ink-2);
+    font-family: var(--font);
+}
+
+.tp-cmd-box {
+    border: 1px solid var(--bdr);
+    border-radius: var(--r-sm);
+    padding: 10px 12px;
+    background: var(--surface-2);
+}
+.tp-cmd-list { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.tp-cmd-item { display: flex; align-items: baseline; gap: 6px; font-size: 12px; }
+.tp-cmd-item code { font-family: var(--mono); color: var(--ink); }
+.tp-cmd-desc { color: var(--ink-2); }
+.tp-cmd-warn { color: var(--orange); font-size: 11px; }
+</style>

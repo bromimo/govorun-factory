@@ -1,5 +1,11 @@
 <script setup>
-import { router, Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { router } from '@inertiajs/vue3';
+import { Plus } from 'lucide-vue-next';
+import ErTable from '@/Components/Ui/ErTable.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import Modal from '@/Components/Modal.vue';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 
 const props = defineProps({
     botId: Number,
@@ -7,41 +13,166 @@ const props = defineProps({
     canUpdate: Boolean,
 });
 
-function createFlow() {
-    const name = prompt('Название диалога:');
-    if (!name) return;
-    const description = prompt('Описание (необязательно):') || '';
-    router.post(route('bot-flows.store', props.botId), { name, description });
+const editingFlow = ref(null);
+const editName = ref('');
+const editDesc = ref('');
+
+function goToFlow(flow) {
+    router.visit(route('bot-flows.show', [props.botId, flow.id]));
 }
 
-function deleteFlow(flow) {
-    if (confirm(`Удалить диалог ${flow.name}?`)) {
-        router.delete(route('bot-flows.destroy', [props.botId, flow.id]));
+function openCreate() {
+    editingFlow.value = { id: null };
+    editName.value = '';
+    editDesc.value = '';
+}
+
+function openEdit(flow) {
+    editingFlow.value = flow;
+    editName.value = flow.name;
+    editDesc.value = flow.description ?? '';
+}
+
+function closeModal() {
+    editingFlow.value = null;
+}
+
+function save() {
+    if (!editName.value.trim()) return;
+    if (editingFlow.value.id) {
+        router.patch(
+            route('bot-flows.update', [props.botId, editingFlow.value.id]),
+            { name: editName.value.trim(), description: editDesc.value.trim() },
+            { onSuccess: closeModal },
+        );
+    } else {
+        router.post(
+            route('bot-flows.store', props.botId),
+            { name: editName.value.trim(), description: editDesc.value.trim() },
+            { onSuccess: closeModal },
+        );
     }
+}
+
+const confirmFlow = ref(null);
+
+function deleteFlow(flow) {
+    confirmFlow.value = flow;
+}
+
+function doDeleteFlow() {
+    router.delete(route('bot-flows.destroy', [props.botId, confirmFlow.value.id]));
+    confirmFlow.value = null;
 }
 </script>
 
 <template>
     <div>
-        <div v-if="flows.length" class="divide-y divide-gray-100">
-            <div v-for="f in flows" :key="f.id" class="flex items-center justify-between py-3">
-                <div>
-                    <Link :href="route('bot-flows.show', [botId, f.id])"
-                        class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
-                        {{ f.name }}
-                    </Link>
-                    <p v-if="f.description" class="text-xs text-gray-500">{{ f.description }}</p>
-                </div>
-                <button v-if="canUpdate" @click="deleteFlow(f)" class="text-xs text-red-600 hover:text-red-800">
-                    Удалить
-                </button>
-            </div>
-        </div>
-        <p v-else class="text-sm text-gray-500">Нет диалогов</p>
+        <ErTable>
+            <template #toolbar>
+                <div style="flex: 1;"></div>
+                <ErButton v-if="canUpdate" variant="primary" size="sm" @click="openCreate">
+                    <Plus :size="12" />Добавить
+                </ErButton>
+            </template>
 
-        <button v-if="canUpdate" @click="createFlow"
-            class="mt-4 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500">
-            Добавить диалог
-        </button>
+            <template #thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Описание</th>
+                    <th style="width: 80px;"></th>
+                </tr>
+            </template>
+
+            <template v-if="flows.length">
+                <tr
+                    v-for="f in flows"
+                    :key="f.id"
+                    class="flow-row"
+                    @dblclick="goToFlow(f)"
+                >
+                    <td class="flow-name">{{ f.name }}</td>
+                    <td class="flow-desc">{{ f.description || '—' }}</td>
+                    <td>
+                        <div class="tbl-acts">
+                            <button v-if="canUpdate" class="tbl-act-btn" @click.stop="openEdit(f)">Изменить</button>
+                            <button v-if="canUpdate" class="tbl-act-btn tbl-act-btn--danger" @click.stop="deleteFlow(f)">Удалить</button>
+                        </div>
+                    </td>
+                </tr>
+            </template>
+            <tr v-else>
+                <td colspan="3" class="tbl-empty">Нет диалогов</td>
+            </tr>
+
+            <template #paging>
+                <span>{{ flows.length }} диалогов</span>
+                <span style="color: var(--ink-4); font-size: 10px;">Двойной клик — открыть редактор</span>
+            </template>
+        </ErTable>
+
+        <Modal
+            v-if="editingFlow"
+            :show="true"
+            :title="editingFlow.id ? 'Редактировать диалог' : 'Новый диалог'"
+            max-width="sm"
+            @close="closeModal"
+        >
+            <div class="fl-body">
+                <div class="fl-field">
+                    <label class="fl-lbl">Название</label>
+                    <input
+                        v-model="editName"
+                        class="fl-inp"
+                        placeholder="Название диалога"
+                        autofocus
+                        @keydown.enter="save"
+                    />
+                </div>
+                <div class="fl-field">
+                    <label class="fl-lbl">Описание</label>
+                    <input
+                        v-model="editDesc"
+                        class="fl-inp"
+                        placeholder="Необязательно"
+                        @keydown.enter="save"
+                    />
+                </div>
+            </div>
+            <div class="fl-foot">
+                <ErButton @click="closeModal">Отмена</ErButton>
+                <ErButton variant="primary" :disabled="!editName.trim()" @click="save">
+                    {{ editingFlow.id ? 'Сохранить' : 'Создать' }}
+                </ErButton>
+            </div>
+        </Modal>
+
+        <ConfirmModal
+            :show="!!confirmFlow"
+            title="Удалить диалог?"
+            :message="`Диалог «${confirmFlow?.name}» будет удалён безвозвратно.`"
+            @confirm="doDeleteFlow"
+            @cancel="confirmFlow = null"
+        />
     </div>
 </template>
+
+<style scoped>
+.flow-row { cursor: pointer; }
+.flow-row:hover td { background: var(--surface-2); }
+.flow-name { font-weight: 500; color: var(--blue-d); }
+.flow-desc { color: var(--ink-3); font-size: 11px; }
+.tbl-acts { display: flex; gap: 4px; }
+.tbl-act-btn { font-size: 11px; color: var(--blue); padding: 1px 6px; border: 1px solid var(--bdr-l); border-radius: 2px; background: var(--surface); cursor: pointer; }
+.tbl-act-btn:hover { background: var(--blue-soft); }
+.tbl-act-btn--danger { color: var(--red); }
+.tbl-act-btn--danger:hover { background: var(--red-soft); }
+.tbl-empty { text-align: center; padding: 20px; color: var(--ink-4); font-size: 12px; }
+
+.fl-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.fl-field { display: flex; flex-direction: column; gap: 4px; }
+.fl-lbl { font-size: 11px; font-weight: 600; color: var(--ink-2); }
+.fl-inp { height: 28px; padding: 0 8px; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); font-size: 12px; font-family: var(--font); color: var(--ink); background: #fff; }
+.fl-inp:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.18); }
+.fl-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 20px 14px; border-top: 1px solid var(--bdr-l); background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%); }
+</style>

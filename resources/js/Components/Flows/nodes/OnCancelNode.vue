@@ -1,10 +1,10 @@
 <script setup>
 import BaseNode from './BaseNode.vue';
 defineOptions({ inheritAttrs: false });
-defineProps(['id', 'data', 'selected']);
+defineProps(['id', 'type', 'data', 'selected']);
 </script>
 <template>
-    <BaseNode :id="id" :selected="selected" label="Отмена" color="gray" :has-output="false">
+    <BaseNode :id="id" :type="type" :selected="selected" label="Отмена" :has-output="false">
         <p class="text-gray-400">Диалог отменён</p>
     </BaseNode>
 </template>
