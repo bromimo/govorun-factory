@@ -1,7 +1,7 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3'
-import { Bot, Users, Puzzle, Bell, Search, Settings } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { Bot, Users, Puzzle, Bell, Search, Settings, Menu } from 'lucide-vue-next'
+import { computed, ref, onMounted } from 'vue'
 
 const props = defineProps({
     title: String,
@@ -10,65 +10,84 @@ const props = defineProps({
 })
 
 const user = computed(() => window.$page?.props?.auth?.user)
+
+const navOpen = ref(true)
+
+onMounted(() => {
+    const saved = localStorage.getItem('er-nav-open')
+    if (saved !== null) {
+        navOpen.value = saved !== 'false'
+    }
+})
+
+function toggleNav() {
+    navOpen.value = !navOpen.value
+    localStorage.setItem('er-nav-open', navOpen.value)
+}
 </script>
 
 <template>
     <div class="er-app">
-        <nav class="er-leftnav">
-            <div class="er-leftnav-brand">
-                <div class="er-brand-logo">Г</div>
-                <span class="er-brand-name">Говорун</span>
-            </div>
-
-            <div class="er-leftnav-sec">Разделы</div>
-
-            <Link
-                :href="route('dashboard')"
-                class="er-leftnav-item"
-                :class="{ act: route().current('dashboard') || route().current('bots.*') }"
-            >
-                <span class="er-leftnav-icon"><Bot :size="14" /></span>
-                Боты
-            </Link>
-            <Link
-                v-if="$page.props.auth.user.role === 'admin'"
-                :href="route('users.index')"
-                class="er-leftnav-item"
-                :class="{ act: route().current('users.*') }"
-            >
-                <span class="er-leftnav-icon"><Users :size="14" /></span>
-                Пользователи
-            </Link>
-            <Link
-                v-if="$page.props.auth.user.role === 'admin'"
-                :href="route('plugins.index')"
-                class="er-leftnav-item"
-                :class="{ act: route().current('plugins.*') }"
-            >
-                <span class="er-leftnav-icon"><Puzzle :size="14" /></span>
-                Плагины
-            </Link>
-
-            <div class="er-leftnav-sep"></div>
-
-            <div class="er-leftnav-user">
-                <div class="er-leftnav-av">
-                    {{ $page.props.auth.user.name.charAt(0).toUpperCase() }}
+        <nav class="er-leftnav" :class="{ collapsed: !navOpen }">
+            <div class="er-leftnav-inner">
+                <div class="er-leftnav-brand">
+                    <div class="er-brand-logo">Г</div>
+                    <span class="er-brand-name">Говорун</span>
                 </div>
-                <div class="er-leftnav-uinfo">
-                    <div class="er-leftnav-uname">{{ $page.props.auth.user.name }}</div>
-                    <div class="er-leftnav-urole">{{ $page.props.auth.user.role }}</div>
+
+                <div class="er-leftnav-sec">Разделы</div>
+
+                <Link
+                    :href="route('dashboard')"
+                    class="er-leftnav-item"
+                    :class="{ act: route().current('dashboard') || route().current('bots.*') }"
+                >
+                    <span class="er-leftnav-icon"><Bot :size="14" /></span>
+                    Боты
+                </Link>
+                <Link
+                    v-if="$page.props.auth.user.role === 'admin'"
+                    :href="route('users.index')"
+                    class="er-leftnav-item"
+                    :class="{ act: route().current('users.*') }"
+                >
+                    <span class="er-leftnav-icon"><Users :size="14" /></span>
+                    Пользователи
+                </Link>
+                <Link
+                    v-if="$page.props.auth.user.role === 'admin'"
+                    :href="route('plugins.index')"
+                    class="er-leftnav-item"
+                    :class="{ act: route().current('plugins.*') }"
+                >
+                    <span class="er-leftnav-icon"><Puzzle :size="14" /></span>
+                    Плагины
+                </Link>
+
+                <div class="er-leftnav-sep"></div>
+
+                <div class="er-leftnav-user">
+                    <div class="er-leftnav-av">
+                        {{ $page.props.auth.user.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="er-leftnav-uinfo">
+                        <div class="er-leftnav-uname">{{ $page.props.auth.user.name }}</div>
+                        <div class="er-leftnav-urole">{{ $page.props.auth.user.role }}</div>
+                    </div>
+                    <button class="er-leftnav-logout" type="button" title="Выйти" @click="router.post(route('logout'))">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                    </button>
                 </div>
-                <button class="er-leftnav-logout" type="button" title="Выйти" @click="router.post(route('logout'))">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                    </svg>
-                </button>
             </div>
         </nav>
 
         <div class="er-main">
             <div class="er-utilbar">
+                <button class="er-utilbtn-icon" type="button" :title="navOpen ? 'Скрыть меню' : 'Показать меню'" @click="toggleNav">
+                    <Menu :size="14" />
+                </button>
                 <div class="er-utilbar-search">
                     <Search :size="12" style="flex-shrink:0;color:var(--ink-4)" />
                     <span>Поиск...</span>
@@ -131,11 +150,22 @@ const user = computed(() => window.$page?.props?.auth?.user)
     width: 208px;
     background: linear-gradient(180deg, #264a85 0%, #1d3a6e 60%, #162d57 100%);
     border-right: 1px solid #0c2050;
-    display: flex;
-    flex-direction: column;
     flex-shrink: 0;
     color: var(--nav-text);
     box-shadow: 2px 0 4px rgba(0,0,0,.10);
+    overflow: hidden;
+    transition: width .22s ease, border-right-color .22s ease;
+}
+.er-leftnav.collapsed {
+    width: 0;
+    border-right-color: transparent;
+}
+.er-leftnav-inner {
+    width: 208px;
+    min-width: 208px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
 }
