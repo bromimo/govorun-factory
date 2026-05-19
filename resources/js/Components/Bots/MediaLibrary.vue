@@ -243,7 +243,7 @@ onMounted(() => {
 /* Thumbnail area — flex:1 pushes caption to bottom */
 .ml-thumb {
     flex: 1;
-    background: var(--surface-2);
+    background: var(--blue-soft);
     display: flex;
     align-items: center;
     justify-content: center;
