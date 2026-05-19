@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import draggable from 'vuedraggable';
 import VarsHint from '../VarsHint.vue';
 
 const model = defineModel({ type: Object });
@@ -97,11 +98,16 @@ function removePair(key, i) {
 
         <details class="border rounded p-2">
             <summary class="cursor-pointer text-xs text-gray-600">Параметры запроса ({{ model.query.length }})</summary>
-            <div v-for="(p, i) in model.query" :key="i" class="flex gap-2 mt-2">
-                <input v-model="p.key" placeholder="name" class="flex-1 rounded border-gray-300 text-sm" />
-                <input v-model="p.value" placeholder="value" class="flex-1 rounded border-gray-300 text-sm" />
-                <button type="button" @click="removePair('query', i)" class="text-red-500 px-2">✕</button>
-            </div>
+            <draggable v-model="model.query" item-key="key" handle=".drag-handle" :animation="150">
+                <template #item="{ element: p, index: i }">
+                    <div class="flex gap-2 mt-2 items-center">
+                        <span class="drag-handle cursor-grab text-gray-300 hover:text-gray-500 select-none px-1">⠿</span>
+                        <input v-model="p.key" placeholder="name" class="flex-1 rounded border-gray-300 text-sm" />
+                        <input v-model="p.value" placeholder="value" class="flex-1 rounded border-gray-300 text-sm" />
+                        <button type="button" @click="removePair('query', i)" class="text-red-500 px-2">✕</button>
+                    </div>
+                </template>
+            </draggable>
             <button type="button" @click="addPair('query')" class="mt-2 text-xs text-indigo-600">+ параметр</button>
         </details>
 
