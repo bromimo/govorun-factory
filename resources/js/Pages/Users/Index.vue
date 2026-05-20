@@ -4,6 +4,7 @@ import ErButton from '@/Components/Ui/ErButton.vue'
 import ErTable from '@/Components/Ui/ErTable.vue'
 import ErBadge from '@/Components/Ui/ErBadge.vue'
 import ErCounterCard from '@/Components/Ui/ErCounterCard.vue'
+import UserForm from '@/Components/Users/UserForm.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import { Users as UsersIcon, Shield, UserCheck, RefreshCw, Plus } from 'lucide-vue-next'
@@ -14,6 +15,18 @@ const props = defineProps({
 })
 
 const search = ref('')
+const showForm = ref(false)
+const editingUser = ref(null)
+
+function openCreate() {
+    editingUser.value = null;
+    showForm.value = true;
+}
+
+function openEdit(user) {
+    editingUser.value = user;
+    showForm.value = true;
+}
 
 function filtered() {
     if (!search.value) {
@@ -37,7 +50,7 @@ function roleBadgeColor(role) {
         </template>
 
         <template #actions>
-            <ErButton v-if="can?.create" variant="primary" :as="'a'" :href="route('users.create')">
+            <ErButton v-if="can?.create" variant="primary" @click="openCreate">
                 <Plus :size="13" />Новый пользователь
             </ErButton>
         </template>
@@ -79,7 +92,7 @@ function roleBadgeColor(role) {
                 <td class="tbl-mono">{{ new Date(user.created_at).toLocaleDateString('ru') }}</td>
                 <td>
                     <div class="tbl-acts">
-                        <a :href="route('users.edit', user.id)" class="tbl-act-btn">Изменить</a>
+                        <button type="button" class="tbl-act-btn" @click="openEdit(user)">Изменить</button>
                     </div>
                 </td>
             </tr>
@@ -89,6 +102,8 @@ function roleBadgeColor(role) {
             </template>
         </ErTable>
     </AuthenticatedLayout>
+
+    <UserForm v-if="showForm" :user="editingUser" @close="showForm = false" />
 </template>
 
 <style scoped>
