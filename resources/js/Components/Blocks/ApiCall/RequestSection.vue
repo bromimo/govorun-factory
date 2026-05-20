@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import draggable from 'vuedraggable';
+import ToggleGroup from '@/Components/Ui/ToggleGroup.vue';
 
 const model = defineModel({ type: Object });
 const props = defineProps({ botId: [Number, String] });
@@ -167,11 +168,10 @@ function getPairId(pair) {
 
         <details class="rs-details" :open="model.body_mode !== 'none'">
             <summary class="rs-summary">Тело запроса</summary>
-            <div class="rs-body-modes">
-                <label class="rs-radio"><input type="radio" v-model="model.body_mode" value="none" /> Нет</label>
-                <label class="rs-radio"><input type="radio" v-model="model.body_mode" value="json" /> JSON</label>
-                <label class="rs-radio"><input type="radio" v-model="model.body_mode" value="form" /> Form data</label>
-            </div>
+            <ToggleGroup
+                v-model="model.body_mode"
+                :options="[{ value: 'none', label: 'Нет' }, { value: 'json', label: 'JSON' }, { value: 'form', label: 'Form data' }]"
+            />
             <textarea v-if="model.body_mode === 'json'" v-model="model.body" rows="6"
                 class="field-ta mono"
                 placeholder='{"fields": {"NAME": "{{state.name}}"}}' />
@@ -202,6 +202,4 @@ function getPairId(pair) {
 .rs-drag:hover { color: var(--ink-2); }
 .rs-del { color: var(--red); background: none; border: none; cursor: pointer; padding: 0 4px; font-size: 13px; }
 .rs-add { margin-top: 8px; }
-.rs-body-modes { display: flex; gap: 12px; margin-top: 6px; }
-.rs-radio { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
 </style>
