@@ -101,6 +101,4 @@ function roleBadgeColor(role) {
 .tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
 .tbl-empty { text-align: center; color: var(--ink-3); padding: 24px; }
 .tbl-acts { display: flex; gap: 4px; }
-.tbl-act-btn { font-size: 11px; color: var(--blue); text-decoration: none; padding: 1px 6px; border: 1px solid var(--bdr-l); border-radius: 2px; background: var(--surface); }
-.tbl-act-btn:hover { background: var(--blue-soft); }
 </style>

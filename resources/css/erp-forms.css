@@ -152,3 +152,22 @@
 .er-btn.dng:hover { background: linear-gradient(180deg, #fef0f0 0%, #f0c8c8 100%); }
 .er-btn.sm { height: 22px; padding: 0 8px; font-size: 11px; }
 .er-btn.lg { height: 32px; padding: 0 16px; font-size: 13px; }
+
+/* Кнопки действий в таблицах */
+.tbl-act-btn {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    color: var(--blue);
+    text-decoration: none;
+    padding: 1px 6px;
+    border: 1px solid var(--bdr-l);
+    border-radius: 2px;
+    background: var(--surface);
+    cursor: pointer;
+    font-family: var(--font);
+    white-space: nowrap;
+}
+.tbl-act-btn:hover { background: var(--blue-soft); }
+.tbl-act-btn--danger { color: var(--red); }
+.tbl-act-btn--danger:hover { background: var(--red-soft); }

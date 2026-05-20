@@ -195,7 +195,7 @@ function submit() {
                             <button type="button" class="re-rm" @click="removeAlias(index)">✕</button>
                         </div>
                     </div>
-                    <button type="button" class="re-add" @click="addAlias">+ Добавить алиас</button>
+                    <button type="button" class="er-btn sm" style="margin-top:4px" @click="addAlias">+ Добавить алиас</button>
                 </div>
 
                 <div v-if="showControllerName" class="re-field">
@@ -355,17 +355,6 @@ function submit() {
 }
 .re-rm:hover { color: var(--red); }
 
-.re-add {
-    margin-top: 2px;
-    font-size: 12px;
-    color: var(--blue);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    text-align: left;
-}
-.re-add:hover { text-decoration: underline; }
 
 .re-toggle {
     display: flex;

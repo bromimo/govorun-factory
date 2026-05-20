@@ -163,10 +163,6 @@ function doDeleteFlow() {
 .flow-name { font-weight: 500; color: var(--blue-d); }
 .flow-desc { color: var(--ink-3); font-size: 11px; }
 .tbl-acts { display: flex; gap: 4px; }
-.tbl-act-btn { font-size: 11px; color: var(--blue); padding: 1px 6px; border: 1px solid var(--bdr-l); border-radius: 2px; background: var(--surface); cursor: pointer; }
-.tbl-act-btn:hover { background: var(--blue-soft); }
-.tbl-act-btn--danger { color: var(--red); }
-.tbl-act-btn--danger:hover { background: var(--red-soft); }
 .tbl-empty { text-align: center; padding: 20px; color: var(--ink-4); font-size: 12px; }
 
 .fl-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }

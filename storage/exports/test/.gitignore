@@ -1,0 +1,17 @@
+/vendor/
+/.env
+/.phpunit.result.cache
+/storage/logs/*.log
+!/storage/logs/.gitkeep
+/storage/state/*.json
+!/storage/state/.gitkeep
+
+/.claude/
+/.idea/
+/.vscode/
+/.osp/
+/composer.phar
+/composer-setup.php
+.DS_Store
+Thumbs.db
+.env.backup

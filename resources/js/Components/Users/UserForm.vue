@@ -80,12 +80,8 @@ function submit() {
                 </div>
 
                 <div class="flex justify-end gap-3 pt-4">
-                    <button type="button" @click="emit('close')"
-                        class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        Отмена
-                    </button>
-                    <button type="submit" :disabled="form.processing"
-                        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
+                    <button type="button" @click="emit('close')" class="er-btn">Отмена</button>
+                    <button type="submit" :disabled="form.processing" class="er-btn pr">
                         {{ isEditing ? 'Сохранить' : 'Создать' }}
                     </button>
                 </div>

@@ -124,7 +124,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
             <div ref="dropdownRef" class="ve-dd-wrap">
                 <button type="button" @click="dropdownOpen = !dropdownOpen"
                     :disabled="addedRuleNames.size >= allowedDefs.length"
-                    class="field-link ve-add-btn">
+                    class="er-btn sm">
                     + Добавить правило
                 </button>
 
@@ -201,7 +201,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 .ve-param { flex: 1; }
 .ve-param-lbl { display: block; font-size: 10px; color: var(--ink-4); }
 .ve-dd-wrap { position: relative; }
-.ve-add-btn { margin-top: 2px; }
+.ve-dd-wrap .er-btn { margin-top: 2px; }
 .ve-dropdown {
     position: absolute;
     left: 0;

@@ -281,10 +281,6 @@ const blockSummaries = computed(() => {
 .tbl-mono { font-family: var(--mono); font-size: 11px; }
 .tbl-handler { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tbl-acts { display: flex; gap: 2px; }
-.tbl-act-btn { font-size: 11px; color: var(--blue); padding: 1px 6px; border: 1px solid var(--bdr-l); border-radius: 2px; background: var(--surface); cursor: pointer; display: flex; align-items: center; }
-.tbl-act-btn:hover { background: var(--blue-soft); }
-.tbl-act-btn--danger { color: var(--red); }
-.tbl-act-btn--danger:hover { background: var(--red-soft); }
 .tbl-child-idx { color: var(--ink-4); }
 .tbl-empty { text-align: center; padding: 20px; color: var(--ink-4); font-size: 12px; }
 .er-inp { height: 26px; padding: 0 8px; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: #fff; color: var(--ink); font-size: 12px; font-family: var(--font); width: 100%; box-shadow: inset 0 1px 1px rgba(0,0,0,.06); }

@@ -93,7 +93,7 @@ function clear() {
 
         <KeyboardPreview :model-value="buttons" :keyboard-type="keyboardType" />
 
-        <button type="button" @click="editorOpen = true" class="ks-edit-btn">
+        <button type="button" @click="editorOpen = true" class="er-btn sm">
             {{ hasButtons ? 'Редактировать клавиатуру' : 'Добавить кнопки' }}
         </button>
 
@@ -117,16 +117,4 @@ function clear() {
 .ks-header { display: flex; align-items: center; justify-content: space-between; }
 .ks-checks { display: flex; gap: 12px; }
 .ks-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
-.ks-edit-btn {
-    border-radius: var(--r-sm);
-    border: 1px solid var(--bdr-d);
-    padding: 4px 10px;
-    font-size: 12px;
-    color: var(--ink-2);
-    background: var(--surface);
-    cursor: pointer;
-    font-family: var(--font);
-    transition: background .1s;
-}
-.ks-edit-btn:hover { background: var(--surface-2); }
 </style>

@@ -130,7 +130,7 @@ function removeHeader(i) {
                     <ErInput v-model="h.value" placeholder="Value" />
                     <button class="hdr-remove" type="button" @click="removeHeader(i)">✕</button>
                 </div>
-                <button class="hdr-add" type="button" @click="addHeader">+ Добавить заголовок</button>
+                <button class="er-btn sm" style="margin-top:6px" type="button" @click="addHeader">+ Добавить заголовок</button>
             </details>
         </div>
 
@@ -173,6 +173,4 @@ function removeHeader(i) {
 .header-row { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
 .hdr-remove { background: none; border: none; color: var(--red); cursor: pointer; font-size: 14px; padding: 0 4px; }
 .hdr-remove:hover { opacity: .7; }
-.hdr-add { margin-top: 8px; font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; }
-.hdr-add:hover { text-decoration: underline; }
 </style>

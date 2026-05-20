@@ -125,7 +125,7 @@ function validateAndUpdateLabel() {
             </div>
 
             <div v-if="canUpdate" class="mt-3">
-                <button class="btn-reset" @click="emit('clear-waypoints', edge.id)">
+                <button class="er-btn sm" @click="emit('clear-waypoints', edge.id)">
                     Сбросить маршрут
                 </button>
             </div>
@@ -247,19 +247,4 @@ function validateAndUpdateLabel() {
     background: var(--bdr);
     margin: 10px 0;
 }
-.btn-reset {
-    display: block;
-    width: 100%;
-    border-radius: var(--r-sm);
-    border: 1px solid var(--bdr);
-    padding: 4px 10px;
-    font-size: 12px;
-    color: var(--ink-2);
-    background: var(--surface);
-    cursor: pointer;
-    font-family: var(--font);
-    text-align: center;
-    transition: background .1s;
-}
-.btn-reset:hover { background: var(--surface-2); }
 </style>
