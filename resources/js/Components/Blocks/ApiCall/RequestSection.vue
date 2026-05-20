@@ -121,7 +121,7 @@ function getPairId(pair) {
                     <option :value="null">— выбрать —</option>
                     <option v-for="c in connections" :key="c.id" :value="c.id">{{ c.name }}</option>
                 </select>
-                <a :href="route('bot-connections.index', botId)" target="_blank" class="field-link">+ новое</a>
+                <a :href="route('bot-connections.index', botId)" target="_blank" class="add-btn">+ новое</a>
             </div>
         </div>
 
@@ -191,6 +191,21 @@ function getPairId(pair) {
 .field-lbl { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); margin-bottom: 4px; }
 .field-link { font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--font); }
 .field-link:hover { text-decoration: underline; }
+.add-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border: 1px dashed var(--bdr-d);
+    border-radius: var(--r-sm);
+    font-size: 12px;
+    font-family: var(--font);
+    color: var(--blue);
+    background: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .1s, border-color .1s;
+}
+.add-btn:hover { background: var(--blue-soft); border-color: var(--blue-l); }
 .field-input, .field-sel {
     height: 26px;
     padding: 0 8px;

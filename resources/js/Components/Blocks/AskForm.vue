@@ -150,7 +150,7 @@ const isCallback = computed(() => model.value.mode === 'callback');
         </div>
 
         <MediaPicker v-if="media" v-model="media" />
-        <button v-else type="button" @click="addMedia" class="field-link">
+        <button v-else type="button" @click="addMedia" class="add-btn">
             + Добавить медиа
         </button>
 
@@ -201,6 +201,20 @@ const isCallback = computed(() => model.value.mode === 'callback');
 .field-mono { font-family: var(--mono, monospace); }
 .field-link { font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--font); }
 .field-link:hover { text-decoration: underline; }
+.add-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border: 1px dashed var(--bdr-d);
+    border-radius: var(--r-sm);
+    font-size: 12px;
+    font-family: var(--font);
+    color: var(--blue);
+    background: none;
+    cursor: pointer;
+    transition: background .1s, border-color .1s;
+}
+.add-btn:hover { background: var(--blue-soft); border-color: var(--blue-l); }
 .field-input {
     height: 26px;
     padding: 0 8px;
