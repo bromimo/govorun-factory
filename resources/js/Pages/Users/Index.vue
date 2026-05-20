@@ -10,7 +10,6 @@ import { Users as UsersIcon, Shield, UserCheck, RefreshCw, Plus } from 'lucide-v
 
 const props = defineProps({
     users: Array,
-    can: Object,
 })
 
 const search = ref('')
@@ -37,7 +36,7 @@ function roleBadgeColor(role) {
         </template>
 
         <template #actions>
-            <ErButton v-if="can?.create" variant="primary" :as="'a'" :href="route('users.create')">
+            <ErButton variant="primary" :as="'a'" :href="route('users.create')">
                 <Plus :size="13" />Новый пользователь
             </ErButton>
         </template>
