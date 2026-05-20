@@ -30,7 +30,7 @@ const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e, data: e.
 const selectedNode = ref(null);
 const selectedEdge = ref(null);
 
-const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, getNodes, getEdges, onNodesChange } = useVueFlow();
+const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, removeEdges, getNodes, getEdges, onNodesChange } = useVueFlow();
 
 onNodesChange((changes) => {
     for (const change of changes) {
@@ -124,6 +124,13 @@ function doFitView() {
 }
 
 function setNodeData(nodeId, data) {
+    const node = getNodes.value.find(n => n.id === nodeId);
+    if (node?.type === 'api_call' && node.data.on_error === 'branch' && data.on_error !== 'branch') {
+        const stale = getEdges.value
+            .filter(e => e.source === nodeId && e.sourceHandle === 'on_error')
+            .map(e => e.id);
+        if (stale.length) removeEdges(stale);
+    }
     updateNodeData(nodeId, data);
 }
 

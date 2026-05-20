@@ -60,28 +60,37 @@ const options = [
 
 .eb-dot {
     flex-shrink: 0;
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
-    border: 1.5px solid var(--bdr-d);
+    background: linear-gradient(160deg, #e2e6ed 0%, #f4f6f9 100%);
+    box-shadow:
+        inset 0 1px 3px rgba(0,0,0,.18),
+        inset 0 0 0 1px rgba(0,0,0,.09),
+        0 1px 0 rgba(255,255,255,.9);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: border-color .1s, background .1s;
+    transition: background .15s, box-shadow .15s;
 }
 .eb-opt.is-on .eb-dot {
-    border-color: var(--blue);
-    background: var(--blue);
+    background: linear-gradient(160deg, #2a5ca0 0%, var(--blue) 100%);
+    box-shadow:
+        inset 0 1px 3px rgba(0,0,0,.25),
+        inset 0 0 0 1px rgba(0,0,0,.15),
+        0 1px 0 rgba(255,255,255,.25);
 }
 .eb-dot-inner {
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
-    background: var(--surface);
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.25);
     opacity: 0;
-    transition: opacity .1s;
+    transform: scale(0);
+    transition: opacity .15s, transform .15s;
 }
-.eb-opt.is-on .eb-dot-inner { opacity: 1; }
+.eb-opt.is-on .eb-dot-inner { opacity: 1; transform: scale(1); }
 
 .eb-text { line-height: 1.4; }
 
