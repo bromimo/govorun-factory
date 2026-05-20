@@ -4,6 +4,7 @@ import axios from 'axios';
 import JsonTree from './JsonTree.vue';
 import StateSampleEditor from './StateSampleEditor.vue';
 import ResponseMappingList from './ResponseMappingList.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
 
 const model = defineModel({ type: Object });
 const props = defineProps({ botId: [Number, String] });
@@ -66,9 +67,9 @@ function onPick(path, value) {
     <div class="rp-wrap">
         <StateSampleEditor v-model="stateSample" :keys="referencedStateKeys" />
 
-        <button type="button" @click="run" :disabled="loading" class="rp-run-btn">
+        <ErButton variant="primary" :disabled="loading" @click="run">
             {{ loading ? 'Выполняется…' : '▶ Выполнить тестовый запрос' }}
-        </button>
+        </ErButton>
 
         <div v-if="result" class="rp-result">
             <div v-if="result.error" class="rp-error">Ошибка: {{ result.error }}</div>
@@ -91,20 +92,6 @@ function onPick(path, value) {
 
 <style scoped>
 .rp-wrap { display: flex; flex-direction: column; gap: 10px; }
-.rp-run-btn {
-    padding: 4px 12px;
-    background: var(--blue);
-    color: #fff;
-    border: none;
-    border-radius: var(--r-sm);
-    font-size: 12px;
-    font-family: var(--font);
-    cursor: pointer;
-    transition: background .1s;
-    align-self: flex-start;
-}
-.rp-run-btn:hover { background: var(--blue-d); }
-.rp-run-btn:disabled { opacity: .6; cursor: default; }
 .rp-result {
     border: 1px solid var(--bdr);
     border-radius: var(--r-sm);

@@ -63,7 +63,7 @@ function updateVariable(index, field, value) {
             </button>
         </div>
 
-        <button @click="addVariable" type="button" class="ssf-add">
+        <button @click="addVariable" type="button" class="add-btn ssf-full">
             + Добавить переменную
         </button>
     </div>
@@ -76,19 +76,6 @@ function updateVariable(index, field, value) {
 .ssf-del { flex-shrink: 0; padding: 3px; border-radius: var(--r-sm); background: none; border: none; cursor: pointer; color: var(--ink-4); display: flex; align-items: center; }
 .ssf-del:hover { color: var(--red); background: var(--red-soft); }
 .del-icon { width: 14px; height: 14px; }
-.ssf-add {
-    width: 100%;
-    border-radius: var(--r-sm);
-    border: 1px dashed var(--bdr-d);
-    padding: 4px 10px;
-    font-size: 11px;
-    color: var(--ink-3);
-    background: var(--surface);
-    cursor: pointer;
-    font-family: var(--font);
-    text-align: center;
-    transition: border-color .1s, color .1s;
-}
-.ssf-add:hover { border-color: var(--bdr); color: var(--ink-2); }
+.ssf-full { width: 100%; justify-content: center; }
 .key-col { width: 80px; flex-shrink: 0; }
 </style>
