@@ -62,6 +62,8 @@ const siblingLabels = computed(() => {
     return canvasRef.value.getOutgoingEdgeLabels(edge.source, edge.id);
 });
 
+const allNodes = computed(() => canvasRef.value?.getAllNodes() ?? []);
+
 function onNodeDataUpdated(nodeId, newData) {
     canvasRef.value?.setNodeData(nodeId, newData);
 }
@@ -164,6 +166,7 @@ function autoLayout() {
                     :edge="selectedEdge"
                     :can-update="can.update"
                     :sibling-labels="siblingLabels"
+                    :all-nodes="allNodes"
                     class="flex-1 min-w-0"
                     @update="onEdgeLabelUpdated"
                     @clear-waypoints="onClearWaypoints"
