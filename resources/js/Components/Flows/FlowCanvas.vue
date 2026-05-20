@@ -129,6 +129,10 @@ function getAllNodeIds() {
     return getNodes.value.map(n => n.id);
 }
 
+function getAllNodes() {
+    return getNodes.value.map(n => ({ id: n.id, type: n.type }));
+}
+
 function renameNode(oldId, newId) {
     const allNodes = getNodes.value;
     const node = allNodes.find(n => n.id === oldId);
@@ -354,7 +358,7 @@ function autoLayout() {
     setTimeout(() => fitView({ padding: 0.2 }), 50);
 }
 
-defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, getPossiblyDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
+defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, getAllNodes, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, getPossiblyDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
 </script>
 
 <template>
