@@ -19,6 +19,7 @@ const props = defineProps({
     declaredStateKeys: { type: Array, default: () => [] },
     possiblyDeclaredStateKeys: { type: Array, default: () => [] },
     botValidationMessages: { type: Object, default: () => ({}) },
+    botId: { type: [Number, String], default: null },
 });
 
 const stepNameWarning = ref('');
@@ -149,7 +150,7 @@ const isCallback = computed(() => model.value.mode === 'callback');
                 :undeclared-keys="undeclaredKeys" />
         </div>
 
-        <MediaPicker v-if="media" v-model="media" />
+        <MediaPicker v-if="media" v-model="media" :bot-id="props.botId" />
         <button v-else type="button" @click="addMedia" class="er-btn sm">
             + Добавить медиа
         </button>
