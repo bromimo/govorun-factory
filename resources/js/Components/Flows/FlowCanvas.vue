@@ -52,7 +52,9 @@ function isValidConnection(connection) {
     if (!sourceNode) return false;
 
     if (sourceNode.type !== 'condition') {
-        const hasOutgoing = getEdges.value.some(e => e.source === connection.source);
+        const hasOutgoing = getEdges.value.some(
+            e => e.source === connection.source && e.sourceHandle === connection.sourceHandle,
+        );
         if (hasOutgoing) return false;
     }
 
