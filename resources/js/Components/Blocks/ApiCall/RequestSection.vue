@@ -152,7 +152,7 @@ function getPairId(pair) {
                     </div>
                 </template>
             </draggable>
-            <button type="button" @click="addPair('query')" class="field-link rs-add">+ параметр</button>
+            <button type="button" @click="addPair('query')" class="er-btn sm rs-add">+ параметр</button>
         </details>
 
         <details class="rs-details">
@@ -162,7 +162,7 @@ function getPairId(pair) {
                 <input v-model="h.value" placeholder="Value" class="field-input flex-1" />
                 <button type="button" @click="removePair('headers', i)" class="rs-del">✕</button>
             </div>
-            <button type="button" @click="addPair('headers')" class="field-link rs-add">+ заголовок</button>
+            <button type="button" @click="addPair('headers')" class="er-btn sm rs-add">+ заголовок</button>
         </details>
 
         <details class="rs-details" :open="model.body_mode !== 'none'">
@@ -180,7 +180,7 @@ function getPairId(pair) {
                     <input v-model="p.key" class="field-input flex-1" />
                     <input v-model="p.value" class="field-input flex-1" />
                 </div>
-                <button type="button" @click="(model.body ??= []).push({key:'', value:''})" class="field-link rs-add">+ поле</button>
+                <button type="button" @click="(model.body ??= []).push({key:'', value:''})" class="er-btn sm rs-add">+ поле</button>
             </div>
         </details>
     </div>
@@ -201,7 +201,7 @@ function getPairId(pair) {
 .rs-drag { cursor: grab; color: var(--ink-4); padding: 0 2px; user-select: none; }
 .rs-drag:hover { color: var(--ink-2); }
 .rs-del { color: var(--red); background: none; border: none; cursor: pointer; padding: 0 4px; font-size: 13px; }
-.rs-add { margin-top: 8px; display: block; }
+.rs-add { margin-top: 8px; }
 .rs-body-modes { display: flex; gap: 12px; margin-top: 6px; }
 .rs-radio { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
 </style>

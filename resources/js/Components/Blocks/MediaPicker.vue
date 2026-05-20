@@ -142,17 +142,13 @@ function clear() {
             </div>
 
             <div v-else class="mp-empty">
-                <button type="button" @click="modalOpen = true" class="mp-pick-btn">
+                <button type="button" @click="modalOpen = true" class="er-btn sm mp-full">
                     Выбрать из библиотеки
                 </button>
-                <div>
-                    <input ref="fileInputRef" type="file" class="hidden" @change="uploadDirect" />
-                    <button type="button" @click="fileInputRef.click()" :disabled="uploading"
-                        class="field-link" style="opacity: var(--uploading, 1);"
-                        :style="{ opacity: uploading ? .5 : 1 }">
-                        {{ uploading ? 'Загрузка…' : '+ Загрузить новый файл' }}
-                    </button>
-                </div>
+                <input ref="fileInputRef" type="file" class="hidden" @change="uploadDirect" />
+                <button type="button" @click="fileInputRef.click()" :disabled="uploading" class="er-btn sm mp-full">
+                    {{ uploading ? 'Загрузка…' : '+ Загрузить новый файл' }}
+                </button>
             </div>
         </template>
 
@@ -188,20 +184,7 @@ function clear() {
 .mp-type-icon { font-size: 14px; }
 .mp-filename { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--ink-2); }
 .mp-empty { display: flex; flex-direction: column; gap: 6px; }
-.mp-pick-btn {
-    width: 100%;
-    border-radius: var(--r-sm);
-    border: 1px dashed var(--bdr-d);
-    padding: 8px 10px;
-    font-size: 12px;
-    color: var(--blue);
-    background: var(--surface);
-    cursor: pointer;
-    font-family: var(--font);
-    text-align: center;
-    transition: background .1s;
-}
-.mp-pick-btn:hover { background: var(--blue-soft); }
+.mp-full { width: 100%; justify-content: center; }
 .mp-preview { padding-top: 4px; }
 .mp-img { max-height: 120px; width: 100%; border-radius: var(--r-sm); object-fit: cover; }
 .hidden { display: none; }
