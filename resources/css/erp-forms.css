@@ -1,0 +1,151 @@
+/* Общие стили полей форм ERP-дизайна */
+
+/* Метки */
+.field-lbl {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--ink-3);
+    margin-bottom: 4px;
+}
+.field-sub-lbl {
+    display: block;
+    font-size: 10px;
+    color: var(--ink-4);
+}
+
+/* Поля ввода */
+.field-input,
+.field-sel {
+    display: block;
+    width: 100%;
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: var(--font);
+    box-sizing: border-box;
+    min-width: 0;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.04);
+}
+.field-ta {
+    display: block;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: var(--font);
+    box-sizing: border-box;
+    min-width: 0;
+    resize: vertical;
+}
+.field-input.mono,
+.field-ta.mono { font-family: var(--mono, monospace); }
+.field-input:focus,
+.field-sel:focus,
+.field-ta:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(58,114,196,.2);
+}
+.field-input--error { border-color: var(--red) !important; }
+
+/* Вспомогательный текст */
+.field-mono { font-size: 12px; font-family: var(--mono, monospace); color: var(--ink-2); }
+.field-hint { font-size: 11px; color: var(--ink-4); margin-top: 3px; }
+.field-err  { font-size: 11px; color: var(--red);    margin-top: 3px; }
+.field-warn { font-size: 11px; color: var(--orange);  margin-top: 3px; }
+
+/* Ссылка-кнопка / кнопка удаления */
+.field-link {
+    font-size: 12px;
+    color: var(--blue);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: var(--font);
+    text-decoration: none;
+}
+.field-link:hover { text-decoration: underline; }
+.field-link:disabled { color: var(--ink-4); cursor: not-allowed; text-decoration: none; }
+.field-del {
+    font-size: 11px;
+    color: var(--red);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: var(--font);
+}
+.field-del:hover { opacity: .8; }
+
+/* Кнопка действия (глобальный класс для нативных элементов) */
+.er-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 12px;
+    height: 26px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--bdr-d);
+    background: linear-gradient(180deg, #fff 0%, #e2e7ec 100%);
+    color: var(--ink);
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: var(--font);
+    font-size: 12px;
+    text-decoration: none;
+    line-height: 1;
+    box-sizing: border-box;
+}
+.er-btn:hover {
+    background: linear-gradient(180deg, #f4f7fa 0%, #d4dbe2 100%);
+    border-color: #7a8898;
+}
+.er-btn:active { background: linear-gradient(180deg, #d4dbe2 0%, #e8eef4 100%); }
+.er-btn:disabled { opacity: .5; cursor: not-allowed; }
+.er-btn.pr {
+    background: linear-gradient(180deg, #5a8cd4 0%, #2a5ca0 100%);
+    border-color: #1d3a6e;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0,0,0,.2);
+}
+.er-btn.pr:hover { background: linear-gradient(180deg, #6a9cdc 0%, #3a6cb0 100%); }
+.er-btn.dng {
+    background: linear-gradient(180deg, #fff 0%, #fae4e4 100%);
+    color: var(--red);
+    border-color: #c08080;
+}
+.er-btn.dng:hover { background: linear-gradient(180deg, #fef0f0 0%, #f0c8c8 100%); }
+.er-btn.sm { height: 22px; padding: 0 8px; font-size: 11px; }
+.er-btn.lg { height: 32px; padding: 0 16px; font-size: 13px; }
+
+/* Кнопки действий в таблицах */
+.tbl-act-btn {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    color: var(--blue);
+    text-decoration: none;
+    padding: 1px 6px;
+    border: 1px solid var(--bdr-l);
+    border-radius: 2px;
+    background: var(--surface);
+    cursor: pointer;
+    font-family: var(--font);
+    white-space: nowrap;
+}
+.tbl-act-btn:hover { background: var(--blue-soft); }
+.tbl-act-btn--danger { color: var(--red); }
+.tbl-act-btn--danger:hover { background: var(--red-soft); }

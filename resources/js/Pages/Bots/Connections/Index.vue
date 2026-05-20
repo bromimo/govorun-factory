@@ -115,17 +115,4 @@ function doDestroy() {
 .back-link:hover { color: var(--ink); }
 .tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
 .auth-preview { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: 6px; }
-.tbl-act-btn {
-    font-size: 11px;
-    color: var(--blue);
-    text-decoration: none;
-    padding: 1px 6px;
-    border: 1px solid var(--bdr-l);
-    border-radius: 2px;
-    background: var(--surface);
-    cursor: pointer;
-}
-.tbl-act-btn:hover { background: var(--blue-soft); }
-.tbl-act-btn--danger { color: var(--red); }
-.tbl-act-btn--danger:hover { background: var(--red-soft); }
 </style>

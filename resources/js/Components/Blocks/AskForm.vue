@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
-import VarsHint from './VarsHint.vue';
+import ToggleGroup from '@/Components/Ui/ToggleGroup.vue';
 import StateWarning from './StateWarning.vue';
 import MediaPicker from './MediaPicker.vue';
 import KeyboardSection from './KeyboardSection.vue';
@@ -20,6 +20,7 @@ const props = defineProps({
     declaredStateKeys: { type: Array, default: () => [] },
     possiblyDeclaredStateKeys: { type: Array, default: () => [] },
     botValidationMessages: { type: Object, default: () => ({}) },
+    botId: { type: [Number, String], default: null },
 });
 
 const stepNameWarning = ref('');
@@ -125,56 +126,49 @@ const isCallback = computed(() => model.value.mode === 'callback');
 </script>
 
 <template>
-    <div class="space-y-3">
+    <div class="af-wrap">
         <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Режим</label>
-            <div class="inline-flex rounded-md border border-gray-300 bg-white p-0.5 text-xs">
-                <button type="button" @click="setMode('text')"
-                    :class="['px-3 py-1 rounded', isText ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50']">
-                    Текст
-                </button>
-                <button type="button" @click="setMode('callback')"
-                    :class="['px-3 py-1 rounded', isCallback ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50']">
-                    Выбор кнопкой
-                </button>
-            </div>
+            <label class="field-lbl">Режим</label>
+            <ToggleGroup
+                :model-value="model.mode"
+                :options="[{ value: 'text', label: 'Текст' }, { value: 'callback', label: 'Выбор кнопкой' }]"
+                @update:model-value="setMode"
+            />
         </div>
 
         <div>
-            <label class="block text-xs font-medium text-gray-500">Текст вопроса</label>
+            <label class="field-lbl">Текст вопроса</label>
             <RichTextEditor v-model="text" class="mt-1"
                 placeholder="Как вас зовут?"
                 :declared-keys="declaredStateKeys" />
             <StateWarning :uninitialized-keys="uninitializedKeys"
                 :partially-initialized-keys="partiallyInitializedKeys"
                 :undeclared-keys="undeclaredKeys" />
-            <VarsHint />
         </div>
 
-        <MediaPicker v-if="media" v-model="media" />
-        <button v-else type="button" @click="addMedia"
-            class="text-xs text-indigo-600 hover:text-indigo-800">
+        <MediaPicker v-if="media" v-model="media" :bot-id="props.botId" />
+        <button v-else type="button" @click="addMedia" class="er-btn sm">
             + Добавить медиа
         </button>
 
         <div>
-            <label class="block text-xs font-medium text-gray-500">Имя шага</label>
-            <div class="mt-1 flex gap-2">
+            <label class="field-lbl">Имя шага</label>
+            <div class="af-step-row">
                 <input :value="model.stepName ?? ''" type="text"
                     @input="onStepNameInput($event)"
-                    class="w-full rounded border-gray-300 text-sm font-mono placeholder-gray-400"
+                    class="field-input mono"
                     :placeholder="autoStepName() || 'askName'" />
                 <button v-if="model.stepName" type="button" @click="model.stepName = ''"
-                    class="shrink-0 text-gray-400 hover:text-red-500">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    class="af-clear">
+                    <svg class="af-clear-icon" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
                 </button>
             </div>
-            <p class="mt-1 text-xs text-gray-400">
-                camelCase. Например: <span class="font-mono">askName</span>
+            <p class="field-hint">
+                camelCase. Например: <span class="field-mono">askName</span>
             </p>
-            <p v-if="stepNameWarning" class="mt-1 text-xs text-amber-600">{{ stepNameWarning }}</p>
+            <p v-if="stepNameWarning" class="field-warn">{{ stepNameWarning }}</p>
         </div>
 
         <ValidationEditor v-if="isText" v-model="validation"
@@ -195,3 +189,12 @@ const isCallback = computed(() => model.value.mode === 'callback');
         @cancel="pendingMode = null"
     />
 </template>
+
+<style scoped>
+.af-wrap { display: flex; flex-direction: column; gap: 10px; }
+.af-step-row { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+.af-step-row .field-input { flex: 1; }
+.af-clear { flex-shrink: 0; color: var(--ink-4); background: none; border: none; cursor: pointer; padding: 2px; display: flex; align-items: center; border-radius: var(--r-sm); }
+.af-clear:hover { color: var(--red); }
+.af-clear-icon { width: 14px; height: 14px; }
+</style>

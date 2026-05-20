@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { VueFlow, useVueFlow, MarkerType } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
@@ -25,12 +25,30 @@ const props = defineProps({
 const nodes = ref(props.initialNodes.map(n => n.type === 'start' ? { ...n, deletable: false } : n));
 const arrowMarker = { type: MarkerType.ArrowClosed, width: 20, height: 20 };
 const edgeDefaults = { markerEnd: arrowMarker, interactionWidth: 20, updatable: 'target', type: 'editable' };
-const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e, data: e.data || {} })));
+// До исправления getGraph sourceHandle не сохранялся; восстанавливаем из id ребра.
+// Формат id: vueflow__edge-{source}{sourceHandle}-{target}
+function inferSourceHandle(edgeId, source) {
+    const prefix = `vueflow__edge-${source}`;
+    if (!edgeId.startsWith(prefix)) return null;
+    const afterSource = edgeId.slice(prefix.length);
+    const dashIdx = afterSource.indexOf('-');
+    if (dashIdx <= 0) return null;
+    return afterSource.slice(0, dashIdx);
+}
+
+const apiCallNodeIds = new Set(props.initialNodes.filter(n => n.type === 'api_call').map(n => n.id));
+const edges = ref(props.initialEdges.map(e => {
+    const edge = { ...edgeDefaults, ...e, data: e.data || {} };
+    if (apiCallNodeIds.has(edge.source) && !edge.sourceHandle) {
+        edge.sourceHandle = inferSourceHandle(edge.id, edge.source) ?? 'default';
+    }
+    return edge;
+}));
 
 const selectedNode = ref(null);
 const selectedEdge = ref(null);
 
-const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, getNodes, getEdges, onNodesChange } = useVueFlow();
+const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, removeEdges, updateNodeInternals, getNodes, getEdges, onNodesChange } = useVueFlow();
 
 onNodesChange((changes) => {
     for (const change of changes) {
@@ -39,6 +57,17 @@ onNodesChange((changes) => {
                 return changes.filter(c => c.id !== change.id);
             }
             if (selectedNode.value?.id === change.id) {
+                selectedNode.value = null;
+            }
+        }
+        if (change.type === 'select') {
+            if (change.selected) {
+                const node = getNodes.value.find(n => n.id === change.id);
+                if (node && node.type !== 'start') {
+                    selectedEdge.value = null;
+                    selectedNode.value = { id: node.id, type: node.type, data: node.data };
+                }
+            } else if (selectedNode.value?.id === change.id) {
                 selectedNode.value = null;
             }
         }
@@ -52,7 +81,9 @@ function isValidConnection(connection) {
     if (!sourceNode) return false;
 
     if (sourceNode.type !== 'condition') {
-        const hasOutgoing = getEdges.value.some(e => e.source === connection.source);
+        const hasOutgoing = getEdges.value.some(
+            e => e.source === connection.source && e.sourceHandle === connection.sourceHandle,
+        );
         if (hasOutgoing) return false;
     }
 
@@ -111,6 +142,7 @@ function getGraph() {
             id: e.id,
             source: e.source,
             target: e.target,
+            sourceHandle: e.sourceHandle || undefined,
             label: e.label || undefined,
             data: e.data?.waypoints?.length ? { waypoints: e.data.waypoints } : undefined,
         })),
@@ -122,11 +154,25 @@ function doFitView() {
 }
 
 function setNodeData(nodeId, data) {
+    const node = getNodes.value.find(n => n.id === nodeId);
+    if (node?.type === 'api_call' && node.data.on_error === 'branch' && data.on_error !== 'branch') {
+        const stale = getEdges.value
+            .filter(e => e.source === nodeId && e.sourceHandle === 'on_error')
+            .map(e => e.id);
+        if (stale.length) removeEdges(stale);
+    }
     updateNodeData(nodeId, data);
+    if (node?.type === 'api_call') {
+        nextTick(() => updateNodeInternals(nodeId));
+    }
 }
 
 function getAllNodeIds() {
     return getNodes.value.map(n => n.id);
+}
+
+function getAllNodes() {
+    return getNodes.value.map(n => ({ id: n.id, type: n.type }));
 }
 
 function renameNode(oldId, newId) {
@@ -354,7 +400,7 @@ function autoLayout() {
     setTimeout(() => fitView({ padding: 0.2 }), 50);
 }
 
-defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, getPossiblyDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
+defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, getAllNodes, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, getPossiblyDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
 </script>
 
 <template>

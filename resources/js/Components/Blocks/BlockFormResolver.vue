@@ -26,7 +26,7 @@ const formComponent = computed(() => ({
 
 const extraProps = computed(() => {
     if (props.type === 'ask') {
-        return { 'bot-validation-messages': props.botValidationMessages };
+        return { 'bot-validation-messages': props.botValidationMessages, 'bot-id': props.botId };
     }
     if (props.type === 'reply') {
         return { 'bot-id': props.botId };

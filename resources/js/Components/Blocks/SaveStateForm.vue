@@ -34,15 +34,15 @@ function updateVariable(index, field, value) {
 </script>
 
 <template>
-    <div class="space-y-2">
-        <div v-for="(v, i) in variables" :key="i" class="flex items-center gap-1.5">
+    <div class="ssf-wrap">
+        <div v-for="(v, i) in variables" :key="i" class="ssf-row">
             <input :value="v.key" @input="updateVariable(i, 'key', $event.target.value)" type="text"
-                class="w-24 shrink-0 rounded border-gray-300 px-2 py-1.5 text-sm font-mono placeholder-gray-400" placeholder="key" />
+                class="field-input mono key-col" placeholder="key" />
 
-            <span class="shrink-0 text-xs text-gray-400">=</span>
+            <span class="ssf-eq">=</span>
 
             <select :value="v.source" @change="updateVariable(i, 'source', $event.target.value)"
-                class="min-w-0 flex-1 rounded border-gray-300 px-2 py-1.5 text-sm">
+                class="field-sel flex-1">
                 <option value="" disabled>источник</option>
                 <optgroup label="Сообщение">
                     <option value="message.text">message.text</option>
@@ -56,17 +56,26 @@ function updateVariable(index, field, value) {
                 </optgroup>
             </select>
 
-            <button v-if="variables.length > 1" @click="removeVariable(i)" type="button"
-                class="shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500">
-                <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <button v-if="variables.length > 1" @click="removeVariable(i)" type="button" class="ssf-del">
+                <svg class="del-icon" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                 </svg>
             </button>
         </div>
 
-        <button @click="addVariable" type="button"
-            class="w-full rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs text-gray-500 hover:border-gray-400 hover:text-gray-700">
+        <button @click="addVariable" type="button" class="er-btn sm ssf-full">
             + Добавить переменную
         </button>
     </div>
 </template>
+
+<style scoped>
+.ssf-wrap { display: flex; flex-direction: column; gap: 6px; }
+.ssf-row { display: flex; align-items: center; gap: 4px; }
+.ssf-eq { flex-shrink: 0; font-size: 11px; color: var(--ink-4); }
+.ssf-del { flex-shrink: 0; padding: 3px; border-radius: var(--r-sm); background: none; border: none; cursor: pointer; color: var(--ink-4); display: flex; align-items: center; }
+.ssf-del:hover { color: var(--red); background: var(--red-soft); }
+.del-icon { width: 14px; height: 14px; }
+.ssf-full { width: 100%; justify-content: center; }
+.key-col { width: 80px; flex-shrink: 0; }
+</style>

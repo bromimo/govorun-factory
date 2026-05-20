@@ -62,6 +62,8 @@ const siblingLabels = computed(() => {
     return canvasRef.value.getOutgoingEdgeLabels(edge.source, edge.id);
 });
 
+const allNodes = computed(() => canvasRef.value?.getAllNodes() ?? []);
+
 function onNodeDataUpdated(nodeId, newData) {
     canvasRef.value?.setNodeData(nodeId, newData);
 }
@@ -120,7 +122,7 @@ function autoLayout() {
                 <span v-if="saved" class="fl-saved">Сохранено</span>
                 <ErButton v-if="can.update" size="sm" @click="autoLayout">Авто</ErButton>
                 <ErButton size="sm" @click="fitView">Фит</ErButton>
-                <a :href="route('bots.edit', bot.id)" class="fl-exit-btn">Выйти</a>
+                <ErButton as="a" size="sm" :href="route('bots.edit', bot.id)">Выйти</ErButton>
                 <ErButton v-if="can.update" variant="primary" size="sm" :disabled="saving" @click="save">
                     {{ saving ? 'Сохранение…' : 'Сохранить' }}
                 </ErButton>
@@ -164,6 +166,7 @@ function autoLayout() {
                     :edge="selectedEdge"
                     :can-update="can.update"
                     :sibling-labels="siblingLabels"
+                    :all-nodes="allNodes"
                     class="flex-1 min-w-0"
                     @update="onEdgeLabelUpdated"
                     @clear-waypoints="onClearWaypoints"
@@ -202,20 +205,4 @@ function autoLayout() {
 .fl-sep { color: var(--bdr-d); font-size: 14px; padding: 0 2px; }
 .fl-title { font-size: 12px; font-weight: 600; color: var(--ink); }
 .fl-saved { font-size: 11px; color: var(--green-d, #2d6a2d); padding: 0 6px; }
-.fl-exit-btn {
-    display: flex;
-    align-items: center;
-    height: 22px;
-    padding: 0 8px;
-    font-size: 11px;
-    font-family: var(--font);
-    color: var(--ink-2);
-    background: var(--surface);
-    border: 1px solid var(--bdr-d);
-    border-radius: var(--r-sm);
-    text-decoration: none;
-    cursor: pointer;
-    white-space: nowrap;
-}
-.fl-exit-btn:hover { background: var(--surface-2); color: var(--ink); }
 </style>

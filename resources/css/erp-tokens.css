@@ -36,8 +36,8 @@
   --r-sm: 2px;
   --r-md: 3px;
 
-  --font: 'Segoe UI', Tahoma, Verdana, Arial, sans-serif;
-  --mono: 'Consolas', 'Lucida Console', monospace;
+  --font: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'Consolas', monospace;
 
   --sh: 0 1px 2px rgba(20,30,50,.08);
   --sh-md: 0 2px 6px rgba(20,30,50,.10), 0 1px 2px rgba(20,30,50,.08);

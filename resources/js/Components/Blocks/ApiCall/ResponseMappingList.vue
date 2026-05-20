@@ -12,15 +12,29 @@ function remove(i) {
 </script>
 
 <template>
-    <div v-if="model.length" class="border rounded p-2 mt-2">
-        <div class="text-xs font-semibold uppercase text-gray-500 mb-2">Сохранённые поля</div>
-        <div v-for="(m, i) in model" :key="i" class="flex items-center gap-2 text-xs mb-1">
+    <div v-if="model.length" class="rml-wrap">
+        <div class="rml-title">Сохранённые поля</div>
+        <div v-for="(m, i) in model" :key="i" class="rml-row">
             <input :value="m.json_path" @input="update(i, 'json_path', $event.target.value)"
-                class="rounded border-gray-300 text-xs font-mono flex-1 min-w-0" />
-            <span class="text-gray-400 shrink-0">→ state.</span>
+                class="field-input mono flex-1" />
+            <span class="rml-arrow">→ state.</span>
             <input :value="m.state_key" @input="update(i, 'state_key', $event.target.value)"
-                class="rounded border-gray-300 text-xs w-32 shrink-0" />
-            <button type="button" @click="remove(i)" class="text-red-500 px-1 shrink-0">✕</button>
+                class="field-input key-w" />
+            <button type="button" @click="remove(i)" class="rml-del">✕</button>
         </div>
     </div>
 </template>
+
+<style scoped>
+.rml-wrap {
+    border: 1px solid var(--bdr);
+    border-radius: var(--r-sm);
+    padding: 8px;
+    margin-top: 4px;
+}
+.rml-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); margin-bottom: 6px; }
+.rml-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.rml-arrow { font-size: 11px; color: var(--ink-4); flex-shrink: 0; white-space: nowrap; }
+.rml-del { color: var(--red); background: none; border: none; cursor: pointer; padding: 0 4px; font-size: 13px; flex-shrink: 0; }
+.key-w { width: 100px; flex-shrink: 0; }
+</style>

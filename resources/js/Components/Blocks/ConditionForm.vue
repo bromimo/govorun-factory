@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import ToggleGroup from '@/Components/Ui/ToggleGroup.vue';
 import StateWarning from './StateWarning.vue';
 
 const model = defineModel({ type: Object, default: () => ({ field: '' }) });
@@ -36,23 +37,15 @@ function setMode(variable) {
 
 <template>
     <div>
-        <label class="block text-xs font-medium text-gray-500">Поле для проверки</label>
+        <label class="field-lbl">Поле для проверки</label>
 
-        <div class="mt-1 flex items-center gap-2 text-xs">
-            <button type="button" @click="setMode(false)"
-                class="rounded px-2 py-0.5"
-                :class="!isVariable ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-500 hover:text-gray-700'">
-                Источник
-            </button>
-            <button type="button" @click="setMode(true)"
-                class="rounded px-2 py-0.5"
-                :class="isVariable ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-500 hover:text-gray-700'">
-                Переменная
-            </button>
-        </div>
+        <ToggleGroup class="mt-1"
+            :model-value="isVariable"
+            :options="[{ value: false, label: 'Источник' }, { value: true, label: 'Переменная' }]"
+            @update:model-value="setMode"
+        />
 
-        <select v-if="!isVariable" v-model="model.field"
-            class="mt-1 w-full rounded border-gray-300 text-sm">
+        <select v-if="!isVariable" v-model="model.field" class="field-sel mt-1">
             <option value="" disabled>Выберите источник</option>
             <optgroup label="Сообщение">
                 <option value="message.text">message.text — текст сообщения</option>
@@ -67,11 +60,11 @@ function setMode(variable) {
         </select>
 
         <input v-else v-model="model.field" type="text"
-            class="mt-1 w-full rounded border-gray-300 text-sm font-mono placeholder-gray-400"
+            class="field-input mono mt-1"
             placeholder="name" />
-        <p v-if="isVariable && !uninitializedKeys.length && !undeclaredKeys.length" class="mt-0.5 text-xs text-gray-400">Имя переменной из блока «Сохранить состояние»</p>
+        <p v-if="isVariable && !uninitializedKeys.length && !undeclaredKeys.length" class="field-hint">Имя переменной из блока «Сохранить состояние»</p>
         <StateWarning :uninitialized-keys="uninitializedKeys" :undeclared-keys="undeclaredKeys" />
 
-        <p class="mt-1 text-xs text-gray-400">Значения задаются на исходящих связях (edge labels)</p>
+        <p class="field-hint mt-1">Значения задаются на исходящих связях (edge labels)</p>
     </div>
 </template>

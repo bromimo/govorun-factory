@@ -212,102 +212,74 @@ function onVar(varKey) {
 
 <template>
     <teleport to="body">
-        <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-            @click.self="cancel">
-            <div class="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
-                <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-                    <h2 class="text-lg font-semibold">Клавиатура</h2>
-                    <button type="button" @click="cancel" class="text-gray-400 hover:text-gray-600 text-xl">×</button>
+        <div v-if="open" class="kem-overlay" @click.self="cancel">
+            <div class="kem-dialog">
+                <div class="kem-head">
+                    <span class="kem-title">Клавиатура</span>
+                    <button type="button" @click="cancel" class="kem-x">×</button>
                 </div>
 
-                <div class="p-4 space-y-4">
-                    <div v-for="(row, ri) in localRows" :key="ri"
-                        class="rounded border border-gray-300 p-3 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-medium text-gray-500">Ряд {{ ri + 1 }}</span>
-                            <button type="button" @click="removeRow(ri)"
-                                class="text-red-400 hover:text-red-600 text-xs">× ряд</button>
+                <div class="kem-body">
+                    <div v-for="(row, ri) in localRows" :key="ri" class="kem-row">
+                        <div class="kem-row-head">
+                            <span class="kem-row-lbl">Ряд {{ ri + 1 }}</span>
+                            <button type="button" @click="removeRow(ri)" class="er-btn sm dng">× ряд</button>
                         </div>
 
                         <draggable v-model="localRows[ri]" :group="{ name: 'keyboard-buttons' }"
                             :animation="150" handle=".drag-handle"
                             item-key="id"
-                            class="flex flex-wrap gap-2 min-h-[40px]">
+                            class="kem-btns-wrap">
                             <template #item="{ element: btn, index: bi }">
-                                <div class="rounded border border-gray-300 bg-gray-50 p-2 space-y-1.5 w-64">
-                                    <div class="flex items-center gap-1">
-                                        <span class="drag-handle cursor-move text-gray-400 select-none">⋮⋮</span>
+                                <div class="kem-btn-card">
+                                    <div class="kem-btn-top">
+                                        <span class="drag-handle kem-drag">⋮⋮</span>
                                         <input v-model="btn.label" placeholder="Текст"
                                             :ref="(el) => setLabelRef(ri, bi, el)"
-                                            :class="['flex-1 rounded border text-sm px-2 py-1 text-center', !btn.label?.trim() ? 'border-red-400' : 'border-gray-300']" />
-                                        <button type="button"
-                                            @click="toggleEmoji(ri, bi, $event)"
-                                            title="Вставить эмодзи"
-                                            class="inline-flex h-6 w-6 shrink-0 items-center justify-center text-base text-gray-400 hover:text-gray-600">
-                                            😀
-                                        </button>
-                                        <button type="button"
-                                            @click="toggleVars(ri, bi, $event)"
-                                            title="Вставить переменную"
-                                            class="inline-flex h-6 w-6 shrink-0 items-center justify-center font-mono text-sm text-gray-400 hover:text-gray-600">
-                                            {…}
-                                        </button>
-                                        <button type="button" @click="removeButton(ri, bi)"
-                                            class="text-red-400 hover:text-red-600">×</button>
+                                            :class="['field-input kem-label-inp', !btn.label?.trim() ? 'field-input--error' : '']" />
+                                        <button type="button" @click="toggleEmoji(ri, bi, $event)"
+                                            title="Вставить эмодзи" class="kem-icon-btn">😀</button>
+                                        <button type="button" @click="toggleVars(ri, bi, $event)"
+                                            title="Вставить переменную" class="kem-icon-btn kem-icon-btn--mono">{…}</button>
+                                        <button type="button" @click="removeButton(ri, bi)" class="field-del kem-rm">×</button>
                                     </div>
                                     <select v-if="keyboardType === 'inline'"
-                                        v-model="btn.type" @change="onTypeChange(btn)"
-                                        class="w-full rounded border-gray-300 text-xs py-1">
+                                        v-model="btn.type" @change="onTypeChange(btn)" class="field-sel">
                                         <option value="action">action</option>
                                         <option value="url">url</option>
                                         <option value="contact">contact</option>
                                         <option value="location">location</option>
                                     </select>
-
                                     <select v-if="keyboardType === 'reply'"
-                                        v-model="btn.type" @change="onTypeChange(btn)"
-                                        class="w-full rounded border-gray-300 text-xs py-1">
+                                        v-model="btn.type" @change="onTypeChange(btn)" class="field-sel">
                                         <option value="text">Текст</option>
                                         <option value="contact">Контакт</option>
                                         <option value="location">Геолокация</option>
                                     </select>
-
                                     <template v-if="keyboardType === 'inline'">
                                         <input v-if="btn.type === 'action'" v-model="btn.action" placeholder="action"
-                                            :class="['w-full rounded border text-xs px-2 py-1', !btn.action?.trim() || actionInvalid(btn) || duplicateActions.has(btn.action?.trim()) ? 'border-red-400' : 'border-gray-300']" />
-
+                                            :class="['field-input mono', !btn.action?.trim() || actionInvalid(btn) || duplicateActions.has(btn.action?.trim()) ? 'field-input--error' : '']" />
                                         <textarea v-if="btn.type === 'action'"
                                             :value="paramString(btn)" @input="onParamInput(ri, bi, btn, $event)"
                                             placeholder="param (JSON, опционально)"
-                                            :class="['w-full rounded border text-xs px-2 py-1 font-mono', paramErrors[`${ri}:${bi}`] ? 'border-red-400' : 'border-gray-300']"
+                                            :class="['field-ta mono', paramErrors[`${ri}:${bi}`] ? 'field-input--error' : '']"
                                             rows="2" />
-
                                         <input v-if="btn.type === 'url'" v-model="btn.url" placeholder="https://..."
-                                            :class="['w-full rounded border text-xs px-2 py-1', urlInvalid(btn) ? 'border-red-400' : 'border-gray-300']" />
+                                            :class="['field-input', urlInvalid(btn) ? 'field-input--error' : '']" />
                                     </template>
                                 </div>
                             </template>
                         </draggable>
 
-                        <button type="button" @click="addButton(ri)"
-                            class="text-xs text-indigo-600 hover:text-indigo-800">+ кнопка</button>
+                        <button type="button" @click="addButton(ri)" class="er-btn sm">+ кнопка</button>
                     </div>
 
-                    <button type="button" @click="addRow"
-                        class="w-full rounded border-2 border-dashed border-gray-300 py-2 text-sm text-gray-500 hover:border-indigo-400 hover:text-indigo-600">
-                        + новый ряд
-                    </button>
+                    <button type="button" @click="addRow" class="er-btn sm kem-add-row">+ новый ряд</button>
                 </div>
 
-                <div class="flex justify-end gap-2 border-t border-gray-200 px-4 py-3">
-                    <button type="button" @click="cancel"
-                        class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-                        Отменить
-                    </button>
-                    <button type="button" @click="save" :disabled="!isValid"
-                        class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                        ✓ Сохранить
-                    </button>
+                <div class="kem-foot">
+                    <button type="button" @click="cancel" class="er-btn">Отменить</button>
+                    <button type="button" @click="save" :disabled="!isValid" class="er-btn pr">✓ Сохранить</button>
                 </div>
             </div>
         </div>
@@ -330,3 +302,55 @@ function onVar(varKey) {
     @cancel="confirmRowIdx = null"
 />
 </template>
+
+<style scoped>
+.kem-overlay {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.5); padding: 16px;
+}
+.kem-dialog {
+    width: 100%; max-width: 760px; max-height: 90vh;
+    overflow-y: auto; border-radius: 4px;
+    background: var(--surface); box-shadow: var(--sh-md);
+    display: flex; flex-direction: column;
+}
+.kem-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; border-bottom: 1px solid var(--bdr); flex-shrink: 0;
+}
+.kem-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+.kem-x {
+    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer; font-size: 18px;
+    color: var(--ink-4); border-radius: var(--r-sm);
+}
+.kem-x:hover { background: var(--surface-2); color: var(--ink); }
+.kem-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
+.kem-foot { display: flex; justify-content: flex-end; gap: 6px; padding: 10px 16px; border-top: 1px solid var(--bdr); flex-shrink: 0; }
+
+.kem-row {
+    border: 1px solid var(--bdr); border-radius: var(--r-sm);
+    padding: 10px; display: flex; flex-direction: column; gap: 8px;
+    background: var(--surface-2);
+}
+.kem-row-head { display: flex; align-items: center; justify-content: space-between; }
+.kem-row-lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-4); }
+.kem-btns-wrap { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; }
+.kem-btn-card {
+    border: 1px solid var(--bdr-d); border-radius: var(--r-sm);
+    background: var(--surface); padding: 8px;
+    display: flex; flex-direction: column; gap: 5px; width: 220px;
+}
+.kem-btn-top { display: flex; align-items: center; gap: 4px; }
+.kem-drag { cursor: grab; color: var(--ink-4); font-size: 13px; user-select: none; flex-shrink: 0; }
+.kem-label-inp { text-align: center; }
+.kem-icon-btn {
+    flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer; font-size: 13px; color: var(--ink-4); border-radius: var(--r-sm);
+}
+.kem-icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+.kem-icon-btn--mono { font-family: var(--mono); font-size: 11px; }
+.kem-rm { font-size: 14px; line-height: 1; }
+.kem-add-row { width: 100%; justify-content: center; }
+</style>
