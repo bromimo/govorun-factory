@@ -188,6 +188,7 @@ function setBtnRef(el, i) {
 <style scoped>
 .tg-wrap {
     display: inline-flex;
+    align-self: flex-start;
     position: relative;
     background: #cdd1da;
     border-radius: 8px;
