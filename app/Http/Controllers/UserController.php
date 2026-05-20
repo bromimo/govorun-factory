@@ -24,6 +24,24 @@ class UserController extends Controller
         ]);
     }
 
+    /** Форма создания пользователя.
+     * @return Response
+     */
+    public function create()
+    {
+        return Inertia::render('Users/Edit');
+    }
+
+    /** Форма редактирования пользователя.
+     * @return Response
+     */
+    public function edit(User $user)
+    {
+        return Inertia::render('Users/Edit', [
+            'user' => $user->only('id', 'name', 'email', 'role'),
+        ]);
+    }
+
     /** Создание пользователя.
      * @return RedirectResponse
      */
