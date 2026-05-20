@@ -6,6 +6,7 @@
 /storage/state/*.json
 !/storage/state/.gitkeep
 /storage/exports/*.zip
+/storage/exports/test/
 !/storage/exports/.gitkeep
 /.htaccess
 
