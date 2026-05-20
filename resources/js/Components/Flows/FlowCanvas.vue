@@ -25,7 +25,16 @@ const props = defineProps({
 const nodes = ref(props.initialNodes.map(n => n.type === 'start' ? { ...n, deletable: false } : n));
 const arrowMarker = { type: MarkerType.ArrowClosed, width: 20, height: 20 };
 const edgeDefaults = { markerEnd: arrowMarker, interactionWidth: 20, updatable: 'target', type: 'editable' };
-const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e, data: e.data || {} })));
+const apiCallNodeIds = new Set(props.initialNodes.filter(n => n.type === 'api_call').map(n => n.id));
+const edges = ref(props.initialEdges.map(e => {
+    const edge = { ...edgeDefaults, ...e, data: e.data || {} };
+    // Рёбра api_call-нод, созданные до добавления явного id="default" на handle,
+    // хранятся с sourceHandle:null — нормализуем при загрузке
+    if (apiCallNodeIds.has(edge.source) && !edge.sourceHandle) {
+        edge.sourceHandle = 'default';
+    }
+    return edge;
+}));
 
 const selectedNode = ref(null);
 const selectedEdge = ref(null);
