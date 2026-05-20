@@ -61,41 +61,39 @@ function clear() {
 </script>
 
 <template>
-    <div class="space-y-2">
-        <div class="flex items-center justify-between">
-            <label class="block text-xs font-medium text-gray-500">Клавиатура</label>
-            <button v-if="!required && model" type="button" @click="clear"
-                class="text-xs text-red-400 hover:text-red-600">
+    <div class="ks-wrap">
+        <div class="ks-header">
+            <label class="field-lbl">Клавиатура</label>
+            <button v-if="!required && model" type="button" @click="clear" class="field-del">
                 Удалить
             </button>
         </div>
 
-        <div class="inline-flex rounded-md border border-gray-300 bg-white p-0.5 text-xs">
+        <div class="toggle-group">
             <button type="button" @click="switchType('inline')"
-                :class="['px-3 py-1 rounded', keyboardType === 'inline' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50']">
+                :class="['toggle-btn', keyboardType === 'inline' ? 'is-on' : '']">
                 Inline
             </button>
             <button type="button" @click="switchType('reply')"
-                :class="['px-3 py-1 rounded', keyboardType === 'reply' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50']">
+                :class="['toggle-btn', keyboardType === 'reply' ? 'is-on' : '']">
                 Reply
             </button>
         </div>
 
-        <div v-if="keyboardType === 'reply'" class="flex gap-4 text-xs text-gray-600">
-            <label class="flex items-center gap-1">
-                <input type="checkbox" v-model="resize" class="rounded" />
+        <div v-if="keyboardType === 'reply'" class="ks-checks">
+            <label class="ks-check">
+                <input type="checkbox" v-model="resize" />
                 Подогнать размер
             </label>
-            <label class="flex items-center gap-1">
-                <input type="checkbox" v-model="oneTime" class="rounded" />
+            <label class="ks-check">
+                <input type="checkbox" v-model="oneTime" />
                 Скрыть после нажатия
             </label>
         </div>
 
         <KeyboardPreview :model-value="buttons" :keyboard-type="keyboardType" />
 
-        <button type="button" @click="editorOpen = true"
-            class="rounded-md border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-50">
+        <button type="button" @click="editorOpen = true" class="ks-edit-btn">
             {{ hasButtons ? 'Редактировать клавиатуру' : 'Добавить кнопки' }}
         </button>
 
@@ -113,3 +111,29 @@ function clear() {
         />
     </div>
 </template>
+
+<style scoped>
+.ks-wrap { display: flex; flex-direction: column; gap: 6px; }
+.ks-header { display: flex; align-items: center; justify-content: space-between; }
+.field-lbl { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
+.field-del { font-size: 11px; color: var(--red); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--font); }
+.field-del:hover { opacity: .8; }
+.toggle-group { display: inline-flex; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: var(--surface); padding: 2px; }
+.toggle-btn { padding: 2px 10px; border-radius: calc(var(--r-sm) - 1px); font-size: 11px; color: var(--ink-2); background: none; border: none; cursor: pointer; font-family: var(--font); }
+.toggle-btn.is-on { background: var(--blue); color: #fff; }
+.toggle-btn:not(.is-on):hover { background: var(--surface-2); }
+.ks-checks { display: flex; gap: 12px; }
+.ks-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
+.ks-edit-btn {
+    border-radius: var(--r-sm);
+    border: 1px solid var(--bdr-d);
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--ink-2);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background .1s;
+}
+.ks-edit-btn:hover { background: var(--surface-2); }
+</style>

@@ -107,11 +107,11 @@ function validateAndRenameId() {
                 <label class="field-lbl">ID узла</label>
                 <div v-if="canUpdate" class="mt-1">
                     <input v-model="localId" @blur="validateAndRenameId" @keydown.enter="validateAndRenameId"
-                        class="w-full rounded border-gray-300 text-xs font-mono placeholder-gray-400"
-                        :class="idError ? 'border-red-400' : ''" />
-                    <p v-if="idError" class="mt-0.5 text-xs text-red-500">{{ idError }}</p>
+                        class="field-input-id"
+                        :class="idError ? 'field-input-id--err' : ''" />
+                    <p v-if="idError" class="field-lbl-err">{{ idError }}</p>
                 </div>
-                <p v-else class="mt-0.5 text-xs font-mono text-gray-600">{{ node.id }}</p>
+                <p v-else class="field-id-ro">{{ node.id }}</p>
             </div>
 
             <div v-if="canUpdate">
@@ -125,8 +125,8 @@ function validateAndRenameId() {
                     :bot-id="botId"
                 />
             </div>
-            <div v-else class="text-xs text-gray-500">
-                <pre class="whitespace-pre-wrap">{{ JSON.stringify(node.data, null, 2) }}</pre>
+            <div v-else class="field-id-ro">
+                <pre style="white-space: pre-wrap;">{{ JSON.stringify(node.data, null, 2) }}</pre>
             </div>
         </div>
     </div>
@@ -206,4 +206,21 @@ function validateAndRenameId() {
     letter-spacing: .04em;
     color: var(--ink-3);
 }
+.field-input-id {
+    width: 100%;
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: var(--mono, monospace);
+    box-sizing: border-box;
+    margin-top: 4px;
+}
+.field-input-id:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+.field-input-id--err { border-color: var(--red); }
+.field-lbl-err { font-size: 11px; color: var(--red); margin-top: 2px; }
+.field-id-ro { font-size: 12px; font-family: var(--mono, monospace); color: var(--ink-2); margin-top: 2px; }
 </style>

@@ -82,62 +82,57 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
 <template>
-    <div class="mt-3">
-        <button type="button" @click="collapsed = !collapsed"
-            class="flex w-full items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700">
-            <svg class="h-3 w-3 transition-transform" :class="{ 'rotate-90': !collapsed }" viewBox="0 0 20 20" fill="currentColor">
+    <div class="ve-wrap">
+        <button type="button" @click="collapsed = !collapsed" class="ve-toggle">
+            <svg class="ve-arrow" :class="{ 'is-open': !collapsed }" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
             </svg>
             Валидация
-            <span v-if="model.length" class="ml-1 rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700">
-                {{ model.length }}
-            </span>
+            <span v-if="model.length" class="ve-count">{{ model.length }}</span>
         </button>
 
-        <div v-if="!collapsed" class="mt-2 space-y-2">
-            <div v-for="(rule, i) in model" :key="rule.name"
-                class="rounded border border-gray-200 bg-gray-50 p-2 space-y-1.5">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-1">
+        <div v-if="!collapsed" class="ve-body">
+            <div v-for="(rule, i) in model" :key="rule.name" class="ve-rule">
+                <div class="ve-rule-header">
+                    <div class="ve-rule-order">
                         <button v-if="model.length > 1" type="button" @click="moveRule(i, -1)" :disabled="i === 0"
-                            class="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">&#9650;</button>
+                            class="ve-order-btn">&#9650;</button>
                         <button v-if="model.length > 1" type="button" @click="moveRule(i, 1)" :disabled="i === model.length - 1"
-                            class="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">&#9660;</button>
-                        <span class="text-xs font-medium text-gray-700">{{ getRuleDef(rule.name)?.label ?? rule.name }}</span>
+                            class="ve-order-btn">&#9660;</button>
+                        <span class="ve-rule-name">{{ getRuleDef(rule.name)?.label ?? rule.name }}</span>
                     </div>
-                    <button type="button" @click="removeRule(i)" class="text-red-400 hover:text-red-600 text-sm">&times;</button>
+                    <button type="button" @click="removeRule(i)" class="ve-remove">&times;</button>
                 </div>
 
-                <div v-if="getRuleDef(rule.name)?.params?.length" class="flex gap-2">
-                    <div v-for="(param, pi) in getRuleDef(rule.name).params" :key="pi" class="flex-1">
-                        <label class="block text-[10px] text-gray-400">{{ param.label }}</label>
+                <div v-if="getRuleDef(rule.name)?.params?.length" class="ve-params">
+                    <div v-for="(param, pi) in getRuleDef(rule.name).params" :key="pi" class="ve-param">
+                        <label class="ve-param-lbl">{{ param.label }}</label>
                         <input :value="rule.params?.[pi] ?? ''" @input="updateParam(i, pi, $event.target.value)"
                             :type="param.type || 'text'" :placeholder="param.placeholder"
-                            class="mt-0.5 w-full rounded border-gray-300 text-xs placeholder-gray-400" />
+                            class="field-input mt-1" />
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] text-gray-400">Сообщение об ошибке</label>
+                    <label class="ve-param-lbl">Сообщение об ошибке</label>
                     <input :value="rule.message ?? ''" @input="updateMessage(i, $event.target.value)"
                         :placeholder="getPlaceholder(rule.name)"
-                        class="mt-0.5 w-full rounded border-gray-300 text-xs placeholder-gray-400" />
+                        class="field-input mt-1" />
                 </div>
             </div>
 
-            <div ref="dropdownRef" class="relative">
+            <div ref="dropdownRef" class="ve-dd-wrap">
                 <button type="button" @click="dropdownOpen = !dropdownOpen"
                     :disabled="addedRuleNames.size >= allowedDefs.length"
-                    class="text-xs text-indigo-600 hover:text-indigo-800 disabled:text-gray-400 disabled:cursor-not-allowed">
+                    class="field-link ve-add-btn">
                     + Добавить правило
                 </button>
 
-                <div v-if="dropdownOpen"
-                    class="absolute left-0 top-6 z-10 w-56 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+                <div v-if="dropdownOpen" class="ve-dropdown">
                     <div v-for="group in availableGroups" :key="group.key">
-                        <div class="px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{{ group.label }}</div>
+                        <div class="ve-dd-group">{{ group.label }}</div>
                         <button v-for="r in group.rules" :key="r.name" type="button" @click="addRule(r.name)"
-                            class="block w-full px-3 py-1 text-left text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                            class="ve-dd-item">
                             {{ r.label }}
                         </button>
                     </div>
@@ -146,3 +141,116 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
         </div>
     </div>
 </template>
+
+<style scoped>
+.ve-wrap { margin-top: 8px; }
+.ve-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: var(--font);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.ve-toggle:hover { color: var(--ink-2); }
+.ve-arrow { width: 12px; height: 12px; transition: transform .15s; flex-shrink: 0; }
+.ve-arrow.is-open { transform: rotate(90deg); }
+.ve-count {
+    margin-left: 2px;
+    border-radius: 20px;
+    background: var(--blue-soft);
+    padding: 0 5px 1px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--blue);
+}
+.ve-body { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.ve-rule {
+    border-radius: var(--r-sm);
+    border: 1px solid var(--bdr);
+    background: var(--surface-2);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.ve-rule-header { display: flex; align-items: center; justify-content: space-between; }
+.ve-rule-order { display: flex; align-items: center; gap: 4px; }
+.ve-order-btn {
+    font-size: 10px;
+    color: var(--ink-4);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+}
+.ve-order-btn:hover { color: var(--ink-2); }
+.ve-order-btn:disabled { opacity: .3; cursor: default; }
+.ve-rule-name { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.ve-remove { font-size: 14px; color: var(--red); background: none; border: none; cursor: pointer; padding: 0 2px; line-height: 1; }
+.ve-remove:hover { opacity: .7; }
+.ve-params { display: flex; gap: 8px; }
+.ve-param { flex: 1; }
+.ve-param-lbl { display: block; font-size: 10px; color: var(--ink-4); }
+.field-input {
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: var(--font);
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+}
+.field-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+.mt-1 { margin-top: 4px; }
+.ve-dd-wrap { position: relative; }
+.field-link { font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--font); }
+.field-link:hover { text-decoration: underline; }
+.field-link:disabled { color: var(--ink-4); cursor: not-allowed; text-decoration: none; }
+.ve-add-btn { margin-top: 2px; }
+.ve-dropdown {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 4px);
+    z-index: 10;
+    width: 200px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--bdr);
+    background: #fff;
+    padding: 4px 0;
+    box-shadow: var(--sh-md);
+}
+.ve-dd-group {
+    padding: 4px 10px 2px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-4);
+}
+.ve-dd-item {
+    display: block;
+    width: 100%;
+    padding: 4px 10px;
+    text-align: left;
+    font-size: 12px;
+    color: var(--ink-2);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+}
+.ve-dd-item:hover { background: var(--blue-soft); color: var(--blue); }
+</style>

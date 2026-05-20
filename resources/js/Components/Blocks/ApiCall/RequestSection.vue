@@ -114,76 +114,133 @@ function getPairId(pair) {
 </script>
 
 <template>
-    <div class="space-y-3">
+    <div class="rs-wrap">
         <div>
-            <label class="block text-xs font-medium text-gray-500">Подключение</label>
-            <div class="flex gap-2 mt-1">
-                <select v-model="model.connection_id" class="flex-1 rounded border-gray-300 text-sm">
+            <label class="field-lbl">Подключение</label>
+            <div class="rs-conn-row">
+                <select v-model="model.connection_id" class="field-sel flex-1">
                     <option :value="null">— выбрать —</option>
                     <option v-for="c in connections" :key="c.id" :value="c.id">{{ c.name }}</option>
                 </select>
-                <a :href="route('bot-connections.index', botId)" target="_blank" class="text-xs text-indigo-600 self-center">+ новое</a>
+                <a :href="route('bot-connections.index', botId)" target="_blank" class="field-link">+ новое</a>
             </div>
         </div>
 
-        <div class="grid grid-cols-[100px_1fr] gap-2">
-            <select v-model="model.method" class="rounded border-gray-300 text-sm">
+        <div class="rs-method-row">
+            <select v-model="model.method" class="field-sel method-sel">
                 <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>PATCH</option>
             </select>
             <input v-model="model.path" type="text" placeholder="/users/{{state.user_id}}"
-                class="rounded border-gray-300 text-sm font-mono" />
+                class="field-input mono flex-1" />
         </div>
-        <div v-if="strippedDomain" class="text-xs text-amber-600">
+        <div v-if="strippedDomain" class="rs-warn">
             ⚠ Домен {{ strippedDomain }} проигнорирован — используется домен из подключения.
         </div>
-        <div v-if="fullUrlPreview" class="text-xs text-gray-400 font-mono">
+        <div v-if="fullUrlPreview" class="rs-preview">
             <div>→ {{ urlPreviewParts[0] }}</div>
-            <div v-for="(part, i) in urlPreviewParts.slice(1)" :key="i" class="pl-4">{{ part }}</div>
+            <div v-for="(part, i) in urlPreviewParts.slice(1)" :key="i" class="rs-preview-cont">{{ part }}</div>
         </div>
         <VarsHint />
 
-        <details class="border rounded p-2">
-            <summary class="cursor-pointer text-xs text-gray-600">Параметры запроса ({{ model.query.length }})</summary>
+        <details class="rs-details">
+            <summary class="rs-summary">Параметры запроса ({{ model.query.length }})</summary>
             <draggable v-model="model.query" :item-key="getPairId" handle=".drag-handle" :animation="150">
                 <template #item="{ element: p, index: i }">
-                    <div class="flex gap-2 mt-2 items-center">
-                        <span class="drag-handle cursor-grab text-gray-300 hover:text-gray-500 select-none px-1">⠿</span>
-                        <input v-model="p.key" placeholder="name" class="flex-1 rounded border-gray-300 text-sm" />
-                        <input v-model="p.value" placeholder="value" class="flex-1 rounded border-gray-300 text-sm" />
-                        <button type="button" @click="removePair('query', i)" class="text-red-500 px-2">✕</button>
+                    <div class="rs-pair">
+                        <span class="drag-handle rs-drag">⠿</span>
+                        <input v-model="p.key" placeholder="name" class="field-input flex-1" />
+                        <input v-model="p.value" placeholder="value" class="field-input flex-1" />
+                        <button type="button" @click="removePair('query', i)" class="rs-del">✕</button>
                     </div>
                 </template>
             </draggable>
-            <button type="button" @click="addPair('query')" class="mt-2 text-xs text-indigo-600">+ параметр</button>
+            <button type="button" @click="addPair('query')" class="field-link rs-add">+ параметр</button>
         </details>
 
-        <details class="border rounded p-2">
-            <summary class="cursor-pointer text-xs text-gray-600">Заголовки ({{ model.headers.length }})</summary>
-            <div v-for="(h, i) in model.headers" :key="i" class="flex gap-2 mt-2">
-                <input v-model="h.key" placeholder="Header" class="flex-1 rounded border-gray-300 text-sm" />
-                <input v-model="h.value" placeholder="Value" class="flex-1 rounded border-gray-300 text-sm" />
-                <button type="button" @click="removePair('headers', i)" class="text-red-500 px-2">✕</button>
+        <details class="rs-details">
+            <summary class="rs-summary">Заголовки ({{ model.headers.length }})</summary>
+            <div v-for="(h, i) in model.headers" :key="i" class="rs-pair">
+                <input v-model="h.key" placeholder="Header" class="field-input flex-1" />
+                <input v-model="h.value" placeholder="Value" class="field-input flex-1" />
+                <button type="button" @click="removePair('headers', i)" class="rs-del">✕</button>
             </div>
-            <button type="button" @click="addPair('headers')" class="mt-2 text-xs text-indigo-600">+ заголовок</button>
+            <button type="button" @click="addPair('headers')" class="field-link rs-add">+ заголовок</button>
         </details>
 
-        <details class="border rounded p-2" :open="model.body_mode !== 'none'">
-            <summary class="cursor-pointer text-xs text-gray-600">Тело запроса</summary>
-            <div class="mt-2 space-x-3 text-sm">
-                <label><input type="radio" v-model="model.body_mode" value="none" /> Нет</label>
-                <label><input type="radio" v-model="model.body_mode" value="json" /> JSON</label>
-                <label><input type="radio" v-model="model.body_mode" value="form" /> Form data</label>
+        <details class="rs-details" :open="model.body_mode !== 'none'">
+            <summary class="rs-summary">Тело запроса</summary>
+            <div class="rs-body-modes">
+                <label class="rs-radio"><input type="radio" v-model="model.body_mode" value="none" /> Нет</label>
+                <label class="rs-radio"><input type="radio" v-model="model.body_mode" value="json" /> JSON</label>
+                <label class="rs-radio"><input type="radio" v-model="model.body_mode" value="form" /> Form data</label>
             </div>
             <textarea v-if="model.body_mode === 'json'" v-model="model.body" rows="6"
-                class="mt-2 w-full font-mono text-xs rounded border-gray-300"
+                class="field-ta mono"
                 placeholder='{"fields": {"NAME": "{{state.name}}"}}' />
             <div v-else-if="model.body_mode === 'form'">
-                <div v-for="(p, i) in (model.body ?? [])" :key="i" class="flex gap-2 mt-2">
-                    <input v-model="p.key" class="flex-1 rounded border-gray-300 text-sm" />
-                    <input v-model="p.value" class="flex-1 rounded border-gray-300 text-sm" />
+                <div v-for="(p, i) in (model.body ?? [])" :key="i" class="rs-pair">
+                    <input v-model="p.key" class="field-input flex-1" />
+                    <input v-model="p.value" class="field-input flex-1" />
                 </div>
-                <button type="button" @click="(model.body ??= []).push({key:'', value:''})" class="mt-2 text-xs text-indigo-600">+ поле</button>
+                <button type="button" @click="(model.body ??= []).push({key:'', value:''})" class="field-link rs-add">+ поле</button>
             </div>
         </details>
     </div>
 </template>
+
+<style scoped>
+.rs-wrap { display: flex; flex-direction: column; gap: 10px; }
+.field-lbl { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); margin-bottom: 4px; }
+.field-link { font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--font); }
+.field-link:hover { text-decoration: underline; }
+.field-input, .field-sel {
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: var(--font);
+    box-sizing: border-box;
+    min-width: 0;
+}
+.field-input.mono { font-family: var(--mono, monospace); }
+.field-input:focus, .field-sel:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+.field-ta {
+    padding: 6px 8px;
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: var(--font);
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+    margin-top: 6px;
+    resize: vertical;
+}
+.field-ta.mono { font-family: var(--mono, monospace); }
+.field-ta:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+.rs-conn-row { display: flex; gap: 8px; align-items: center; }
+.flex-1 { flex: 1; }
+.rs-method-row { display: grid; grid-template-columns: 90px 1fr; gap: 6px; }
+.method-sel { width: 100%; }
+.rs-warn { font-size: 11px; color: var(--orange); }
+.rs-preview { font-size: 11px; font-family: var(--mono, monospace); color: var(--ink-4); }
+.rs-preview-cont { padding-left: 14px; }
+.rs-details {
+    border: 1px solid var(--bdr);
+    border-radius: var(--r-sm);
+    padding: 6px 8px;
+}
+.rs-summary { cursor: pointer; font-size: 12px; color: var(--ink-2); user-select: none; }
+.rs-pair { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+.rs-drag { cursor: grab; color: var(--ink-4); padding: 0 2px; user-select: none; }
+.rs-drag:hover { color: var(--ink-2); }
+.rs-del { color: var(--red); background: none; border: none; cursor: pointer; padding: 0 4px; font-size: 13px; }
+.rs-add { margin-top: 8px; display: block; }
+.rs-body-modes { display: flex; gap: 12px; margin-top: 6px; }
+.rs-radio { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
+</style>

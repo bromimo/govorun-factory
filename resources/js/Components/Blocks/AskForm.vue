@@ -125,23 +125,23 @@ const isCallback = computed(() => model.value.mode === 'callback');
 </script>
 
 <template>
-    <div class="space-y-3">
+    <div class="af-wrap">
         <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Режим</label>
-            <div class="inline-flex rounded-md border border-gray-300 bg-white p-0.5 text-xs">
+            <label class="field-lbl">Режим</label>
+            <div class="toggle-group">
                 <button type="button" @click="setMode('text')"
-                    :class="['px-3 py-1 rounded', isText ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50']">
+                    :class="['toggle-btn', isText ? 'is-on' : '']">
                     Текст
                 </button>
                 <button type="button" @click="setMode('callback')"
-                    :class="['px-3 py-1 rounded', isCallback ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50']">
+                    :class="['toggle-btn', isCallback ? 'is-on' : '']">
                     Выбор кнопкой
                 </button>
             </div>
         </div>
 
         <div>
-            <label class="block text-xs font-medium text-gray-500">Текст вопроса</label>
+            <label class="field-lbl">Текст вопроса</label>
             <RichTextEditor v-model="text" class="mt-1"
                 placeholder="Как вас зовут?"
                 :declared-keys="declaredStateKeys" />
@@ -152,29 +152,28 @@ const isCallback = computed(() => model.value.mode === 'callback');
         </div>
 
         <MediaPicker v-if="media" v-model="media" />
-        <button v-else type="button" @click="addMedia"
-            class="text-xs text-indigo-600 hover:text-indigo-800">
+        <button v-else type="button" @click="addMedia" class="field-link">
             + Добавить медиа
         </button>
 
         <div>
-            <label class="block text-xs font-medium text-gray-500">Имя шага</label>
-            <div class="mt-1 flex gap-2">
+            <label class="field-lbl">Имя шага</label>
+            <div class="af-step-row">
                 <input :value="model.stepName ?? ''" type="text"
                     @input="onStepNameInput($event)"
-                    class="w-full rounded border-gray-300 text-sm font-mono placeholder-gray-400"
+                    class="field-input mono"
                     :placeholder="autoStepName() || 'askName'" />
                 <button v-if="model.stepName" type="button" @click="model.stepName = ''"
-                    class="shrink-0 text-gray-400 hover:text-red-500">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    class="af-clear">
+                    <svg class="af-clear-icon" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
                 </button>
             </div>
-            <p class="mt-1 text-xs text-gray-400">
-                camelCase. Например: <span class="font-mono">askName</span>
+            <p class="field-hint">
+                camelCase. Например: <span class="field-mono">askName</span>
             </p>
-            <p v-if="stepNameWarning" class="mt-1 text-xs text-amber-600">{{ stepNameWarning }}</p>
+            <p v-if="stepNameWarning" class="field-warn">{{ stepNameWarning }}</p>
         </div>
 
         <ValidationEditor v-if="isText" v-model="validation"
@@ -195,3 +194,37 @@ const isCallback = computed(() => model.value.mode === 'callback');
         @cancel="pendingMode = null"
     />
 </template>
+
+<style scoped>
+.af-wrap { display: flex; flex-direction: column; gap: 10px; }
+.field-lbl { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); margin-bottom: 4px; }
+.field-hint { font-size: 11px; color: var(--ink-4); margin-top: 3px; }
+.field-warn { font-size: 11px; color: var(--orange); margin-top: 3px; }
+.field-mono { font-family: var(--mono, monospace); }
+.field-link { font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--font); }
+.field-link:hover { text-decoration: underline; }
+.field-input {
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: var(--font);
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+}
+.field-input.mono { font-family: var(--mono, monospace); }
+.field-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+.toggle-group { display: inline-flex; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: var(--surface); padding: 2px; }
+.toggle-btn { padding: 2px 10px; border-radius: calc(var(--r-sm) - 1px); font-size: 11px; color: var(--ink-2); background: none; border: none; cursor: pointer; font-family: var(--font); }
+.toggle-btn.is-on { background: var(--blue); color: #fff; }
+.toggle-btn:not(.is-on):hover { background: var(--surface-2); }
+.af-step-row { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+.af-step-row .field-input { flex: 1; }
+.af-clear { flex-shrink: 0; color: var(--ink-4); background: none; border: none; cursor: pointer; padding: 2px; display: flex; align-items: center; border-radius: var(--r-sm); }
+.af-clear:hover { color: var(--red); }
+.af-clear-icon { width: 14px; height: 14px; }
+</style>

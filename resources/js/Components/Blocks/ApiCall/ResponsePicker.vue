@@ -63,25 +63,57 @@ function onPick(path, value) {
 </script>
 
 <template>
-    <div class="space-y-3">
+    <div class="rp-wrap">
         <StateSampleEditor v-model="stateSample" :keys="referencedStateKeys" />
 
-        <button type="button" @click="run" :disabled="loading"
-            class="px-3 py-2 bg-indigo-600 text-white rounded text-sm">
+        <button type="button" @click="run" :disabled="loading" class="rp-run-btn">
             {{ loading ? 'Выполняется…' : '▶ Выполнить тестовый запрос' }}
         </button>
 
-        <div v-if="result" class="border rounded p-2 text-xs">
-            <div v-if="result.error" class="text-red-600">Ошибка: {{ result.error }}</div>
+        <div v-if="result" class="rp-result">
+            <div v-if="result.error" class="rp-error">Ошибка: {{ result.error }}</div>
             <div v-else>
-                <div class="text-gray-500 mb-2">Статус: <span :class="result.status >= 400 ? 'text-red-600' : 'text-green-700'">{{ result.status }}</span> · {{ result.duration_ms }} мс<span v-if="result.truncated"> · обрезано</span></div>
+                <div class="rp-status">
+                    Статус:
+                    <span :class="result.status >= 400 ? 'rp-status--err' : 'rp-status--ok'">{{ result.status }}</span>
+                    · {{ result.duration_ms }} мс<span v-if="result.truncated"> · обрезано</span>
+                </div>
                 <div v-if="result.body_json">
                     <JsonTree :value="result.body_json" :mapping="model.response_mapping" @pick="onPick" />
                 </div>
-                <pre v-else class="whitespace-pre-wrap text-gray-700">{{ result.body_raw }}</pre>
+                <pre v-else class="rp-raw">{{ result.body_raw }}</pre>
             </div>
         </div>
 
         <ResponseMappingList v-model="model.response_mapping" />
     </div>
 </template>
+
+<style scoped>
+.rp-wrap { display: flex; flex-direction: column; gap: 10px; }
+.rp-run-btn {
+    padding: 4px 12px;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: var(--r-sm);
+    font-size: 12px;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: background .1s;
+    align-self: flex-start;
+}
+.rp-run-btn:hover { background: var(--blue-d); }
+.rp-run-btn:disabled { opacity: .6; cursor: default; }
+.rp-result {
+    border: 1px solid var(--bdr);
+    border-radius: var(--r-sm);
+    padding: 8px;
+    font-size: 12px;
+}
+.rp-error { color: var(--red); }
+.rp-status { color: var(--ink-3); margin-bottom: 6px; }
+.rp-status--ok  { color: var(--green); font-weight: 600; }
+.rp-status--err { color: var(--red);   font-weight: 600; }
+.rp-raw { white-space: pre-wrap; color: var(--ink-2); font-family: var(--mono); font-size: 11px; }
+</style>

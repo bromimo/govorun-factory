@@ -52,9 +52,9 @@ function addKeyboard() {
 </script>
 
 <template>
-    <div class="space-y-3">
+    <div class="rf-wrap">
         <div>
-            <label class="block text-xs font-medium text-gray-500">Текст ответа</label>
+            <label class="field-lbl">Текст ответа</label>
             <RichTextEditor v-model="text" class="mt-1"
                 placeholder="Привет, {{user.firstName}}!"
                 :declared-keys="declaredStateKeys" />
@@ -65,15 +65,20 @@ function addKeyboard() {
         </div>
 
         <MediaPicker v-if="media" v-model="media" :bot-id="props.botId" />
-        <button v-else type="button" @click="addMedia"
-            class="text-xs text-indigo-600 hover:text-indigo-800">
+        <button v-else type="button" @click="addMedia" class="field-link">
             + Добавить медиа
         </button>
 
         <KeyboardSection v-if="keyboard" v-model="keyboard" :declared-keys="declaredStateKeys" />
-        <button v-else type="button" @click="addKeyboard"
-            class="text-xs text-indigo-600 hover:text-indigo-800">
+        <button v-else type="button" @click="addKeyboard" class="field-link">
             + Добавить клавиатуру
         </button>
     </div>
 </template>
+
+<style scoped>
+.rf-wrap { display: flex; flex-direction: column; gap: 10px; }
+.field-lbl { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); margin-bottom: 4px; }
+.field-link { font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--font); }
+.field-link:hover { text-decoration: underline; }
+</style>

@@ -36,23 +36,20 @@ function setMode(variable) {
 
 <template>
     <div>
-        <label class="block text-xs font-medium text-gray-500">Поле для проверки</label>
+        <label class="field-lbl">Поле для проверки</label>
 
-        <div class="mt-1 flex items-center gap-2 text-xs">
+        <div class="toggle-group mt-1">
             <button type="button" @click="setMode(false)"
-                class="rounded px-2 py-0.5"
-                :class="!isVariable ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-500 hover:text-gray-700'">
+                :class="['toggle-btn', !isVariable ? 'is-on' : '']">
                 Источник
             </button>
             <button type="button" @click="setMode(true)"
-                class="rounded px-2 py-0.5"
-                :class="isVariable ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-500 hover:text-gray-700'">
+                :class="['toggle-btn', isVariable ? 'is-on' : '']">
                 Переменная
             </button>
         </div>
 
-        <select v-if="!isVariable" v-model="model.field"
-            class="mt-1 w-full rounded border-gray-300 text-sm">
+        <select v-if="!isVariable" v-model="model.field" class="field-sel mt-1">
             <option value="" disabled>Выберите источник</option>
             <optgroup label="Сообщение">
                 <option value="message.text">message.text — текст сообщения</option>
@@ -67,11 +64,37 @@ function setMode(variable) {
         </select>
 
         <input v-else v-model="model.field" type="text"
-            class="mt-1 w-full rounded border-gray-300 text-sm font-mono placeholder-gray-400"
+            class="field-input mono mt-1"
             placeholder="name" />
-        <p v-if="isVariable && !uninitializedKeys.length && !undeclaredKeys.length" class="mt-0.5 text-xs text-gray-400">Имя переменной из блока «Сохранить состояние»</p>
+        <p v-if="isVariable && !uninitializedKeys.length && !undeclaredKeys.length" class="field-hint">Имя переменной из блока «Сохранить состояние»</p>
         <StateWarning :uninitialized-keys="uninitializedKeys" :undeclared-keys="undeclaredKeys" />
 
-        <p class="mt-1 text-xs text-gray-400">Значения задаются на исходящих связях (edge labels)</p>
+        <p class="field-hint mt-1">Значения задаются на исходящих связях (edge labels)</p>
     </div>
 </template>
+
+<style scoped>
+.field-lbl { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
+.field-hint { font-size: 11px; color: var(--ink-4); margin-top: 3px; }
+.field-input, .field-sel {
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: var(--font);
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+}
+.field-input.mono { font-family: var(--mono, monospace); }
+.field-input:focus, .field-sel:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+.mt-1 { margin-top: 4px; }
+.mt-1.field-sel { margin-top: 4px; }
+.toggle-group { display: inline-flex; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: var(--surface); padding: 2px; }
+.toggle-btn { padding: 2px 10px; border-radius: calc(var(--r-sm) - 1px); font-size: 11px; color: var(--ink-2); background: none; border: none; cursor: pointer; font-family: var(--font); }
+.toggle-btn.is-on { background: var(--blue); color: #fff; }
+.toggle-btn:not(.is-on):hover { background: var(--surface-2); }
+</style>
