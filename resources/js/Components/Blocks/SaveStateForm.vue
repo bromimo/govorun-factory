@@ -63,7 +63,7 @@ function updateVariable(index, field, value) {
             </button>
         </div>
 
-        <button @click="addVariable" type="button" class="add-btn ssf-full">
+        <button @click="addVariable" type="button" class="er-btn sm ssf-full">
             + Добавить переменную
         </button>
     </div>

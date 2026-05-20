@@ -63,12 +63,12 @@ function addKeyboard() {
         </div>
 
         <MediaPicker v-if="media" v-model="media" :bot-id="props.botId" />
-        <button v-else type="button" @click="addMedia" class="add-btn">
+        <button v-else type="button" @click="addMedia" class="er-btn sm">
             + Добавить медиа
         </button>
 
         <KeyboardSection v-if="keyboard" v-model="keyboard" :declared-keys="declaredStateKeys" />
-        <button v-else type="button" @click="addKeyboard" class="add-btn">
+        <button v-else type="button" @click="addKeyboard" class="er-btn sm">
             + Добавить клавиатуру
         </button>
     </div>

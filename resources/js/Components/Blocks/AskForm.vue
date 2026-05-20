@@ -150,7 +150,7 @@ const isCallback = computed(() => model.value.mode === 'callback');
         </div>
 
         <MediaPicker v-if="media" v-model="media" />
-        <button v-else type="button" @click="addMedia" class="add-btn">
+        <button v-else type="button" @click="addMedia" class="er-btn sm">
             + Добавить медиа
         </button>
 
