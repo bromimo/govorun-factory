@@ -25,13 +25,22 @@ const props = defineProps({
 const nodes = ref(props.initialNodes.map(n => n.type === 'start' ? { ...n, deletable: false } : n));
 const arrowMarker = { type: MarkerType.ArrowClosed, width: 20, height: 20 };
 const edgeDefaults = { markerEnd: arrowMarker, interactionWidth: 20, updatable: 'target', type: 'editable' };
+// До исправления getGraph sourceHandle не сохранялся; восстанавливаем из id ребра.
+// Формат id: vueflow__edge-{source}{sourceHandle}-{target}
+function inferSourceHandle(edgeId, source) {
+    const prefix = `vueflow__edge-${source}`;
+    if (!edgeId.startsWith(prefix)) return null;
+    const afterSource = edgeId.slice(prefix.length);
+    const dashIdx = afterSource.indexOf('-');
+    if (dashIdx <= 0) return null;
+    return afterSource.slice(0, dashIdx);
+}
+
 const apiCallNodeIds = new Set(props.initialNodes.filter(n => n.type === 'api_call').map(n => n.id));
 const edges = ref(props.initialEdges.map(e => {
     const edge = { ...edgeDefaults, ...e, data: e.data || {} };
-    // Рёбра api_call-нод, созданные до добавления явного id="default" на handle,
-    // хранятся с sourceHandle:null — нормализуем при загрузке
     if (apiCallNodeIds.has(edge.source) && !edge.sourceHandle) {
-        edge.sourceHandle = 'default';
+        edge.sourceHandle = inferSourceHandle(edge.id, edge.source) ?? 'default';
     }
     return edge;
 }));
@@ -122,6 +131,7 @@ function getGraph() {
             id: e.id,
             source: e.source,
             target: e.target,
+            sourceHandle: e.sourceHandle || undefined,
             label: e.label || undefined,
             data: e.data?.waypoints?.length ? { waypoints: e.data.waypoints } : undefined,
         })),
