@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { VueFlow, useVueFlow, MarkerType } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
@@ -48,7 +48,7 @@ const edges = ref(props.initialEdges.map(e => {
 const selectedNode = ref(null);
 const selectedEdge = ref(null);
 
-const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, removeEdges, getNodes, getEdges, onNodesChange } = useVueFlow();
+const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, removeEdges, updateNodeInternals, getNodes, getEdges, onNodesChange } = useVueFlow();
 
 onNodesChange((changes) => {
     for (const change of changes) {
@@ -57,6 +57,17 @@ onNodesChange((changes) => {
                 return changes.filter(c => c.id !== change.id);
             }
             if (selectedNode.value?.id === change.id) {
+                selectedNode.value = null;
+            }
+        }
+        if (change.type === 'select') {
+            if (change.selected) {
+                const node = getNodes.value.find(n => n.id === change.id);
+                if (node && node.type !== 'start') {
+                    selectedEdge.value = null;
+                    selectedNode.value = { id: node.id, type: node.type, data: node.data };
+                }
+            } else if (selectedNode.value?.id === change.id) {
                 selectedNode.value = null;
             }
         }
@@ -151,6 +162,9 @@ function setNodeData(nodeId, data) {
         if (stale.length) removeEdges(stale);
     }
     updateNodeData(nodeId, data);
+    if (node?.type === 'api_call') {
+        nextTick(() => updateNodeInternals(nodeId));
+    }
 }
 
 function getAllNodeIds() {
