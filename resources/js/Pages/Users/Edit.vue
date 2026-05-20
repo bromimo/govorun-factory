@@ -5,7 +5,7 @@ import ErFormField from '@/Components/Ui/ErFormField.vue'
 import ErInput from '@/Components/Ui/ErInput.vue'
 import ErSelect from '@/Components/Ui/ErSelect.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head, useForm, router } from '@inertiajs/vue3'
 
 const props = defineProps({
     user: { type: Object, default: null },
@@ -20,6 +20,11 @@ const form = useForm({
     password_confirmation: '',
     role: props.user?.role ?? 'viewer',
 })
+
+function destroy() {
+    if (!confirm(`Удалить пользователя «${props.user.name}»?`)) return
+    router.delete(route('users.destroy', props.user.id))
+}
 
 function submit() {
     if (isEditing) {
@@ -72,6 +77,9 @@ function submit() {
                     {{ isEditing ? 'Сохранить' : 'Создать' }}
                 </ErButton>
                 <ErButton :as="'a'" :href="route('users.index')">Отмена</ErButton>
+                <ErButton v-if="isEditing" variant="danger" type="button" style="margin-left: auto;" @click="destroy">
+                    Удалить
+                </ErButton>
             </div>
         </form>
     </AuthenticatedLayout>
