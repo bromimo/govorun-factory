@@ -4,7 +4,6 @@ import ErButton from '@/Components/Ui/ErButton.vue'
 import ErTable from '@/Components/Ui/ErTable.vue'
 import ErBadge from '@/Components/Ui/ErBadge.vue'
 import ErCounterCard from '@/Components/Ui/ErCounterCard.vue'
-import UserForm from '@/Components/Users/UserForm.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import { Users as UsersIcon, Shield, UserCheck, RefreshCw, Plus } from 'lucide-vue-next'
@@ -15,18 +14,6 @@ const props = defineProps({
 })
 
 const search = ref('')
-const showForm = ref(false)
-const editingUser = ref(null)
-
-function openCreate() {
-    editingUser.value = null;
-    showForm.value = true;
-}
-
-function openEdit(user) {
-    editingUser.value = user;
-    showForm.value = true;
-}
 
 function filtered() {
     if (!search.value) {
@@ -50,7 +37,7 @@ function roleBadgeColor(role) {
         </template>
 
         <template #actions>
-            <ErButton v-if="can?.create" variant="primary" @click="openCreate">
+            <ErButton v-if="can?.create" variant="primary" :as="'a'" :href="route('users.create')">
                 <Plus :size="13" />Новый пользователь
             </ErButton>
         </template>
@@ -83,7 +70,8 @@ function roleBadgeColor(role) {
             <tr v-if="filtered().length === 0">
                 <td colspan="5" class="tbl-empty">Пользователи не найдены</td>
             </tr>
-            <tr v-for="user in filtered()" :key="user.id">
+            <tr v-for="user in filtered()" :key="user.id" class="tbl-row"
+                @dblclick="router.visit(route('users.edit', user.id))">
                 <td class="tbl-name">{{ user.name }}</td>
                 <td class="tbl-mono">{{ user.email }}</td>
                 <td>
@@ -92,7 +80,7 @@ function roleBadgeColor(role) {
                 <td class="tbl-mono">{{ new Date(user.created_at).toLocaleDateString('ru') }}</td>
                 <td>
                     <div class="tbl-acts">
-                        <button type="button" class="tbl-act-btn" @click="openEdit(user)">Изменить</button>
+                        <a :href="route('users.edit', user.id)" class="tbl-act-btn">Изменить</a>
                     </div>
                 </td>
             </tr>
@@ -102,8 +90,6 @@ function roleBadgeColor(role) {
             </template>
         </ErTable>
     </AuthenticatedLayout>
-
-    <UserForm v-if="showForm" :user="editingUser" @close="showForm = false" />
 </template>
 
 <style scoped>
@@ -112,6 +98,7 @@ function roleBadgeColor(role) {
 .counter-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .er-inp { height: 26px; padding: 0 8px; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: #fff; color: var(--ink); font-size: 12px; font-family: var(--font); width: 100%; box-shadow: inset 0 1px 1px rgba(0,0,0,.06); }
 .er-inp:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+.tbl-row { cursor: pointer; }
 .tbl-name { font-weight: 500; color: var(--ink); }
 .tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
 .tbl-empty { text-align: center; color: var(--ink-3); padding: 24px; }
