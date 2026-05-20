@@ -88,28 +88,6 @@
 }
 .field-del:hover { opacity: .8; }
 
-/* Сегментированный переключатель */
-.toggle-group {
-    display: inline-flex;
-    border: 1px solid var(--bdr-d);
-    border-radius: var(--r-sm);
-    background: var(--surface);
-    padding: 2px;
-}
-.toggle-btn {
-    padding: 2px 10px;
-    border-radius: calc(var(--r-sm) - 1px);
-    font-size: 11px;
-    color: var(--ink-2);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-family: var(--font);
-    white-space: nowrap;
-}
-.toggle-btn.is-on { background: var(--blue); color: #fff; }
-.toggle-btn:not(.is-on):hover { background: var(--surface-2); }
-
 /* Кнопка действия (глобальный класс для нативных элементов) */
 .er-btn {
     display: inline-flex;

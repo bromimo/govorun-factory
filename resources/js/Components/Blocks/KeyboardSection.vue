@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import ToggleGroup from '@/Components/Ui/ToggleGroup.vue';
 import KeyboardPreview from './KeyboardPreview.vue';
 import KeyboardEditorModal from './KeyboardEditorModal.vue';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
@@ -69,16 +70,11 @@ function clear() {
             </button>
         </div>
 
-        <div class="toggle-group">
-            <button type="button" @click="switchType('inline')"
-                :class="['toggle-btn', keyboardType === 'inline' ? 'is-on' : '']">
-                Inline
-            </button>
-            <button type="button" @click="switchType('reply')"
-                :class="['toggle-btn', keyboardType === 'reply' ? 'is-on' : '']">
-                Reply
-            </button>
-        </div>
+        <ToggleGroup
+            :model-value="keyboardType"
+            :options="[{ value: 'inline', label: 'Inline' }, { value: 'reply', label: 'Reply' }]"
+            @update:model-value="switchType"
+        />
 
         <div v-if="keyboardType === 'reply'" class="ks-checks">
             <label class="ks-check">

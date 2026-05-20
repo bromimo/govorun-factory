@@ -2,6 +2,7 @@
 import { useForm } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 import Modal from '@/Components/Modal.vue';
+import ToggleGroup from '@/Components/Ui/ToggleGroup.vue';
 import BlockList from './BlockList.vue';
 import { toCamelCase, toPascalCase, sanitizeIdentifier, identifierWarning } from '@/utils/translit';
 import ErButton from '@/Components/Ui/ErButton.vue';
@@ -221,20 +222,10 @@ function submit() {
                 <template v-if="showHandler">
                     <div class="re-field">
                         <label class="re-lbl">Обработчик</label>
-                        <div class="re-toggle">
-                            <button
-                                type="button"
-                                class="re-toggle-btn"
-                                :class="{ act: form.handler_type === 'controller' }"
-                                @click="form.handler_type = 'controller'"
-                            >Controller</button>
-                            <button
-                                type="button"
-                                class="re-toggle-btn"
-                                :class="{ act: form.handler_type === 'flow' }"
-                                @click="form.handler_type = 'flow'"
-                            >Flow</button>
-                        </div>
+                        <ToggleGroup
+                            v-model="form.handler_type"
+                            :options="[{ value: 'controller', label: 'Controller' }, { value: 'flow', label: 'Flow' }]"
+                        />
                     </div>
 
                     <div v-if="form.handler_type === 'flow'" class="re-field">
@@ -355,28 +346,6 @@ function submit() {
 }
 .re-rm:hover { color: var(--red); }
 
-
-.re-toggle {
-    display: flex;
-    border: 1px solid var(--bdr-d);
-    border-radius: var(--r-sm);
-    overflow: hidden;
-    width: fit-content;
-}
-.re-toggle-btn {
-    padding: 4px 16px;
-    font-size: 12px;
-    font-weight: 500;
-    background: #fff;
-    color: var(--ink-2);
-    border: none;
-    cursor: pointer;
-    font-family: var(--font);
-    transition: background .1s, color .1s;
-}
-.re-toggle-btn + .re-toggle-btn { border-left: 1px solid var(--bdr-d); }
-.re-toggle-btn.act { background: var(--blue); color: #fff; }
-.re-toggle-btn:not(.act):hover { background: var(--surface-2); }
 
 .re-hint { font-size: 11px; color: var(--ink-3); }
 .re-hint code { font-family: var(--mono); background: var(--surface-3); padding: 1px 3px; border-radius: 2px; }

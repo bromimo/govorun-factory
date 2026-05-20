@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import ToggleGroup from '@/Components/Ui/ToggleGroup.vue';
 import StateWarning from './StateWarning.vue';
 
 const model = defineModel({ type: Object, default: () => ({ field: '' }) });
@@ -38,16 +39,11 @@ function setMode(variable) {
     <div>
         <label class="field-lbl">Поле для проверки</label>
 
-        <div class="toggle-group mt-1">
-            <button type="button" @click="setMode(false)"
-                :class="['toggle-btn', !isVariable ? 'is-on' : '']">
-                Источник
-            </button>
-            <button type="button" @click="setMode(true)"
-                :class="['toggle-btn', isVariable ? 'is-on' : '']">
-                Переменная
-            </button>
-        </div>
+        <ToggleGroup class="mt-1"
+            :model-value="isVariable"
+            :options="[{ value: false, label: 'Источник' }, { value: true, label: 'Переменная' }]"
+            @update:model-value="setMode"
+        />
 
         <select v-if="!isVariable" v-model="model.field" class="field-sel mt-1">
             <option value="" disabled>Выберите источник</option>

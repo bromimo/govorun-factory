@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
+import ToggleGroup from '@/Components/Ui/ToggleGroup.vue';
 import StateWarning from './StateWarning.vue';
 import MediaPicker from './MediaPicker.vue';
 import KeyboardSection from './KeyboardSection.vue';
@@ -128,16 +129,11 @@ const isCallback = computed(() => model.value.mode === 'callback');
     <div class="af-wrap">
         <div>
             <label class="field-lbl">Режим</label>
-            <div class="toggle-group">
-                <button type="button" @click="setMode('text')"
-                    :class="['toggle-btn', isText ? 'is-on' : '']">
-                    Текст
-                </button>
-                <button type="button" @click="setMode('callback')"
-                    :class="['toggle-btn', isCallback ? 'is-on' : '']">
-                    Выбор кнопкой
-                </button>
-            </div>
+            <ToggleGroup
+                :model-value="model.mode"
+                :options="[{ value: 'text', label: 'Текст' }, { value: 'callback', label: 'Выбор кнопкой' }]"
+                @update:model-value="setMode"
+            />
         </div>
 
         <div>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import axios from 'axios';
+import ToggleGroup from '@/Components/Ui/ToggleGroup.vue';
 import MediaLibraryModal from '@/Components/Blocks/MediaLibraryModal.vue';
 
 const model = defineModel({ type: Object, default: null });
@@ -100,16 +101,10 @@ function clear() {
             <button type="button" @click="clear" class="field-del">Удалить</button>
         </div>
 
-        <div v-if="botId" class="toggle-group">
-            <button type="button" @click="activeTab = 'url'"
-                :class="['toggle-btn', activeTab === 'url' ? 'is-on' : '']">
-                URL
-            </button>
-            <button type="button" @click="activeTab = 'library'"
-                :class="['toggle-btn', activeTab === 'library' ? 'is-on' : '']">
-                Библиотека
-            </button>
-        </div>
+        <ToggleGroup v-if="botId"
+            v-model="activeTab"
+            :options="[{ value: 'url', label: 'URL' }, { value: 'library', label: 'Библиотека' }]"
+        />
 
         <template v-if="!botId || activeTab === 'url'">
             <div>
