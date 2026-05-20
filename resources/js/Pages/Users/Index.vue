@@ -147,8 +147,31 @@ const roles = [
 </template>
 
 <style scoped>
-.er-tab { padding: 0 14px; display: flex; align-items: center; color: var(--ink-2); cursor: pointer; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; font-size: 12px; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--font); transition: color .1s; }
-.er-tab.act { color: var(--blue-d); border-bottom-color: var(--blue); font-weight: 600; }
+.er-tab {
+    align-self: center;
+    padding: 0 12px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font);
+    color: var(--ink-3);
+    background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
+    border: 1px solid var(--bdr-d);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: color .1s, background .1s, border-color .1s;
+    margin-right: 4px;
+}
+.er-tab:hover:not(.act) { background: linear-gradient(180deg, #edf0f4 0%, #dde2e8 100%); color: var(--ink-2); }
+.er-tab.act {
+    background: linear-gradient(180deg, #3a72c4 0%, #2a5ca0 100%);
+    border-color: #2a5ca0;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(42,92,160,.3), inset 0 1px 0 rgba(255,255,255,.15);
+}
 .counter-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .er-inp { height: 26px; padding: 0 8px; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: #fff; color: var(--ink); font-size: 12px; font-family: var(--font); width: 100%; box-shadow: inset 0 1px 1px rgba(0,0,0,.06); }
 .er-inp:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
