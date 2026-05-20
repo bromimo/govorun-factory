@@ -200,25 +200,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 .ve-params { display: flex; gap: 8px; }
 .ve-param { flex: 1; }
 .ve-param-lbl { display: block; font-size: 10px; color: var(--ink-4); }
-.field-input {
-    height: 26px;
-    padding: 0 8px;
-    border: 1px solid var(--bdr-d);
-    border-radius: var(--r-sm);
-    background: #fff;
-    color: var(--ink);
-    font-size: 12px;
-    font-family: var(--font);
-    width: 100%;
-    box-sizing: border-box;
-    display: block;
-}
-.field-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
-.mt-1 { margin-top: 4px; }
 .ve-dd-wrap { position: relative; }
-.field-link { font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--font); }
-.field-link:hover { text-decoration: underline; }
-.field-link:disabled { color: var(--ink-4); cursor: not-allowed; text-decoration: none; }
 .ve-add-btn { margin-top: 2px; }
 .ve-dropdown {
     position: absolute;

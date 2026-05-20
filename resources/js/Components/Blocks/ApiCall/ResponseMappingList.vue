@@ -36,20 +36,5 @@ function remove(i) {
 .rml-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 .rml-arrow { font-size: 11px; color: var(--ink-4); flex-shrink: 0; white-space: nowrap; }
 .rml-del { color: var(--red); background: none; border: none; cursor: pointer; padding: 0 4px; font-size: 13px; flex-shrink: 0; }
-.field-input {
-    height: 26px;
-    padding: 0 8px;
-    border: 1px solid var(--bdr-d);
-    border-radius: var(--r-sm);
-    background: #fff;
-    color: var(--ink);
-    font-size: 12px;
-    font-family: var(--font);
-    box-sizing: border-box;
-    min-width: 0;
-}
-.field-input.mono { font-family: var(--mono, monospace); }
-.field-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
-.flex-1 { flex: 1; }
 .key-w { width: 100px; flex-shrink: 0; }
 </style>

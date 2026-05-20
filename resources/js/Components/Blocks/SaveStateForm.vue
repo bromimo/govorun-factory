@@ -90,20 +90,5 @@ function updateVariable(index, field, value) {
     transition: border-color .1s, color .1s;
 }
 .ssf-add:hover { border-color: var(--bdr); color: var(--ink-2); }
-.field-input, .field-sel {
-    height: 26px;
-    padding: 0 8px;
-    border: 1px solid var(--bdr-d);
-    border-radius: var(--r-sm);
-    background: #fff;
-    color: var(--ink);
-    font-size: 12px;
-    font-family: var(--font);
-    box-sizing: border-box;
-    min-width: 0;
-}
-.field-input.mono { font-family: var(--mono, monospace); }
-.field-input:focus, .field-sel:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
 .key-col { width: 80px; flex-shrink: 0; }
-.flex-1 { flex: 1; }
 </style>

@@ -115,13 +115,6 @@ function clear() {
 <style scoped>
 .ks-wrap { display: flex; flex-direction: column; gap: 6px; }
 .ks-header { display: flex; align-items: center; justify-content: space-between; }
-.field-lbl { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
-.field-del { font-size: 11px; color: var(--red); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--font); }
-.field-del:hover { opacity: .8; }
-.toggle-group { display: inline-flex; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: var(--surface); padding: 2px; }
-.toggle-btn { padding: 2px 10px; border-radius: calc(var(--r-sm) - 1px); font-size: 11px; color: var(--ink-2); background: none; border: none; cursor: pointer; font-family: var(--font); }
-.toggle-btn.is-on { background: var(--blue); color: #fff; }
-.toggle-btn:not(.is-on):hover { background: var(--surface-2); }
 .ks-checks { display: flex; gap: 12px; }
 .ks-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
 .ks-edit-btn {

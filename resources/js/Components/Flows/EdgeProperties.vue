@@ -200,47 +200,6 @@ function validateAndUpdateLabel() {
     overflow-y: auto;
     padding: 12px;
 }
-.field-lbl {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    color: var(--ink-3);
-    margin-bottom: 5px;
-}
-.field-mono {
-    font-size: 12px;
-    font-family: var(--mono, monospace);
-    color: var(--ink-2);
-}
-.field-input {
-    width: 100%;
-    height: 26px;
-    padding: 0 8px;
-    border: 1px solid var(--bdr-d);
-    border-radius: var(--r-sm);
-    background: #fff;
-    color: var(--ink);
-    font-size: 12px;
-    font-family: var(--font);
-    box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
-    box-sizing: border-box;
-}
-.field-input:focus {
-    outline: none;
-    border-color: var(--blue);
-    box-shadow: 0 0 0 2px rgba(58,114,196,.2);
-}
-.field-input--error { border-color: var(--red); }
-.field-err {
-    margin-top: 3px;
-    font-size: 11px;
-    color: var(--red);
-}
-.mb-3 { margin-bottom: 12px; }
-.mt-1 { margin-top: 4px; }
-.mt-3 { margin-top: 12px; }
 
 .nodes-row {
     display: flex;

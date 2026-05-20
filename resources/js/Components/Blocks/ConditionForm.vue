@@ -72,29 +72,3 @@ function setMode(variable) {
         <p class="field-hint mt-1">Значения задаются на исходящих связях (edge labels)</p>
     </div>
 </template>
-
-<style scoped>
-.field-lbl { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
-.field-hint { font-size: 11px; color: var(--ink-4); margin-top: 3px; }
-.field-input, .field-sel {
-    height: 26px;
-    padding: 0 8px;
-    border: 1px solid var(--bdr-d);
-    border-radius: var(--r-sm);
-    background: #fff;
-    color: var(--ink);
-    font-size: 12px;
-    font-family: var(--font);
-    width: 100%;
-    box-sizing: border-box;
-    display: block;
-}
-.field-input.mono { font-family: var(--mono, monospace); }
-.field-input:focus, .field-sel:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
-.mt-1 { margin-top: 4px; }
-.mt-1.field-sel { margin-top: 4px; }
-.toggle-group { display: inline-flex; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: var(--surface); padding: 2px; }
-.toggle-btn { padding: 2px 10px; border-radius: calc(var(--r-sm) - 1px); font-size: 11px; color: var(--ink-2); background: none; border: none; cursor: pointer; font-family: var(--font); }
-.toggle-btn.is-on { background: var(--blue); color: #fff; }
-.toggle-btn:not(.is-on):hover { background: var(--surface-2); }
-</style>

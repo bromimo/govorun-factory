@@ -198,14 +198,6 @@ function validateAndRenameId() {
     overflow-y: auto;
     padding: 12px 12px;
 }
-.field-lbl {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    color: var(--ink-3);
-}
 .field-input-id {
     width: 100%;
     height: 26px;

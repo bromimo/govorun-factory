@@ -1,4 +1,5 @@
 @import './erp-tokens.css';
+@import './erp-forms.css';
 @import './rich-text.css';
 @tailwind base;
 @tailwind components;
