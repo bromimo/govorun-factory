@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
-import VarsHint from './VarsHint.vue';
 import StateWarning from './StateWarning.vue';
 import MediaPicker from './MediaPicker.vue';
 import KeyboardSection from './KeyboardSection.vue';
@@ -148,7 +147,6 @@ const isCallback = computed(() => model.value.mode === 'callback');
             <StateWarning :uninitialized-keys="uninitializedKeys"
                 :partially-initialized-keys="partiallyInitializedKeys"
                 :undeclared-keys="undeclaredKeys" />
-            <VarsHint />
         </div>
 
         <MediaPicker v-if="media" v-model="media" />

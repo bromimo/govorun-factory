@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import draggable from 'vuedraggable';
-import VarsHint from '../VarsHint.vue';
 
 const model = defineModel({ type: Object });
 const props = defineProps({ botId: [Number, String] });
@@ -140,7 +139,6 @@ function getPairId(pair) {
             <div>→ {{ urlPreviewParts[0] }}</div>
             <div v-for="(part, i) in urlPreviewParts.slice(1)" :key="i" class="rs-preview-cont">{{ part }}</div>
         </div>
-        <VarsHint />
 
         <details class="rs-details">
             <summary class="rs-summary">Параметры запроса ({{ model.query.length }})</summary>

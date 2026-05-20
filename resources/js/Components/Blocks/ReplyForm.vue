@@ -1,6 +1,5 @@
 <script setup>
 import { computed } from 'vue';
-import VarsHint from './VarsHint.vue';
 import StateWarning from './StateWarning.vue';
 import MediaPicker from './MediaPicker.vue';
 import KeyboardSection from './KeyboardSection.vue';
@@ -61,7 +60,6 @@ function addKeyboard() {
             <StateWarning :uninitialized-keys="uninitializedKeys"
                 :partially-initialized-keys="partiallyInitializedKeys"
                 :undeclared-keys="undeclaredKeys" />
-            <VarsHint />
         </div>
 
         <MediaPicker v-if="media" v-model="media" :bot-id="props.botId" />
