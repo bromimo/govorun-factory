@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
 import ErTable from '@/Components/Ui/ErTable.vue'
 import ErBadge from '@/Components/Ui/ErBadge.vue'
+import ErEmpty from '@/Components/Ui/ErEmpty.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import { RefreshCw, Plus } from 'lucide-vue-next'
@@ -108,8 +109,12 @@ function formatDate(d) {
             </template>
 
             <tr v-if="bots.length === 0">
-                <td colspan="8" class="tbl-empty">
-                    Нет ботов{{ filters?.search ? ' по запросу «' + filters.search + '»' : '' }}
+                <td colspan="8">
+                    <ErEmpty
+                        compact
+                        title="Нет ботов"
+                        :text="filters?.search ? `По запросу «${filters.search}» ничего не найдено` : 'Создайте первого бота'"
+                    />
                 </td>
             </tr>
             <tr
@@ -169,7 +174,6 @@ function formatDate(d) {
 .tbl-num { text-align: right; font-family: var(--mono); font-size: 12px; }
 .tbl-muted { color: var(--ink-2); }
 .tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); white-space: nowrap; }
-.tbl-empty { text-align: center; color: var(--ink-3); padding: 24px; }
 .tbl-acts { display: flex; gap: 4px; }
 .bot-row { cursor: pointer; }
 </style>

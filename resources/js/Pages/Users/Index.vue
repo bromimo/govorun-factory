@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
 import ErTable from '@/Components/Ui/ErTable.vue'
 import ErBadge from '@/Components/Ui/ErBadge.vue'
+import ErEmpty from '@/Components/Ui/ErEmpty.vue'
 import ErCounterCard from '@/Components/Ui/ErCounterCard.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
@@ -106,7 +107,9 @@ const roles = [
                 </template>
 
                 <tr v-if="filtered.length === 0">
-                    <td colspan="5" class="tbl-empty">Пользователи не найдены</td>
+                    <td colspan="5">
+                        <ErEmpty compact title="Пользователи не найдены" text="Попробуйте изменить запрос" />
+                    </td>
                 </tr>
                 <tr v-for="user in filtered" :key="user.id" class="tbl-row"
                     @dblclick="router.visit(route('users.edit', user.id))">
@@ -181,7 +184,6 @@ const roles = [
 .tbl-row { cursor: pointer; }
 .tbl-name { font-weight: 500; color: var(--ink); }
 .tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
-.tbl-empty { text-align: center; color: var(--ink-3); padding: 24px; }
 .tbl-acts { display: flex; gap: 4px; }
 
 .roles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
