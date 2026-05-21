@@ -1,108 +1,87 @@
 <script setup>
-import DangerButton from '@/Components/DangerButton.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import Modal from '@/Components/Modal.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { useForm } from '@inertiajs/vue3';
 import { nextTick, ref } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import Modal from '@/Components/Modal.vue';
+import ErInput from '@/Components/Ui/ErInput.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import ErFormField from '@/Components/Ui/ErFormField.vue';
+import ErFormSection from '@/Components/Ui/ErFormSection.vue';
 
 const confirmingUserDeletion = ref(false);
 const passwordInput = ref(null);
 
-const form = useForm({
-    password: '',
-});
+const form = useForm({ password: '' });
 
-const confirmUserDeletion = () => {
+function confirmUserDeletion() {
     confirmingUserDeletion.value = true;
+    nextTick(() => passwordInput.value?.focus());
+}
 
-    nextTick(() => passwordInput.value.focus());
-};
-
-const deleteUser = () => {
+function deleteUser() {
     form.delete(route('profile.destroy'), {
         preserveScroll: true,
         onSuccess: () => closeModal(),
-        onError: () => passwordInput.value.focus(),
+        onError: () => passwordInput.value?.focus(),
         onFinish: () => form.reset(),
     });
-};
+}
 
-const closeModal = () => {
+function closeModal() {
     confirmingUserDeletion.value = false;
-
-    form.clearErrors();
     form.reset();
-};
+}
 </script>
 
 <template>
-    <section class="space-y-6">
-        <header>
-            <h2 class="text-lg font-medium text-gray-900">
-                Delete Account
-            </h2>
+    <ErFormSection title="Удалить аккаунт">
+        <p class="hint-text">
+            После удаления аккаунта все данные будут уничтожены. Перед удалением
+            скачайте всё, что хотите сохранить.
+        </p>
 
-            <p class="mt-1 text-sm text-gray-600">
-                Once your account is deleted, all of its resources and data will
-                be permanently deleted. Before deleting your account, please
-                download any data or information that you wish to retain.
-            </p>
-        </header>
+        <div class="form-acts">
+            <ErButton variant="danger" @click="confirmUserDeletion">Удалить аккаунт</ErButton>
+        </div>
 
-        <DangerButton @click="confirmUserDeletion">Delete Account</DangerButton>
-
-        <Modal :show="confirmingUserDeletion" @close="closeModal">
-            <div class="p-6">
-                <h2
-                    class="text-lg font-medium text-gray-900"
-                >
-                    Are you sure you want to delete your account?
-                </h2>
-
-                <p class="mt-1 text-sm text-gray-600">
-                    Once your account is deleted, all of its resources and data
-                    will be permanently deleted. Please enter your password to
-                    confirm you would like to permanently delete your account.
+        <Modal :show="confirmingUserDeletion" title="Удалить аккаунт?" @close="closeModal">
+            <div class="modal-body">
+                <p class="hint-text">
+                    Это действие нельзя отменить. Введите пароль для подтверждения.
                 </p>
 
-                <div class="mt-6">
-                    <InputLabel
-                        for="password"
-                        value="Password"
-                        class="sr-only"
-                    />
-
-                    <TextInput
-                        id="password"
+                <ErFormField label="Пароль" required>
+                    <ErInput
                         ref="passwordInput"
                         v-model="form.password"
                         type="password"
-                        class="mt-1 block w-3/4"
-                        placeholder="Password"
+                        long
                         @keyup.enter="deleteUser"
                     />
+                    <span v-if="form.errors.password" class="field-err">{{ form.errors.password }}</span>
+                </ErFormField>
+            </div>
 
-                    <InputError :message="form.errors.password" class="mt-2" />
-                </div>
-
-                <div class="mt-6 flex justify-end">
-                    <SecondaryButton @click="closeModal">
-                        Cancel
-                    </SecondaryButton>
-
-                    <DangerButton
-                        class="ms-3"
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
-                        @click="deleteUser"
-                    >
-                        Delete Account
-                    </DangerButton>
-                </div>
+            <div class="modal-foot">
+                <ErButton @click="closeModal">Отмена</ErButton>
+                <ErButton variant="danger" :disabled="form.processing" @click="deleteUser">
+                    Удалить
+                </ErButton>
             </div>
         </Modal>
-    </section>
+    </ErFormSection>
 </template>
+
+<style scoped>
+.hint-text { font-size: 12px; color: var(--ink-2); margin: 0 0 12px; line-height: 1.4; }
+.form-acts { display: flex; }
+.modal-body { padding: 12px 16px; }
+.modal-foot {
+    padding: 8px 12px;
+    border-top: 1px solid var(--bdr);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    background: var(--surface-2);
+}
+.field-err { display: block; font-size: 11px; color: var(--red); margin-top: 3px; }
+</style>
