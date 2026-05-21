@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import axios from 'axios';
 import { useForm } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import AuthConfigFields from './AuthConfigFields.vue';
@@ -69,6 +70,38 @@ function submit() {
     });
 }
 
+const testing = ref(false);
+const testResult = ref(null);
+
+async function runTest() {
+    if (!props.connection?.id) return;
+    testing.value = true;
+    testResult.value = null;
+    try {
+        const { data } = await axios.post(
+            route('bot-connections.test', [props.bot.id, props.connection.id]),
+        );
+        const bodyStr = typeof data.body_json === 'object'
+            ? JSON.stringify(data.body_json)
+            : String(data.body_json ?? '');
+        testResult.value = {
+            ok: data.status >= 200 && data.status < 300,
+            status: data.status,
+            durationMs: data.durationMs,
+            bodyPreview: bodyStr.length > 200 ? bodyStr.slice(0, 200) + '…' : bodyStr,
+        };
+    } catch (err) {
+        testResult.value = {
+            ok: false,
+            status: err.response?.status ?? 0,
+            durationMs: 0,
+            bodyPreview: err.response?.data?.message ?? err.message ?? 'Ошибка',
+        };
+    } finally {
+        testing.value = false;
+    }
+}
+
 function addHeader() {
     form.default_headers.push({ key: '', value: '' });
 }
@@ -134,7 +167,27 @@ function removeHeader(i) {
             </details>
         </div>
 
+        <div v-if="testResult" class="test-result" :class="testResult.ok ? 'ok' : 'fail'">
+            <div class="test-result-h">
+                <strong>{{ testResult.ok ? 'OK' : 'Ошибка' }}</strong>
+                <span>HTTP {{ testResult.status || '—' }}</span>
+                <span v-if="testResult.durationMs">{{ testResult.durationMs }} мс</span>
+                <button type="button" class="test-result-x" @click="testResult = null" title="Закрыть">×</button>
+            </div>
+            <pre v-if="testResult.bodyPreview" class="test-result-body">{{ testResult.bodyPreview }}</pre>
+        </div>
+
         <div class="cd-foot">
+            <ErButton
+                type="button"
+                size="sm"
+                :disabled="!connection?.id || testing"
+                :title="!connection?.id ? 'Сначала сохраните подключение' : ''"
+                @click="runTest"
+            >
+                {{ testing ? 'Проверка…' : 'Проверить' }}
+            </ErButton>
+            <span style="flex: 1"></span>
             <ErButton @click="emit('close')">Отмена</ErButton>
             <ErButton variant="primary" @click="submit" :disabled="form.processing">
                 {{ isEdit ? 'Сохранить' : 'Создать' }}
@@ -159,7 +212,7 @@ function removeHeader(i) {
     border-top: 1px solid var(--bdr);
     background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
     gap: 8px;
 }
 .field-row { display: flex; flex-direction: column; gap: 4px; }
@@ -173,4 +226,42 @@ function removeHeader(i) {
 .header-row { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
 .hdr-remove { background: none; border: none; color: var(--red); cursor: pointer; font-size: 14px; padding: 0 4px; }
 .hdr-remove:hover { opacity: .7; }
+.test-result {
+    margin: 8px 16px 0;
+    padding: 8px 10px;
+    border: 1px solid var(--bdr);
+    border-radius: var(--r-md);
+    font-size: 11px;
+}
+.test-result.ok { background: var(--green-soft); border-color: var(--green); }
+.test-result.fail { background: var(--red-soft); border-color: var(--red); }
+.test-result-h {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+}
+.test-result-h strong { font-size: 12px; }
+.test-result-x {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--ink-3);
+    padding: 0 4px;
+}
+.test-result-body {
+    margin: 6px 0 0;
+    padding: 6px 8px;
+    background: var(--surface);
+    border: 1px solid var(--bdr-l);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-2);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 140px;
+    overflow: auto;
+}
 </style>
