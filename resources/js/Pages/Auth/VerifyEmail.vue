@@ -1,8 +1,8 @@
 <script setup>
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import ErButton from '@/Components/Ui/ErButton.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import GuestLayout from '@/Layouts/GuestLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({ status: { type: String } });
 

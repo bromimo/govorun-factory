@@ -1,10 +1,10 @@
 <script setup>
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import ErButton from '@/Components/Ui/ErButton.vue';
 import ErInput from '@/Components/Ui/ErInput.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import GuestLayout from '@/Layouts/GuestLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import ErFormField from '@/Components/Ui/ErFormField.vue';
 import ErFormSection from '@/Components/Ui/ErFormSection.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
     name: '',
