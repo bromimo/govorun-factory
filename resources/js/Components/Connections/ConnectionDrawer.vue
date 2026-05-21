@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue';
 import axios from 'axios';
 import { useForm } from '@inertiajs/vue3';
+import { useDirtyGuard } from '@/composables/useDirtyGuard';
 import Modal from '@/Components/Modal.vue';
 import AuthConfigFields from './AuthConfigFields.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
@@ -25,6 +26,8 @@ const form = useForm({
         : {},
     default_headers: props.connection?.default_headers ?? [],
 });
+
+useDirtyGuard(() => form.isDirty);
 
 const slugManuallyEdited = ref(isEdit.value);
 

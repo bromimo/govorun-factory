@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { useDirtyGuard } from '@/composables/useDirtyGuard';
 import { validationRuleDefs, defaultMessages } from '../Blocks/validationRules.js';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import ErInput from '@/Components/Ui/ErInput.vue';
@@ -24,6 +25,8 @@ const form = useForm({
         ),
     },
 });
+
+useDirtyGuard(() => form.isDirty);
 
 function save() {
     const messages = { ...form.config.validation_messages };

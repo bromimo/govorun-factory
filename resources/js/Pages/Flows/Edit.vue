@@ -10,6 +10,7 @@ import NodeProperties from '@/Components/Flows/NodeProperties.vue';
 import EdgeProperties from '@/Components/Flows/EdgeProperties.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { debounce } from '@/utils/debounce';
+import { useDirtyGuard } from '@/composables/useDirtyGuard';
 
 const props = defineProps({
     bot: Object,
@@ -20,6 +21,9 @@ const props = defineProps({
 const canvasRef = ref(null);
 const saving = ref(false);
 const saved = ref(false);
+const flowDirty = ref(false);
+
+useDirtyGuard(() => flowDirty.value);
 const description = ref(props.flow.description ?? '');
 const panelWidth = ref(360);
 const resizing = ref(false);
@@ -70,6 +74,7 @@ const hasNonStartNodes = computed(() => allNodes.value.some(n => n.type !== 'sta
 
 function onNodeDataUpdated(nodeId, newData) {
     canvasRef.value?.setNodeData(nodeId, newData);
+    flowDirty.value = true;
 }
 
 function onNodeRenamed(oldId, newId) {
@@ -100,6 +105,7 @@ function save() {
         preserveState: true,
         onSuccess: () => {
             saved.value = true;
+            flowDirty.value = false;
             setTimeout(() => (saved.value = false), 2000);
         },
         onFinish: () => { saving.value = false; },

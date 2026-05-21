@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { useDirtyGuard } from '@/composables/useDirtyGuard';
 import TelegramProfileModal from '@/Components/Bots/TelegramProfileModal.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import ErInput from '@/Components/Ui/ErInput.vue';
@@ -36,6 +37,8 @@ function buildInitialConfig(source) {
 const form = useForm({
     messenger_config: buildInitialConfig(props.bot.messenger_config),
 });
+
+useDirtyGuard(() => form.isDirty);
 
 const showProfileModal = ref(false);
 

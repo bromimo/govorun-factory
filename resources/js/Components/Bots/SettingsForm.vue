@@ -1,5 +1,6 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
+import { useDirtyGuard } from '@/composables/useDirtyGuard';
 import ErFormSection from '@/Components/Ui/ErFormSection.vue'
 import ErFormField from '@/Components/Ui/ErFormField.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
@@ -21,6 +22,8 @@ const form = useForm({
         state_storage: props.bot.config?.state_storage ?? 'file',
     },
 });
+
+useDirtyGuard(() => form.isDirty);
 
 function save() {
     form.put(route('bots.update', props.bot.id));
