@@ -1,6 +1,6 @@
 <script setup>
-import { Head, router } from '@inertiajs/vue3';
 import ErButton from '@/Components/Ui/ErButton.vue';
+import { Head, router } from '@inertiajs/vue3';
 import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 import NodePalette from '@/Components/Flows/NodePalette.vue';
