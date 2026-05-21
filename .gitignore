@@ -31,3 +31,4 @@ Thumbs.db
 .env.backup
 /.backups/
 /docs/design_handoff_erp_style/
+/docs/audit/
