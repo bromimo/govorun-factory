@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
+import { useToast } from '@/composables/useToast'
 import Modal from '@/Components/Modal.vue'
 import SettingsForm from '@/Components/Bots/SettingsForm.vue'
 import MessengerConfigForm from '@/Components/Bots/MessengerConfigForm.vue'
@@ -26,6 +27,8 @@ const props = defineProps({
     bot: Object,
     can: Object,
 })
+
+const toast = useToast()
 
 const activeTab = ref('settings')
 const exportErrors = ref([])
@@ -68,6 +71,7 @@ function exportBot() {
                 a.download = response.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'bot.zip'
                 a.click()
                 URL.revokeObjectURL(url)
+                toast.success('Бот экспортирован')
             } else {
                 const data = await response.json()
                 exportErrors.value = data.errors || ['Ошибка экспорта']

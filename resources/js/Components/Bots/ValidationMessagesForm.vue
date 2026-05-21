@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { useDirtyGuard } from '@/composables/useDirtyGuard';
+import { useToast } from '@/composables/useToast';
 import { validationRuleDefs, defaultMessages } from '../Blocks/validationRules.js';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import ErInput from '@/Components/Ui/ErInput.vue';
@@ -11,6 +12,8 @@ const props = defineProps({
     bot: Object,
     can: Object,
 });
+
+const toast = useToast();
 
 const fileInput = ref(null);
 const importError = ref('');
@@ -53,6 +56,7 @@ function exportJson() {
     a.download = `validation-messages-${props.bot.name}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    toast.success('validation-messages.json скачана');
 }
 
 function triggerImport() {

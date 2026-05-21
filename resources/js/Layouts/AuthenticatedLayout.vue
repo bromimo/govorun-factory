@@ -2,6 +2,7 @@
 import { Link, router } from '@inertiajs/vue3'
 import { Bot, Users, Puzzle, Bell, Search, Settings, Menu } from 'lucide-vue-next'
 import { computed, ref, onMounted } from 'vue'
+import ErToast from '@/Components/Ui/ErToast.vue'
 
 const props = defineProps({
     title: String,
@@ -130,6 +131,7 @@ function toggleNav() {
                 </main>
             </div>
         </div>
+        <ErToast />
     </div>
 </template>
 
