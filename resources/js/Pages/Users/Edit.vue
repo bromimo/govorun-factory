@@ -1,10 +1,12 @@
 <script setup>
+import { ref } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import ErFormSection from '@/Components/Ui/ErFormSection.vue'
 import ErFormField from '@/Components/Ui/ErFormField.vue'
 import ErInput from '@/Components/Ui/ErInput.vue'
 import ErSelect from '@/Components/Ui/ErSelect.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue'
 import { Head, useForm, router } from '@inertiajs/vue3'
 
 const props = defineProps({
@@ -21,8 +23,14 @@ const form = useForm({
     role: props.user?.role ?? 'viewer',
 })
 
+const showDeleteConfirm = ref(false)
+
 function destroy() {
-    if (!confirm(`Удалить пользователя «${props.user.name}»?`)) return
+    showDeleteConfirm.value = true
+}
+
+function doDestroy() {
+    showDeleteConfirm.value = false
     router.delete(route('users.destroy', props.user.id))
 }
 
@@ -82,6 +90,15 @@ function submit() {
                 </ErButton>
             </div>
         </form>
+        <ConfirmModal
+            :show="showDeleteConfirm"
+            title="Удалить пользователя?"
+            :message="`Пользователь «${user.name}» будет удалён без возможности восстановления.`"
+            confirm-label="Удалить"
+            variant="danger"
+            @confirm="doDestroy"
+            @cancel="showDeleteConfirm = false"
+        />
     </AuthenticatedLayout>
 </template>
 
