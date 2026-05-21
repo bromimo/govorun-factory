@@ -28,7 +28,7 @@ export default {
                     bg: '#f0f3f5',
                     surface: { DEFAULT: '#ffffff', 2: '#f7f8fa', 3: '#eef1f4' },
                     bdr: { DEFAULT: '#c5cdd5', l: '#dde2e8', d: '#9aa5b2' },
-                    ink: { DEFAULT: '#1a2230', 2: '#3d4a5c', 3: '#5a6878', 4: '#8a96a8' },
+                    ink: { DEFAULT: '#1a2230', 2: '#3d4a5c', 3: '#5a6878', 4: '#7a8a9c' },
                     green: { DEFAULT: '#3a7a3a', soft: '#e8f4e0' },
                     red: { DEFAULT: '#b03030', soft: '#fce4e4' },
                     orange: { DEFAULT: '#c87020', soft: '#fdefd8' },
