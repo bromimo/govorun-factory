@@ -3,8 +3,8 @@ import { ref } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps({
-    variant: { type: String, default: 'info' }, // info | success | warning | error
+defineProps({
+    variant: { type: String, default: 'info', validator: v => ['info', 'success', 'warning', 'error'].includes(v) },
     title: { type: String, default: null },
     closable: { type: Boolean, default: false },
 });
@@ -43,7 +43,6 @@ function close() {
     border-radius: var(--r-md);
     font-size: 12px;
     color: var(--ink);
-    margin: 8px 0;
 }
 .er-alert.info { background: var(--blue-soft); border-color: var(--blue); }
 .er-alert.success { background: var(--green-soft); border-color: var(--green); }
