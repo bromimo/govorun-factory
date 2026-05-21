@@ -88,15 +88,18 @@ function toggleNav() {
                 <button class="er-utilbtn-icon" type="button" :title="navOpen ? 'Скрыть меню' : 'Показать меню'" @click="toggleNav">
                     <Menu :size="14" />
                 </button>
-                <div class="er-utilbar-search">
+                <div v-if="false" class="er-utilbar-search">
+                    <!-- TODO: реализовать поиск (см. docs/audit) -->
                     <Search :size="12" style="flex-shrink:0;color:var(--ink-4)" />
                     <span>Поиск...</span>
                 </div>
                 <div style="flex:1"></div>
-                <button class="er-utilbtn-icon" type="button" title="Уведомления">
+                <button v-if="false" class="er-utilbtn-icon" type="button" title="Уведомления">
+                    <!-- TODO: реализовать уведомления -->
                     <Bell :size="14" />
                 </button>
-                <button class="er-utilbtn-icon" type="button" title="Настройки">
+                <button v-if="false" class="er-utilbtn-icon" type="button" title="Настройки">
+                    <!-- TODO: реализовать настройки -->
                     <Settings :size="14" />
                 </button>
             </div>
