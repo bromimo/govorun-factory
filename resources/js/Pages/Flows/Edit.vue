@@ -1,14 +1,14 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
+import NodePalette from '@/Components/Flows/NodePalette.vue';
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import KeyboardHints from '@/Components/Flows/KeyboardHints.vue';
-import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
-import NodePalette from '@/Components/Flows/NodePalette.vue';
 import NodeProperties from '@/Components/Flows/NodeProperties.vue';
 import EdgeProperties from '@/Components/Flows/EdgeProperties.vue';
-import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
-import ErButton from '@/Components/Ui/ErButton.vue';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
 const props = defineProps({
     bot: Object,
