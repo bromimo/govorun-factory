@@ -75,7 +75,7 @@ onUnmounted(() => {
 .er-modal-bd {
     position: absolute;
     inset: 0;
-    background: rgba(10, 20, 40, 0.52);
+    background: rgba(26, 34, 48, 0.52);
 }
 .er-modal-box {
     position: relative;
@@ -84,7 +84,7 @@ onUnmounted(() => {
     background: var(--surface);
     border: 1px solid var(--bdr);
     border-radius: var(--r-md);
-    box-shadow: 0 8px 32px rgba(10,20,40,.22), 0 2px 8px rgba(10,20,40,.12);
+    box-shadow: var(--sh-md);
     display: flex;
     flex-direction: column;
     max-height: 90vh;
@@ -98,14 +98,15 @@ onUnmounted(() => {
 .mw-screen { max-width: 92vw; }
 
 .er-modal-hdr {
-    padding: 10px 14px;
-    background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
-    border-bottom: 1px solid var(--bdr);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-shrink: 0;
-    gap: 8px;
+    padding: 8px 12px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--bdr);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
 }
 .er-modal-title {
     font-size: 13px;
@@ -113,20 +114,22 @@ onUnmounted(() => {
     color: var(--ink);
 }
 .er-modal-x {
-    width: 24px;
-    height: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    min-width: 28px;
+    min-height: 28px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: none;
-    background: none;
-    cursor: pointer;
     color: var(--ink-3);
     border-radius: var(--r-sm);
-    flex-shrink: 0;
-    transition: background .1s;
 }
-.er-modal-x:hover { background: rgba(0,0,0,.06); color: var(--ink); }
+.er-modal-x:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+}
 
 .er-modal-enter-active { transition: opacity .2s ease-out; }
 .er-modal-leave-active { transition: opacity .15s ease-in; }
