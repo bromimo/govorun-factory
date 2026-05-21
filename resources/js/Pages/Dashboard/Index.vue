@@ -1,12 +1,12 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import ErButton from '@/Components/Ui/ErButton.vue'
+import { ref } from 'vue'
 import ErTable from '@/Components/Ui/ErTable.vue'
 import ErBadge from '@/Components/Ui/ErBadge.vue'
 import ErEmpty from '@/Components/Ui/ErEmpty.vue'
-import { Head, Link, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import ErButton from '@/Components/Ui/ErButton.vue'
 import { RefreshCw, Plus } from 'lucide-vue-next'
+import { Head, Link, router } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 
 const props = defineProps({
     bots: Array,

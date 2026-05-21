@@ -1,9 +1,9 @@
 <script setup>
-import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import ErButton from '@/Components/Ui/ErButton.vue';
-import ErEmpty from '@/Components/Ui/ErEmpty.vue';
+import { ref, onMounted } from 'vue';
 import Modal from '@/Components/Modal.vue';
+import ErEmpty from '@/Components/Ui/ErEmpty.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
 
 const props = defineProps({
     bot: { type: Object, required: true },
@@ -158,6 +158,7 @@ onMounted(() => {
             @click="fileInput.click()"
         >
             <ErEmpty
+                compact
                 title="Нет файлов"
                 text="Перетащите файлы в эту область или нажмите Загрузить"
             />
