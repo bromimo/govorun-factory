@@ -1,5 +1,6 @@
 <script setup>
 import { Bot, Workflow, Download } from 'lucide-vue-next'
+import ErToast from '@/Components/Ui/ErToast.vue'
 </script>
 
 <template>
@@ -42,6 +43,7 @@ import { Bot, Workflow, Download } from 'lucide-vue-next'
                 <slot />
             </div>
         </div>
+        <ErToast />
     </div>
 </template>
 
