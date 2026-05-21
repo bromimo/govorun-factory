@@ -143,11 +143,14 @@ const blockSummaries = computed(() => {
     <div>
         <ErTable>
             <template #toolbar>
-                <select class="er-inp sm" style="width: 130px;">
-                    <option value="">Действие…</option>
-                    <option value="delete">Удалить</option>
-                </select>
-                <ErButton size="sm">Применить</ErButton>
+                <template v-if="false">
+                    <!-- TODO: реализовать массовые действия -->
+                    <select class="er-inp sm" style="width: 130px;">
+                        <option value="">Действие…</option>
+                        <option value="delete">Удалить</option>
+                    </select>
+                    <ErButton size="sm">Применить</ErButton>
+                </template>
                 <div style="flex: 1;"></div>
                 <ErButton v-if="canUpdate" variant="primary" size="sm" @click="openCreate()">
                     <Plus :size="12" />Добавить
