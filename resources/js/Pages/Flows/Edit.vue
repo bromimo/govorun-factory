@@ -9,6 +9,7 @@ import KeyboardHints from '@/Components/Flows/KeyboardHints.vue';
 import NodeProperties from '@/Components/Flows/NodeProperties.vue';
 import EdgeProperties from '@/Components/Flows/EdgeProperties.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { debounce } from '@/utils/debounce';
 
 const props = defineProps({
     bot: Object,
@@ -85,6 +86,7 @@ function onClearWaypoints(edgeId) {
 
 function save() {
     if (!canvasRef.value) return;
+    if (saving.value) return;
     saving.value = true;
     saved.value = false;
 
@@ -96,13 +98,26 @@ function save() {
         graph,
     }, {
         preserveState: true,
-        onSuccess: () => { saved.value = true; setTimeout(() => saved.value = false, 2000); },
+        onSuccess: () => {
+            saved.value = true;
+            setTimeout(() => (saved.value = false), 2000);
+        },
         onFinish: () => { saving.value = false; },
     });
 }
 
+const saveDebounced = debounce(save, 500);
+
+function handleSave() {
+    saveDebounced.cancel();
+    save();
+}
+
 onMounted(() => document.body.classList.add('overflow-hidden'));
-onBeforeUnmount(() => document.body.classList.remove('overflow-hidden'));
+onBeforeUnmount(() => {
+    document.body.classList.remove('overflow-hidden');
+    saveDebounced.cancel();
+});
 
 function fitView() {
     canvasRef.value?.doFitView();
@@ -127,13 +142,16 @@ function clearCanvas() {
                 <span class="fl-sep">/</span>
                 <span class="fl-title">{{ flow.name }}</span>
                 <div style="flex: 1;" />
-                <span v-if="saved" class="fl-saved">Сохранено</span>
+                <span class="save-state">
+                    <template v-if="saving">Сохраняем…</template>
+                    <template v-else-if="saved">Сохранено</template>
+                </span>
                 <ErButton v-if="can.update" size="sm" @click="autoLayout">Авто</ErButton>
                 <ErButton size="sm" @click="fitView">Фит</ErButton>
                 <ErButton v-if="can.update" variant="danger" size="sm" :disabled="!hasNonStartNodes" @click="showClearModal = true">Очистить</ErButton>
                 <ErButton as="a" size="sm" :href="route('bots.edit', bot.id)">Выйти</ErButton>
-                <ErButton v-if="can.update" variant="primary" size="sm" :disabled="saving" @click="save">
-                    {{ saving ? 'Сохранение…' : 'Сохранить' }}
+                <ErButton v-if="can.update" variant="primary" size="sm" :disabled="saving" @click="handleSave">
+                    Сохранить
                 </ErButton>
             </div>
         </template>
@@ -223,5 +241,11 @@ function clearCanvas() {
 .fl-back:hover { color: var(--ink); }
 .fl-sep { color: var(--bdr-d); font-size: 14px; padding: 0 2px; }
 .fl-title { font-size: 12px; font-weight: 600; color: var(--ink); }
-.fl-saved { font-size: 11px; color: var(--green-d, #2d6a2d); padding: 0 6px; }
+.save-state {
+    font-size: 11px;
+    color: var(--ink-3);
+    min-width: 80px;
+    display: inline-block;
+    text-align: right;
+}
 </style>
