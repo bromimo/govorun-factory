@@ -8,17 +8,25 @@ const { state, dismiss } = useToast();
 <template>
     <div class="er-toast-stack" aria-live="polite">
         <TransitionGroup name="er-toast">
-            <ErAlert
+            <div
                 v-for="t in state.items"
                 :key="t.id"
-                :variant="t.variant"
-                :title="t.title"
-                closable
                 class="er-toast-item"
-                @close="dismiss(t.id)"
             >
-                {{ t.message }}
-            </ErAlert>
+                <ErAlert
+                    :variant="t.variant"
+                    :title="t.title"
+                    class="er-toast-alert"
+                >
+                    {{ t.message }}
+                </ErAlert>
+                <button
+                    type="button"
+                    class="er-toast-x"
+                    title="Закрыть"
+                    @click="dismiss(t.id)"
+                >×</button>
+            </div>
         </TransitionGroup>
     </div>
 </template>
@@ -38,7 +46,27 @@ const { state, dismiss } = useToast();
     pointer-events: auto;
     min-width: 240px;
     max-width: 360px;
+    position: relative;
+}
+.er-toast-alert {
     box-shadow: var(--sh-md);
+    padding-right: 28px;
+}
+.er-toast-x {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-3);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    min-height: 24px;
+}
+.er-toast-x:hover {
+    color: var(--ink);
 }
 .er-toast-enter-from { opacity: 0; transform: translateY(12px); }
 .er-toast-enter-active { transition: opacity .15s, transform .15s; }
