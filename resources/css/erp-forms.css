@@ -128,7 +128,7 @@
     border-color: #c08080;
 }
 .er-btn.dng:hover { background: linear-gradient(180deg, #fef0f0 0%, #f0c8c8 100%); }
-.er-btn.sm { height: 22px; padding: 0 8px; font-size: 11px; }
+.er-btn.sm { min-height: 26px; padding: 0 10px; font-size: 11px; }
 .er-btn.lg { height: 32px; padding: 0 16px; font-size: 13px; }
 
 /* Кнопки действий в таблицах */
@@ -138,7 +138,8 @@
     font-size: 11px;
     color: var(--blue);
     text-decoration: none;
-    padding: 1px 6px;
+    min-height: 24px;
+    padding: 2px 8px;
     border: 1px solid var(--bdr-l);
     border-radius: 2px;
     background: var(--surface);
