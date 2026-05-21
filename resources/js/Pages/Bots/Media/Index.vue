@@ -12,9 +12,9 @@ const props = defineProps({
 <template>
     <AuthenticatedLayout :title="`Медиатека — ${bot.name}`">
         <template #breadcrumbs>
-            <a :href="route('dashboard')">Главная</a>
+            <Link :href="route('dashboard')">Главная</Link>
             <span class="sep">›</span>
-            <a :href="route('bots.edit', bot.id)">{{ bot.name }}</a>
+            <Link :href="route('bots.edit', bot.id)">{{ bot.name }}</Link>
             <span class="sep">›</span>
             <span>Медиа</span>
         </template>

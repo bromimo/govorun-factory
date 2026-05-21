@@ -7,7 +7,7 @@ import ErInput from '@/Components/Ui/ErInput.vue'
 import ErSelect from '@/Components/Ui/ErSelect.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue'
-import { Head, useForm, router } from '@inertiajs/vue3'
+import { Head, Link, useForm, router } from '@inertiajs/vue3'
 
 const props = defineProps({
     user: { type: Object, default: null },
@@ -47,9 +47,9 @@ function submit() {
     <Head :title="isEditing ? 'Редактировать пользователя' : 'Новый пользователь'" />
     <AuthenticatedLayout :title="isEditing ? 'Редактировать пользователя' : 'Новый пользователь'">
         <template #breadcrumbs>
-            <a :href="route('dashboard')">Главная</a>
+            <Link :href="route('dashboard')">Главная</Link>
             <span class="sep">›</span>
-            <a :href="route('users.index')">Пользователи</a>
+            <Link :href="route('users.index')">Пользователи</Link>
             <span class="sep">›</span>
             <span>{{ user ? user.name : 'Новый пользователь' }}</span>
         </template>

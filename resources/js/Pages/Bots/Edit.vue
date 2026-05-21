@@ -88,7 +88,7 @@ function deleteBot() {
     <Head :title="bot.name" />
     <AuthenticatedLayout :title="bot.name">
         <template #breadcrumbs>
-            <a :href="route('dashboard')">Главная</a>
+            <Link :href="route('dashboard')">Главная</Link>
             <span class="sep">›</span>
             <span>{{ bot.name }}</span>
         </template>
