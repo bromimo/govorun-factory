@@ -1,6 +1,6 @@
 <script setup>
 import ErButton from '@/Components/Ui/ErButton.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 import NodePalette from '@/Components/Flows/NodePalette.vue';
@@ -142,6 +142,13 @@ function clearCanvas() {
 <template>
     <Head :title="`Flow: ${flow.name}`" />
     <AuthenticatedLayout :flush="true">
+        <template #breadcrumbs>
+            <Link :href="route('dashboard')">Главная</Link>
+            <span class="sep">›</span>
+            <Link :href="route('bots.edit', bot.id)">{{ bot.name }}</Link>
+            <span class="sep">›</span>
+            <span>Флоу: {{ flow.name }}</span>
+        </template>
         <template #subbar>
             <div class="fl-toolbar">
                 <a :href="route('bots.edit', bot.id)" class="fl-back">← {{ bot.name }}</a>
