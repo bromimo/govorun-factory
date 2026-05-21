@@ -1,8 +1,9 @@
 <script setup>
-import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import ErButton from '@/Components/Ui/ErButton.vue';
+import { ref, onMounted } from 'vue';
 import Modal from '@/Components/Modal.vue';
+import ErEmpty from '@/Components/Ui/ErEmpty.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
 
 const props = defineProps({
     bot: { type: Object, required: true },
@@ -156,8 +157,11 @@ onMounted(() => {
             @drop.prevent="onDrop"
             @click="fileInput.click()"
         >
-            <div class="ml-drop-icon">⊕</div>
-            <div class="ml-drop-text">Перетащите файлы или нажмите для загрузки</div>
+            <ErEmpty
+                compact
+                title="Нет файлов"
+                text="Перетащите файлы в эту область или нажмите Загрузить"
+            />
         </div>
 
         <div v-else
@@ -230,9 +234,6 @@ onMounted(() => {
     border-color: var(--blue);
     color: var(--blue-d);
 }
-.ml-drop-icon { font-size: 32px; margin-bottom: 8px; }
-.ml-drop-text { font-size: 12px; }
-
 /* Grid */
 .ml-grid {
     display: grid;
