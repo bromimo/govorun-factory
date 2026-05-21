@@ -142,6 +142,13 @@ function clearCanvas() {
 <template>
     <Head :title="`Flow: ${flow.name}`" />
     <AuthenticatedLayout :flush="true">
+        <template #breadcrumbs>
+            <a :href="route('dashboard')">Главная</a>
+            <span class="sep">›</span>
+            <a :href="route('bots.edit', bot.id)">{{ bot.name }}</a>
+            <span class="sep">›</span>
+            <span>Флоу: {{ flow.name }}</span>
+        </template>
         <template #subbar>
             <div class="fl-toolbar">
                 <a :href="route('bots.edit', bot.id)" class="fl-back">← {{ bot.name }}</a>

@@ -87,6 +87,11 @@ function deleteBot() {
 <template>
     <Head :title="bot.name" />
     <AuthenticatedLayout :title="bot.name">
+        <template #breadcrumbs>
+            <a :href="route('dashboard')">Главная</a>
+            <span class="sep">›</span>
+            <span>{{ bot.name }}</span>
+        </template>
         <template #sidebar>
             <div
                 v-for="group in sidebarGroups"

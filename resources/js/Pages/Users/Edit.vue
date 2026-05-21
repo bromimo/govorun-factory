@@ -46,6 +46,13 @@ function submit() {
 <template>
     <Head :title="isEditing ? 'Редактировать пользователя' : 'Новый пользователь'" />
     <AuthenticatedLayout :title="isEditing ? 'Редактировать пользователя' : 'Новый пользователь'">
+        <template #breadcrumbs>
+            <a :href="route('dashboard')">Главная</a>
+            <span class="sep">›</span>
+            <a :href="route('users.index')">Пользователи</a>
+            <span class="sep">›</span>
+            <span>{{ user ? user.name : 'Новый пользователь' }}</span>
+        </template>
         <form @submit.prevent="submit" style="max-width: 700px;">
             <ErFormSection title="Данные пользователя">
                 <ErFormField label="Имя" required>

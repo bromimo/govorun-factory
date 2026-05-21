@@ -11,6 +11,13 @@ const props = defineProps({
 
 <template>
     <AuthenticatedLayout :title="`Медиатека — ${bot.name}`">
+        <template #breadcrumbs>
+            <a :href="route('dashboard')">Главная</a>
+            <span class="sep">›</span>
+            <a :href="route('bots.edit', bot.id)">{{ bot.name }}</a>
+            <span class="sep">›</span>
+            <span>Медиа</span>
+        </template>
         <div class="mx-auto max-w-4xl px-4 py-6">
             <div class="mb-4 flex items-center gap-3">
                 <Link :href="route('bots.edit', bot.id)" class="text-sm text-gray-500 hover:text-gray-700">
