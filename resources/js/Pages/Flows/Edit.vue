@@ -65,6 +65,7 @@ const siblingLabels = computed(() => {
 });
 
 const allNodes = computed(() => canvasRef.value?.getAllNodes() ?? []);
+const hasNonStartNodes = computed(() => allNodes.value.some(n => n.type !== 'start'));
 
 function onNodeDataUpdated(nodeId, newData) {
     canvasRef.value?.setNodeData(nodeId, newData);
@@ -129,7 +130,7 @@ function clearCanvas() {
                 <span v-if="saved" class="fl-saved">Сохранено</span>
                 <ErButton v-if="can.update" size="sm" @click="autoLayout">Авто</ErButton>
                 <ErButton size="sm" @click="fitView">Фит</ErButton>
-                <ErButton v-if="can.update" variant="danger" size="sm" @click="showClearModal = true">Очистить</ErButton>
+                <ErButton v-if="can.update" variant="danger" size="sm" :disabled="!hasNonStartNodes" @click="showClearModal = true">Очистить</ErButton>
                 <ErButton as="a" size="sm" :href="route('bots.edit', bot.id)">Выйти</ErButton>
                 <ErButton v-if="can.update" variant="primary" size="sm" :disabled="saving" @click="save">
                     {{ saving ? 'Сохранение…' : 'Сохранить' }}
