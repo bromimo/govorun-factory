@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import ErTable from '@/Components/Ui/ErTable.vue'
 import ErBadge from '@/Components/Ui/ErBadge.vue'
+import ErTabs from '@/Components/Ui/ErTabs.vue'
 import ErEmpty from '@/Components/Ui/ErEmpty.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
 import { RefreshCw, Plus } from 'lucide-vue-next'
@@ -14,6 +15,7 @@ const props = defineProps({
     can: Object,
 })
 
+const activeTab = ref('list')
 const search = ref(props.filters?.search ?? '')
 const filterOpen = ref(true)
 const selected = ref(new Set())
@@ -50,10 +52,15 @@ function formatDate(d) {
     <Head title="Боты" />
     <AuthenticatedLayout title="Боты">
         <template #subbar>
-            <button class="er-tab act">Список ботов</button>
-            <button class="er-tab">Шаблоны</button>
-            <button class="er-tab">Импорт-Экспорт</button>
-            <button class="er-tab">Корзина</button>
+            <ErTabs
+                v-model="activeTab"
+                :tabs="[
+                    { value: 'list', label: 'Список ботов' },
+                    { value: 'templates', label: 'Шаблоны', disabled: true },
+                    { value: 'import-export', label: 'Импорт-Экспорт', disabled: true },
+                    { value: 'trash', label: 'Корзина', disabled: true },
+                ]"
+            />
         </template>
 
         <template #actions>
@@ -149,10 +156,6 @@ function formatDate(d) {
 </template>
 
 <style scoped>
-.er-tab { padding: 0 14px; display: flex; align-items: center; color: var(--ink-2); cursor: pointer; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; font-size: 12px; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--font); transition: color .1s; }
-.er-tab:hover { color: var(--ink); }
-.er-tab.act { color: var(--blue-d); border-bottom-color: var(--blue); background: linear-gradient(180deg, rgba(58,114,196,.04) 0%, transparent 100%); font-weight: 600; }
-
 .filter-box { background: var(--surface); border: 1px solid var(--bdr); border-radius: var(--r-md); }
 .filter-h { padding: 7px 12px; font-size: 12px; font-weight: 600; color: var(--ink); background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%); border-radius: var(--r-md) var(--r-md) 0 0; display: flex; justify-content: space-between; cursor: pointer; user-select: none; }
 .filter-toggle { font-size: 10px; color: var(--ink-3); }

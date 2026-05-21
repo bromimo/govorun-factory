@@ -6,6 +6,7 @@ import ErBadge from '@/Components/Ui/ErBadge.vue'
 import ErEmpty from '@/Components/Ui/ErEmpty.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
 import ErCounterCard from '@/Components/Ui/ErCounterCard.vue'
+import ErTabs from '@/Components/Ui/ErTabs.vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Users as UsersIcon, Shield, UserCheck, RefreshCw, Plus } from 'lucide-vue-next'
 
@@ -70,8 +71,13 @@ const roles = [
     <Head title="Пользователи" />
     <AuthenticatedLayout title="Пользователи">
         <template #subbar>
-            <button :class="['er-tab', activeTab === 'list' ? 'act' : '']" @click="activeTab = 'list'">Список</button>
-            <button :class="['er-tab', activeTab === 'roles' ? 'act' : '']" @click="activeTab = 'roles'">Роли</button>
+            <ErTabs
+                v-model="activeTab"
+                :tabs="[
+                    { value: 'list', label: 'Список' },
+                    { value: 'roles', label: 'Роли' },
+                ]"
+            />
         </template>
 
         <template #actions>
@@ -150,34 +156,6 @@ const roles = [
 </template>
 
 <style scoped>
-.er-tab {
-    align-self: flex-end;
-    padding: 0 14px;
-    height: 25px;
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-    font-weight: 500;
-    font-family: var(--font);
-    color: var(--ink-3);
-    background: linear-gradient(180deg, #e8ecf0 0%, #dde1e6 100%);
-    border: 1px solid var(--bdr-d);
-    border-bottom: none;
-    border-radius: 4px 4px 0 0;
-    cursor: pointer;
-    margin-right: 3px;
-    margin-bottom: -1px;
-    transition: color .1s, background .1s;
-    position: relative;
-}
-.er-tab:hover:not(.act) { background: linear-gradient(180deg, #dde1e6 0%, #d0d5db 100%); color: var(--ink-2); }
-.er-tab.act {
-    background: #f0f3f5;
-    border-color: var(--bdr);
-    color: var(--ink);
-    font-weight: 600;
-    z-index: 1;
-}
 .counter-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .er-inp { height: 26px; padding: 0 8px; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: #fff; color: var(--ink); font-size: 12px; font-family: var(--font); width: 100%; box-shadow: inset 0 1px 1px rgba(0,0,0,.06); }
 .er-inp:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
