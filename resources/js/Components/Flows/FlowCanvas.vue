@@ -48,7 +48,7 @@ const edges = ref(props.initialEdges.map(e => {
 const selectedNode = ref(null);
 const selectedEdge = ref(null);
 
-const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, removeEdges, updateNodeInternals, getNodes, getEdges, onNodesChange } = useVueFlow();
+const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, removeEdges, removeNodes, updateNodeInternals, getNodes, getEdges, onNodesChange } = useVueFlow();
 
 onNodesChange((changes) => {
     for (const change of changes) {
@@ -400,7 +400,16 @@ function autoLayout() {
     setTimeout(() => fitView({ padding: 0.2 }), 50);
 }
 
-defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, getAllNodes, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, getPossiblyDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
+function clearCanvas() {
+    const nonStartIds = getNodes.value
+        .filter(n => n.type !== 'start')
+        .map(n => n.id);
+    removeNodes(nonStartIds);
+    selectedNode.value = null;
+    selectedEdge.value = null;
+}
+
+defineExpose({ getGraph, doFitView, autoLayout, clearCanvas, setNodeData, getAllNodeIds, getAllNodes, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, getPossiblyDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
 </script>
 
 <template>

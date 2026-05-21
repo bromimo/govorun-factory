@@ -1,13 +1,14 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import ErButton from '@/Components/Ui/ErButton.vue';
 import { Head, router } from '@inertiajs/vue3';
+import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
+import NodePalette from '@/Components/Flows/NodePalette.vue';
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import KeyboardHints from '@/Components/Flows/KeyboardHints.vue';
-import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
-import NodePalette from '@/Components/Flows/NodePalette.vue';
 import NodeProperties from '@/Components/Flows/NodeProperties.vue';
 import EdgeProperties from '@/Components/Flows/EdgeProperties.vue';
-import ErButton from '@/Components/Ui/ErButton.vue';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
 const props = defineProps({
     bot: Object,
@@ -21,6 +22,7 @@ const saved = ref(false);
 const description = ref(props.flow.description ?? '');
 const panelWidth = ref(360);
 const resizing = ref(false);
+const showClearModal = ref(false);
 
 function startResize(e) {
     resizing.value = true;
@@ -63,6 +65,7 @@ const siblingLabels = computed(() => {
 });
 
 const allNodes = computed(() => canvasRef.value?.getAllNodes() ?? []);
+const hasNonStartNodes = computed(() => allNodes.value.some(n => n.type !== 'start'));
 
 function onNodeDataUpdated(nodeId, newData) {
     canvasRef.value?.setNodeData(nodeId, newData);
@@ -108,6 +111,11 @@ function fitView() {
 function autoLayout() {
     canvasRef.value?.autoLayout();
 }
+
+function clearCanvas() {
+    canvasRef.value?.clearCanvas();
+    showClearModal.value = false;
+}
 </script>
 
 <template>
@@ -122,6 +130,7 @@ function autoLayout() {
                 <span v-if="saved" class="fl-saved">Сохранено</span>
                 <ErButton v-if="can.update" size="sm" @click="autoLayout">Авто</ErButton>
                 <ErButton size="sm" @click="fitView">Фит</ErButton>
+                <ErButton v-if="can.update" variant="danger" size="sm" :disabled="!hasNonStartNodes" @click="showClearModal = true">Очистить</ErButton>
                 <ErButton as="a" size="sm" :href="route('bots.edit', bot.id)">Выйти</ErButton>
                 <ErButton v-if="can.update" variant="primary" size="sm" :disabled="saving" @click="save">
                     {{ saving ? 'Сохранение…' : 'Сохранить' }}
@@ -174,6 +183,16 @@ function autoLayout() {
                 />
             </div>
         </div>
+
+        <ConfirmModal
+            :show="showClearModal"
+            title="Очистить флоу"
+            message="Все ноды, кроме «Начало», и все связи будут удалены. Это действие нельзя отменить."
+            confirm-label="Очистить"
+            variant="danger"
+            @confirm="clearCanvas"
+            @cancel="showClearModal = false"
+        />
     </AuthenticatedLayout>
 </template>
 
