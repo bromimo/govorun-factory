@@ -19,7 +19,7 @@ defineProps({
             :disabled="tab.disabled"
             class="er-tab"
             :class="{ act: modelValue === tab.value }"
-            @click="modelValue = tab.value"
+            @click="!tab.disabled && (modelValue = tab.value)"
         >
             {{ tab.label }}
         </button>
@@ -29,7 +29,6 @@ defineProps({
 <style scoped>
 .er-tabs {
     display: flex;
-    gap: 0;
     border-bottom: 1px solid var(--bdr);
     background: var(--surface-2);
     padding: 0 12px;
