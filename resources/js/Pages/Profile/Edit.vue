@@ -17,7 +17,7 @@ defineProps({
     <AuthenticatedLayout title="Профиль">
         <template #breadcrumbs>
             <a :href="route('dashboard')">Главная</a>
-            <span class="er-bcr-sep">›</span>
+            <span class="sep">›</span>
             <span>Профиль</span>
         </template>
 
