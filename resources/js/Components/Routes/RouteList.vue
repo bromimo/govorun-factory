@@ -125,6 +125,12 @@ function routeBlockSummary(route) {
     return { label: bt?.label ?? block.type, short, full };
 }
 
+function isHandlerIncomplete(r) {
+    if (r.children?.length > 0) return false
+    if (r.handler_type === 'flow') return !r.flow_id
+    return !(r.handler_schema?.blocks?.length)
+}
+
 const blockSummaries = computed(() => {
     const map = {};
     for (const r of localRoutes.value) {
@@ -195,7 +201,8 @@ const blockSummaries = computed(() => {
                         </td>
                         <td class="tbl-mono">{{ r.match || r.command || '—' }}</td>
                         <td class="tbl-mono tbl-handler">
-                            <span v-if="blockSummaries[r.id]" :title="blockSummaries[r.id].full || undefined">
+                            <span v-if="isHandlerIncomplete(r)" class="tbl-incomplete" :title="r.handler_type === 'flow' ? 'Диалог не выбран' : 'Нет блоков'">!</span>
+                            <span v-else-if="blockSummaries[r.id]" :title="blockSummaries[r.id].full || undefined">
                                 {{ blockSummaries[r.id].label }}<span v-if="blockSummaries[r.id].short"> · {{ blockSummaries[r.id].short }}</span>
                             </span>
                             <span v-else>{{ r.handler_type }}</span>
@@ -230,7 +237,8 @@ const blockSummaries = computed(() => {
                         </td>
                         <td class="tbl-mono">{{ child.match || child.command || '—' }}</td>
                         <td class="tbl-mono tbl-handler">
-                            <span v-if="blockSummaries[child.id]" :title="blockSummaries[child.id].full || undefined">
+                            <span v-if="isHandlerIncomplete(child)" class="tbl-incomplete" :title="child.handler_type === 'flow' ? 'Диалог не выбран' : 'Нет блоков'">!</span>
+                            <span v-else-if="blockSummaries[child.id]" :title="blockSummaries[child.id].full || undefined">
                                 {{ blockSummaries[child.id].label }}<span v-if="blockSummaries[child.id].short"> · {{ blockSummaries[child.id].short }}</span>
                             </span>
                             <span v-else>{{ child.handler_type }}</span>
@@ -283,6 +291,7 @@ const blockSummaries = computed(() => {
 .drag-handle:active { cursor: grabbing; }
 .tbl-mono { font-family: var(--mono); font-size: 11px; }
 .tbl-handler { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tbl-incomplete { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: var(--orange); color: #fff; font-size: 9px; font-weight: 700; font-family: var(--font); cursor: default; }
 .tbl-acts { display: flex; gap: 2px; }
 .tbl-child-idx { color: var(--ink-4); }
 .tbl-empty { text-align: center; padding: 20px; color: var(--ink-4); font-size: 12px; }

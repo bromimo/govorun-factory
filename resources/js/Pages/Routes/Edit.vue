@@ -98,7 +98,24 @@ watch(() => form.type, (newType) => {
     }
 })
 
+watch(() => form.handler_type, (newType) => {
+    if (newType === 'controller') form.flow_id = null
+    if (newType === 'flow') form.handler_schema = { blocks: [] }
+})
+
+const handlerWarning = computed(() => {
+    if (!showHandler.value) return null
+    if (form.handler_type === 'flow' && !form.flow_id) return 'Диалог не выбран'
+    if (form.handler_type === 'controller' && !(form.handler_schema?.blocks?.length)) return 'Нет ни одного блока'
+    return null
+})
+
+const showHandlerWarning = ref(false)
+
 function submit() {
+    if (handlerWarning.value) {
+        showHandlerWarning.value = true
+    }
     form.put(route('bot-routes.update', [props.bot.id, props.botRoute.id]))
 }
 
@@ -217,11 +234,13 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
                             <option :value="null">-- Выберите --</option>
                             <option v-for="f in flows" :key="f.id" :value="f.id">{{ f.name }}</option>
                         </select>
+                        <p v-if="showHandlerWarning && !form.flow_id" class="re-warn">{{ handlerWarning }}</p>
                     </div>
 
                     <div v-if="form.handler_type === 'controller'" class="re-field">
                         <label class="re-lbl">Блоки</label>
                         <BlockList v-model="form.handler_schema.blocks" :bot-id="bot.id" />
+                        <p v-if="showHandlerWarning && !form.handler_schema?.blocks?.length" class="re-warn">{{ handlerWarning }}</p>
                     </div>
                 </template>
 
