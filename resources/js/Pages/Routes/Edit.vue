@@ -10,16 +10,16 @@ import { toCamelCase, toPascalCase, sanitizeIdentifier, identifierWarning } from
 
 const props = defineProps({
     bot:         Object,
-    route:       Object,
+    botRoute:    Object,
     flows:       Array,
     hasChildren: Boolean,
     can:         Object,
 })
 
-const isNested       = computed(() => !!props.route.parent_id)
+const isNested       = computed(() => !!props.botRoute.parent_id)
 const isParentPhrase = computed(() => props.hasChildren)
 const showHandler    = computed(() => !isParentPhrase.value)
-const isFallback     = computed(() => props.route.type === 'fallback')
+const isFallback     = computed(() => props.botRoute.type === 'fallback')
 
 const EVENT_TYPES = [
     { value: 'new_chat_members',   label: 'new_chat_members — новый участник в группе' },
@@ -49,15 +49,15 @@ const routeTypes = computed(() => {
 })
 
 const form = useForm({
-    type:           props.route.type,
-    match:          props.route.match ?? '',
-    description:    props.route.description ?? '',
-    aliases:        props.route.aliases ?? [],
-    controller_name: props.route.controller_name ?? '',
-    handler_type:   props.route.handler_type ?? 'controller',
-    flow_id:        props.route.flow_id ?? null,
-    handler_schema: props.route.handler_schema ?? { blocks: [] },
-    middleware:     props.route.middleware ?? [],
+    type:            props.botRoute.type,
+    match:           props.botRoute.match ?? '',
+    description:     props.botRoute.description ?? '',
+    aliases:         props.botRoute.aliases ?? [],
+    controller_name: props.botRoute.controller_name ?? '',
+    handler_type:    props.botRoute.handler_type ?? 'controller',
+    flow_id:         props.botRoute.flow_id ?? null,
+    handler_schema:  props.botRoute.handler_schema ?? { blocks: [] },
+    middleware:      props.botRoute.middleware ?? [],
 })
 
 const showMatch          = computed(() => ['command', 'phrase', 'pattern', 'action', 'referral'].includes(form.type))
@@ -99,7 +99,7 @@ watch(() => form.type, (newType) => {
 })
 
 function submit() {
-    form.put(route('bot-routes.update', [props.bot.id, props.route.id]))
+    form.put(route('bot-routes.update', [props.bot.id, props.botRoute.id]))
 }
 
 const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
@@ -110,13 +110,11 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
     <AuthenticatedLayout :title="bot.name">
         <template #subbar>
             <nav class="re-bcr">
-                <Link href="/">Главная</Link>
+                <Link :href="route('dashboard')">Главная</Link>
                 <span class="sep">›</span>
-                <Link :href="route('bots.edit', bot.id)">{{ bot.name }}</Link>
+                <Link :href="backUrl">{{ bot.name }}</Link>
                 <span class="sep">›</span>
-                <Link :href="backUrl">Маршруты</Link>
-                <span class="sep">›</span>
-                <span>{{ route.type }} {{ route.match }}</span>
+                <span>Маршрут: {{ botRoute.type }}{{ botRoute.match ? ' ' + botRoute.match : '' }}</span>
             </nav>
         </template>
         <template #actions>
@@ -223,10 +221,10 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
 </template>
 
 <style scoped>
-.re-bcr { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); }
+.re-bcr { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-3); flex-shrink: 0; }
 .re-bcr a { color: var(--blue); text-decoration: none; }
 .re-bcr a:hover { text-decoration: underline; }
-.sep { color: var(--ink-4); }
+.re-bcr .sep { color: var(--bdr-d); }
 
 .re-page {
     max-width: 640px;

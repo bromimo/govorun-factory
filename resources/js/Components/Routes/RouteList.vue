@@ -171,11 +171,11 @@ const blockSummaries = computed(() => {
             </template>
 
             <template v-if="sortedRoutes.length">
-                <template v-for="(route, index) in sortedRoutes" :key="route.id">
+                <template v-for="(r, index) in sortedRoutes" :key="r.id">
                     <tr
                         :class="{ sel: overIndex === index && dragIndex !== index }"
-                        :draggable="canUpdate && route.type !== 'fallback'"
-                        @dblclick="canUpdate && router.visit(route('bot-routes.edit', [botId, route.id]))"
+                        :draggable="canUpdate && r.type !== 'fallback'"
+                        @dblclick="canUpdate && router.visit(route('bot-routes.edit', [botId, r.id]))"
                         @dragstart="onDragStart($event, index)"
                         @dragover="onDragOver($event, index)"
                         @drop="onDrop"
@@ -183,22 +183,22 @@ const blockSummaries = computed(() => {
                     >
                         <td>
                             <GripVertical
-                                v-if="canUpdate && route.type !== 'fallback'"
+                                v-if="canUpdate && r.type !== 'fallback'"
                                 :size="14"
                                 class="drag-handle"
                             />
                         </td>
                         <td><input type="checkbox" /></td>
-                        <td class="tbl-mono">{{ route.id }}</td>
+                        <td class="tbl-mono">{{ r.id }}</td>
                         <td>
-                            <ErBadge :color="routeBadgeColor(route.type)">{{ route.type }}</ErBadge>
+                            <ErBadge :color="routeBadgeColor(r.type)">{{ r.type }}</ErBadge>
                         </td>
-                        <td class="tbl-mono">{{ route.match || route.command || '—' }}</td>
+                        <td class="tbl-mono">{{ r.match || r.command || '—' }}</td>
                         <td class="tbl-mono tbl-handler">
-                            <span v-if="blockSummaries[route.id]" :title="blockSummaries[route.id].full || undefined">
-                                {{ blockSummaries[route.id].label }}<span v-if="blockSummaries[route.id].short"> · {{ blockSummaries[route.id].short }}</span>
+                            <span v-if="blockSummaries[r.id]" :title="blockSummaries[r.id].full || undefined">
+                                {{ blockSummaries[r.id].label }}<span v-if="blockSummaries[r.id].short"> · {{ blockSummaries[r.id].short }}</span>
                             </span>
-                            <span v-else>{{ route.handler_type }}</span>
+                            <span v-else>{{ r.handler_type }}</span>
                         </td>
                         <td>
                             <ErBadge color="gr" dot>активен</ErBadge>
@@ -206,20 +206,20 @@ const blockSummaries = computed(() => {
                         <td>
                             <div v-if="canUpdate" class="tbl-acts">
                                 <button
-                                    v-if="route.type === 'phrase' && !route.parent_id"
+                                    v-if="r.type === 'phrase' && !r.parent_id"
                                     class="tbl-act-btn"
                                     title="Добавить вложенный"
-                                    @click="openCreate(route.id)"
+                                    @click="openCreate(r.id)"
                                 >
                                     <Plus :size="12" />
                                 </button>
-                                <Link :href="route('bot-routes.edit', [botId, route.id])" class="tbl-act-btn">Изменить</Link>
-                                <button class="tbl-act-btn tbl-act-btn--danger" @click="deleteRoute(route)">Удалить</button>
+                                <Link :href="route('bot-routes.edit', [botId, r.id])" class="tbl-act-btn">Изменить</Link>
+                                <button class="tbl-act-btn tbl-act-btn--danger" @click="deleteRoute(r)">Удалить</button>
                             </div>
                         </td>
                     </tr>
                     <!-- Дочерние маршруты -->
-                    <tr v-for="child in route.children ?? []" :key="child.id" class="child-row"
+                    <tr v-for="child in r.children ?? []" :key="child.id" class="child-row"
                         @dblclick="canUpdate && router.visit(route('bot-routes.edit', [botId, child.id]))"
                     >
                         <td></td>

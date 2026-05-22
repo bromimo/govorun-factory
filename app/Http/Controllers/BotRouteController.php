@@ -24,7 +24,7 @@ class BotRouteController extends Controller
 
         return Inertia::render('Routes/Edit', [
             'bot'         => $bot->only('id', 'name'),
-            'route'       => $route,
+            'botRoute'    => $route,
             'flows'       => $bot->flows()->select('id', 'name')->get(),
             'hasChildren' => $route->children()->exists(),
             'can'         => ['update' => request()->user()->can('update', $bot)],
