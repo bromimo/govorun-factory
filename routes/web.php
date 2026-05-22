@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
             Route::post('', [BotRouteController::class, 'store'])->name('bot-routes.store');
             Route::post('reorder', [BotRouteController::class, 'reorder'])->name('bot-routes.reorder');
             Route::get('{route}/edit', [BotRouteController::class, 'edit'])->name('bot-routes.edit');
+            Route::patch('{route}/status', [BotRouteController::class, 'changeStatus'])->name('bot-routes.change-status');
             Route::put('{route}', [BotRouteController::class, 'update'])->name('bot-routes.update');
             Route::delete('{route}', [BotRouteController::class, 'destroy'])->name('bot-routes.destroy');
         });
