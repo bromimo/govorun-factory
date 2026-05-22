@@ -1,18 +1,18 @@
 <script setup>
+import { debounce } from '@/utils/debounce';
 import ErButton from '@/Components/Ui/ErButton.vue';
+import { useToast } from '@/composables/useToast';
 import { Head, Link, router } from '@inertiajs/vue3';
+import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 import NodePalette from '@/Components/Flows/NodePalette.vue';
-import StatusBadge from '@/Components/Ui/StatusBadge.vue';
-import { useToast } from '@/composables/useToast';
-import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useDirtyGuard } from '@/composables/useDirtyGuard';
 import KeyboardHints from '@/Components/Flows/KeyboardHints.vue';
 import NodeProperties from '@/Components/Flows/NodeProperties.vue';
 import EdgeProperties from '@/Components/Flows/EdgeProperties.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { debounce } from '@/utils/debounce';
-import { useDirtyGuard } from '@/composables/useDirtyGuard';
+import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue';
 
 const props = defineProps({
     bot: Object,
@@ -148,7 +148,7 @@ watch(() => props.auto_drafted_reasons, (reasons) => {
         for (const reason of reasons.slice(0, 3)) toast.warning(reason);
         localFlowStatus.value = 'draft';
     }
-});
+}, { immediate: true });
 
 function handleSave() {
     saveDebounced.cancel();
