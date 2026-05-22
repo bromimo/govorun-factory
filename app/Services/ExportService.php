@@ -51,19 +51,9 @@ class ExportService
     /** Скопировать медиафайлы библиотеки бота в директорию ресурсов проекта. */
     private function copyMediaFiles(Bot $bot, string $projectDir): void
     {
-        $bot->loadMissing('flows');
+        $bot->loadMissing(['flows', 'routes']);
 
-        $mediaIds = [];
-
-        foreach ($bot->flows as $flow) {
-            foreach ($flow->graph['nodes'] ?? [] as $node) {
-                $mediaId = data_get($node, 'data.media.media_id');
-
-                if ($mediaId) {
-                    $mediaIds[] = (int) $mediaId;
-                }
-            }
-        }
+        $mediaIds = $bot->extractUsedMediaIds();
 
         if (empty($mediaIds)) {
             return;

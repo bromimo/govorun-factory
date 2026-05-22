@@ -150,8 +150,8 @@ function formatSize(bytes) {
                 <td class="tbl-num">{{ bot.routes_count ?? 0 }}</td>
                 <td class="tbl-num">{{ bot.flows_count ?? 0 }}</td>
                 <td class="tbl-num">{{ bot.connections_count ?? 0 }}</td>
-                <td class="tbl-num">{{ bot.media_count ?? 0 }}</td>
-                <td class="tbl-num tbl-muted">{{ formatSize(bot.media_size_sum) }}</td>
+                <td class="tbl-num">{{ bot.used_media_count ?? 0 }}</td>
+                <td class="tbl-num tbl-muted">{{ formatSize(bot.used_media_size) }}</td>
                 <td class="tbl-muted">{{ bot.updater?.name ?? '—' }}</td>
                 <td class="tbl-mono">{{ formatDate(bot.updated_at) }}</td>
                 <td>
