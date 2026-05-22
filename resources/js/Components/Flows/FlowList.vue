@@ -1,13 +1,13 @@
 <script setup>
 import { ref } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
 import { Plus } from 'lucide-vue-next';
+import Modal from '@/Components/Modal.vue';
+import { Link, router } from '@inertiajs/vue3';
 import ErTable from '@/Components/Ui/ErTable.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
-import Modal from '@/Components/Modal.vue';
-import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
-import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { useToast } from '@/composables/useToast';
+import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 
 const props = defineProps({
     botId: Number,
