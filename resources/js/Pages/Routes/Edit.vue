@@ -98,6 +98,11 @@ watch(() => form.type, (newType) => {
     }
 })
 
+watch(() => form.handler_type, (newType) => {
+    if (newType === 'controller') form.flow_id = null
+    if (newType === 'flow') form.handler_schema = { blocks: [] }
+})
+
 function submit() {
     form.put(route('bot-routes.update', [props.bot.id, props.botRoute.id]))
 }

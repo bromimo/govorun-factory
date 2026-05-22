@@ -72,6 +72,10 @@ class BotRouteController extends Controller
             $data['flow_id'] = null;
         }
 
+        if (($data['handler_type'] ?? 'controller') === 'flow') {
+            $data['handler_schema'] = null;
+        }
+
         if (($data['type'] ?? '') !== 'phrase') {
             $data['aliases'] = null;
 
