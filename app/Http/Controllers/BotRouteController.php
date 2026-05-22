@@ -58,7 +58,7 @@ class BotRouteController extends Controller
         return redirect()->route('bot-routes.edit', [$bot, $route]);
     }
 
-    /** Очистить данные маршрута: алиасы и controller_name.
+    /** Очистить данные маршрута: алиасы, controller_name и flow_id в зависимости от типа/обработчика.
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
@@ -66,6 +66,10 @@ class BotRouteController extends Controller
     {
         if (empty($data['controller_name']) || ($data['type'] ?? '') === 'fallback') {
             $data['controller_name'] = null;
+        }
+
+        if (($data['handler_type'] ?? 'controller') !== 'flow') {
+            $data['flow_id'] = null;
         }
 
         if (($data['type'] ?? '') !== 'phrase') {

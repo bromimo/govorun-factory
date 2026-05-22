@@ -55,7 +55,7 @@ const form = useForm({
     aliases:         props.botRoute.aliases ?? [],
     controller_name: props.botRoute.controller_name ?? '',
     handler_type:    props.botRoute.handler_type ?? 'controller',
-    flow_id:         props.botRoute.flow_id ?? null,
+    flow_id:         props.botRoute.handler_type === 'flow' ? (props.botRoute.flow_id ?? null) : null,
     handler_schema:  props.botRoute.handler_schema ?? { blocks: [] },
     middleware:      props.botRoute.middleware ?? [],
 })
