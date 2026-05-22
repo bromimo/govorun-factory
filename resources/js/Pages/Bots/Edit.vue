@@ -7,6 +7,7 @@ import { useToast } from '@/composables/useToast'
 import Modal from '@/Components/Modal.vue'
 import BotSidebar from '@/Components/Bots/BotSidebar.vue'
 import SettingsForm from '@/Components/Bots/SettingsForm.vue'
+import ConnectionsTab from '@/Components/Bots/ConnectionsTab.vue'
 import MessengerConfigForm from '@/Components/Bots/MessengerConfigForm.vue'
 import RouteList from '@/Components/Routes/RouteList.vue'
 import FlowList from '@/Components/Flows/FlowList.vue'
@@ -16,6 +17,7 @@ import { Download, Trash2 } from 'lucide-vue-next'
 
 const props = defineProps({
     bot: Object,
+    connections: Array,
     can: Object,
 })
 
@@ -84,6 +86,7 @@ function deleteBot() {
         <ValidationMessagesForm v-else-if="activeTab === 'validation'" :bot="bot" :can="can" />
         <MessengerConfigForm v-else-if="activeTab === 'messengers'" :bot="bot" :can="can" />
         <MediaLibrary v-else-if="activeTab === 'media'" :bot="bot" />
+        <ConnectionsTab v-else-if="activeTab === 'connections'" :bot="bot" :connections="connections ?? []" />
 
         <Modal :show="confirmingDeletion" :title="`Удалить бота «${bot.name}»?`" max-width="md" @close="confirmingDeletion = false">
             <div class="modal-body">

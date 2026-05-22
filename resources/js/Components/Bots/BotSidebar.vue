@@ -1,5 +1,4 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
 import { Settings, MessageSquare, ShieldCheck, Route, Workflow, Image, Plug } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -28,7 +27,7 @@ const groups = [
     {
         label: 'Интеграции',
         items: [
-            { key: 'connections', label: 'Подключения', icon: Plug, link: () => route('bot-connections.index', props.bot.id) },
+            { key: 'connections', label: 'Подключения', icon: Plug, count: () => props.bot.connections?.length ?? 0 },
         ],
     },
 ];
@@ -38,27 +37,7 @@ const groups = [
     <div v-for="group in groups" :key="group.label" class="side-group">
         <div class="side-grp-h">{{ group.label }}</div>
         <template v-for="item in group.items" :key="item.key">
-            <Link
-                v-if="item.link"
-                :href="item.link()"
-                class="side-item"
-                :class="{ act: activeKey === item.key }"
-            >
-                <component :is="item.icon" :size="13" class="side-icon" />
-                {{ item.label }}
-            </Link>
-            <Link
-                v-else-if="!onTabChange"
-                :href="route('bots.edit', bot.id)"
-                class="side-item"
-                :class="{ act: activeKey === item.key }"
-            >
-                <component :is="item.icon" :size="13" class="side-icon" />
-                {{ item.label }}
-                <span v-if="item.count && item.count()" class="side-cnt">{{ item.count() }}</span>
-            </Link>
             <button
-                v-else
                 class="side-item"
                 :class="{ act: activeKey === item.key }"
                 @click="onTabChange(item.key)"
