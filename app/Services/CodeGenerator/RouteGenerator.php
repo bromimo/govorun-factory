@@ -4,6 +4,7 @@ namespace App\Services\CodeGenerator;
 
 use App\Models\Bot;
 use App\Models\BotRoute;
+use App\Enums\EntityStatus;
 use Illuminate\Support\Str;
 
 /** Генератор файла маршрутов мессенджера. */
@@ -16,7 +17,12 @@ class RouteGenerator
     {
         $importsFqcn = ['Govorun\Routing\Route'];
 
-        $topRoutes = $bot->routes()->whereNull('parent_id')->orderBy('sort_order')->with('children')->get();
+        $topRoutes = $bot->routes()
+            ->whereNull('parent_id')
+            ->where('status', EntityStatus::Active->value)
+            ->orderBy('sort_order')
+            ->with('children')
+            ->get();
 
         $entries = [];
         foreach ($topRoutes as $route) {
