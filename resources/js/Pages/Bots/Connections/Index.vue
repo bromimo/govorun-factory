@@ -48,7 +48,7 @@ function doDestroy() {
 
 <template>
     <Head :title="`Подключения · ${bot.name}`" />
-    <AuthenticatedLayout title="Подключения" :subtitle="bot.name">
+    <AuthenticatedLayout :title="bot.name">
         <template #breadcrumbs>
             <Link :href="route('dashboard')">Главная</Link>
             <span class="sep">›</span>

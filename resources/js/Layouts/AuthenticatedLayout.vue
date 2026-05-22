@@ -6,7 +6,6 @@ import ErToast from '@/Components/Ui/ErToast.vue'
 
 const props = defineProps({
     title: String,
-    subtitle: String,
     flush: Boolean,
 })
 
@@ -119,10 +118,7 @@ function toggleNav() {
                         <slot name="breadcrumbs" />
                     </nav>
                     <div v-if="title || $slots.actions" class="er-ph">
-                        <div>
-                            <h1 class="er-ph-t">{{ title }}</h1>
-                            <p v-if="subtitle" class="er-ph-s">{{ subtitle }}</p>
-                        </div>
+                        <h1 class="er-ph-t">{{ title }}</h1>
                         <div v-if="$slots.actions" class="er-ph-a">
                             <slot name="actions" />
                         </div>
@@ -361,6 +357,5 @@ function toggleNav() {
 
 .er-ph { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--bdr-l); gap: 16px; }
 .er-ph-t { font-size: 18px; font-weight: 600; letter-spacing: -.01em; margin: 0; color: var(--ink); }
-.er-ph-s { font-size: 11px; color: var(--ink-3); margin-top: 2px; margin-bottom: 0; }
 .er-ph-a { display: flex; align-items: center; gap: 6px; }
 </style>

@@ -16,7 +16,7 @@ const counters = [
 
 <template>
     <Head title="Сводка" />
-    <AuthenticatedLayout title="Сводка системы" subtitle="Агрегированные метрики платформы">
+    <AuthenticatedLayout title="Сводка системы">
         <template #subbar>
             <button class="er-tab act">Сводка</button>
             <button class="er-tab">Активность</button>
