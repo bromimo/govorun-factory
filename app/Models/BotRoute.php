@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Enums\RouteType;
-use App\Enums\EntityStatus;
 use App\Enums\HandlerType;
+use App\Enums\EntityStatus;
 use App\Observers\BotRouteObserver;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
