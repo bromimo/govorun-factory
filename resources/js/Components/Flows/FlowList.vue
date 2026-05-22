@@ -6,6 +6,8 @@ import ErTable from '@/Components/Ui/ErTable.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import Modal from '@/Components/Modal.vue';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
+import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import { useToast } from '@/composables/useToast';
 
 const props = defineProps({
     botId: Number,
@@ -62,6 +64,10 @@ function formatSize(bytes) {
 }
 
 const confirmFlow = ref(null);
+const toast = useToast();
+const statusFlow = ref(null);
+const statusValue = ref(null);
+const impactRoutes = ref([]);
 
 function deleteFlow(flow) {
     confirmFlow.value = flow;
@@ -70,6 +76,53 @@ function deleteFlow(flow) {
 function doDeleteFlow() {
     router.delete(route('bot-flows.destroy', [props.botId, confirmFlow.value.id]));
     confirmFlow.value = null;
+}
+
+async function requestStatusChange(f, value) {
+    if (value === 'inactive' || value === 'draft') {
+        try {
+            const { data } = await window.axios.get(
+                window.route('bot-flows.status-impact', [props.botId, f.id])
+            );
+            impactRoutes.value = data.affected_routes ?? [];
+            statusFlow.value = f;
+            statusValue.value = value;
+        } catch {
+            cancelStatusChange();
+            toast.error('Не удалось получить данные о влиянии статуса');
+        }
+    } else {
+        applyStatus(f, value);
+    }
+}
+
+function applyStatus(f, value) {
+    const old = f.status;
+    f.status = value;
+    window.axios.patch(
+        window.route('bot-flows.change-status', [props.botId, f.id]),
+        { status: value }
+    )
+        .catch((err) => {
+            f.status = old;
+            const rawErrors = err.response?.data?.errors;
+            const errors = Array.isArray(rawErrors)
+                ? rawErrors
+                : rawErrors && typeof rawErrors === 'object'
+                    ? Object.values(rawErrors).flat()
+                    : ['Не удалось сменить статус'];
+            for (const e of errors.slice(0, 5)) toast.error(e);
+            if (errors.length > 5) toast.error(`и ещё ${errors.length - 5} ошибок`);
+        });
+    statusFlow.value = null;
+    statusValue.value = null;
+    impactRoutes.value = [];
+}
+
+function cancelStatusChange() {
+    statusFlow.value = null;
+    statusValue.value = null;
+    impactRoutes.value = [];
 }
 </script>
 
@@ -93,6 +146,7 @@ function doDeleteFlow() {
                     <th style="text-align: right;">API</th>
                     <th style="text-align: right;">Медиа</th>
                     <th style="text-align: right;">Размер медиа</th>
+                    <th>Статус</th>
                     <th style="width: 80px;"></th>
                 </tr>
             </template>
@@ -116,6 +170,9 @@ function doDeleteFlow() {
                     <td class="tbl-num">{{ f.used_media_count || '—' }}</td>
                     <td class="tbl-num tbl-muted">{{ formatSize(f.used_media_size) }}</td>
                     <td>
+                        <StatusBadge :status="f.status" :disabled="!canUpdate" @change="(v) => requestStatusChange(f, v)" />
+                    </td>
+                    <td>
                         <div class="tbl-acts">
                             <button v-if="canUpdate" class="tbl-act-btn" @click.stop="openEdit(f)">Изменить</button>
                             <button v-if="canUpdate" class="tbl-act-btn tbl-act-btn--danger" @click.stop="deleteFlow(f)">Удалить</button>
@@ -124,7 +181,7 @@ function doDeleteFlow() {
                 </tr>
             </template>
             <tr v-else>
-                <td colspan="9" class="tbl-empty">Нет диалогов</td>
+                <td colspan="10" class="tbl-empty">Нет диалогов</td>
             </tr>
 
             <template #paging>
@@ -174,6 +231,16 @@ function doDeleteFlow() {
             :message="`Диалог «${confirmFlow?.name}» будет удалён безвозвратно.`"
             @confirm="doDeleteFlow"
             @cancel="confirmFlow = null"
+        />
+
+        <ConfirmModal
+            :show="!!statusFlow"
+            title="Сменить статус диалога?"
+            :message="impactRoutes.length
+                ? `${impactRoutes.length} маршрут(ов) будут переведены в черновик.`
+                : 'Подтвердите смену статуса.'"
+            @confirm="applyStatus(statusFlow, statusValue)"
+            @cancel="cancelStatusChange"
         />
     </div>
 </template>
