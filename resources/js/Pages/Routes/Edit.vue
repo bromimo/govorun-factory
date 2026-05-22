@@ -110,13 +110,11 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
     <AuthenticatedLayout :title="bot.name">
         <template #subbar>
             <nav class="re-bcr">
-                <Link href="/">Главная</Link>
+                <Link :href="route('dashboard')">Главная</Link>
                 <span class="sep">›</span>
-                <Link :href="route('bots.edit', bot.id)">{{ bot.name }}</Link>
+                <Link :href="backUrl">{{ bot.name }}</Link>
                 <span class="sep">›</span>
-                <Link :href="backUrl">Маршруты</Link>
-                <span class="sep">›</span>
-                <span>{{ botRoute.type }} {{ botRoute.match }}</span>
+                <span>Маршрут: {{ botRoute.type }}{{ botRoute.match ? ' ' + botRoute.match : '' }}</span>
             </nav>
         </template>
         <template #actions>
@@ -223,10 +221,10 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
 </template>
 
 <style scoped>
-.re-bcr { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); }
+.re-bcr { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-3); flex-shrink: 0; }
 .re-bcr a { color: var(--blue); text-decoration: none; }
 .re-bcr a:hover { text-decoration: underline; }
-.sep { color: var(--ink-4); }
+.re-bcr .sep { color: var(--bdr-d); }
 
 .re-page {
     max-width: 640px;
