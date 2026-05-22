@@ -116,8 +116,8 @@ function formatSize(bytes) {
                     <th>Название</th>
                     <th style="text-align: right;">Маршрутов</th>
                     <th style="text-align: right;">Диалогов</th>
-                    <th style="text-align: right;">Медиа</th>
                     <th style="text-align: right;">Подключений</th>
+                    <th style="text-align: right;">Медиа</th>
                     <th style="text-align: right;">Размер медиа</th>
                     <th>Владелец</th>
                     <th>Обновлён</th>
@@ -149,8 +149,8 @@ function formatSize(bytes) {
                 </td>
                 <td class="tbl-num">{{ bot.routes_count ?? 0 }}</td>
                 <td class="tbl-num">{{ bot.flows_count ?? 0 }}</td>
-                <td class="tbl-num">{{ bot.media_count ?? 0 }}</td>
                 <td class="tbl-num">{{ bot.connections_count ?? 0 }}</td>
+                <td class="tbl-num">{{ bot.media_count ?? 0 }}</td>
                 <td class="tbl-num tbl-muted">{{ formatSize(bot.media_size_sum) }}</td>
                 <td class="tbl-muted">{{ bot.updater?.name ?? '—' }}</td>
                 <td class="tbl-mono">{{ formatDate(bot.updated_at) }}</td>
