@@ -119,11 +119,18 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
         </template>
         <template #actions>
             <ErButton as="a" :href="backUrl">Назад</ErButton>
-            <ErButton v-if="can.update" variant="primary" :disabled="form.processing" @click="submit">Сохранить</ErButton>
+            <ErButton v-if="can.update" variant="primary" :disabled="form.processing || !form.isDirty" @click="submit">Сохранить</ErButton>
         </template>
 
-        <div class="re-page">
-            <form @submit.prevent="submit">
+        <form class="re-layout" @submit.prevent="submit">
+
+            <!-- Левая колонка: метаданные маршрута -->
+            <div class="re-panel">
+                <div class="re-panel-head">
+                    <span class="re-id">ID {{ botRoute.id }}</span>
+                    <span v-if="isNested" class="re-badge">вложенный</span>
+                </div>
+
                 <div v-if="!isNested" class="re-field">
                     <label class="re-lbl">Тип маршрута</label>
                     <select v-model="form.type" class="re-sel">
@@ -181,6 +188,20 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
                     <p v-if="form.errors.controller_name" class="re-err">{{ form.errors.controller_name }}</p>
                 </div>
 
+                <div class="re-field">
+                    <label class="re-lbl">Middleware</label>
+                    <ErInput
+                        :value="form.middleware.join(', ')"
+                        @update:modelValue="form.middleware = $event.split(',').map(s => s.trim()).filter(Boolean)"
+                        :long="true"
+                        placeholder="auth, throttle"
+                    />
+                    <p class="re-hint">Через запятую</p>
+                </div>
+            </div>
+
+            <!-- Правая колонка: обработчик -->
+            <div class="re-panel">
                 <template v-if="showHandler">
                     <div class="re-field">
                         <label class="re-lbl">Обработчик</label>
@@ -205,18 +226,9 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
                 </template>
 
                 <p v-else class="re-hint-it">Обработчик задаётся у дочерних маршрутов</p>
+            </div>
 
-                <div class="re-field">
-                    <label class="re-lbl">Middleware (через запятую)</label>
-                    <ErInput
-                        :value="form.middleware.join(', ')"
-                        @update:modelValue="form.middleware = $event.split(',').map(s => s.trim()).filter(Boolean)"
-                        :long="true"
-                        placeholder="auth, throttle"
-                    />
-                </div>
-            </form>
-        </div>
+        </form>
     </AuthenticatedLayout>
 </template>
 
@@ -226,13 +238,50 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
 .re-bcr a:hover { text-decoration: underline; }
 .re-bcr .sep { color: var(--bdr-d); }
 
-.re-page {
-    max-width: 640px;
+.re-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.re-panel {
+    background: var(--surface-2, #f8f9fa);
+    border: 1px solid var(--bdr);
+    border-radius: var(--r);
+    padding: 14px;
     display: flex;
     flex-direction: column;
     gap: 14px;
 }
-.re-page form { display: flex; flex-direction: column; gap: 14px; }
+
+.re-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--bdr);
+}
+
+.re-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    background: var(--surface-3);
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    padding: 1px 6px;
+}
+
+.re-badge {
+    font-size: 10px;
+    color: var(--ink-3);
+    background: var(--surface-3);
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    padding: 1px 6px;
+}
 
 .re-field { display: flex; flex-direction: column; gap: 4px; }
 .re-lbl { font-size: 11px; font-weight: 600; color: var(--ink-2); }
