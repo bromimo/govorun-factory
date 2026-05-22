@@ -114,8 +114,26 @@ function clear() {
 </template>
 
 <style scoped>
-.ks-wrap { display: flex; flex-direction: column; gap: 6px; }
-.ks-header { display: flex; align-items: center; justify-content: space-between; }
-.ks-checks { display: flex; gap: 12px; }
-.ks-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
+.ks-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.ks-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.ks-checks {
+    display: flex;
+    gap: 12px;
+}
+.ks-check {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--ink-2);
+    cursor: pointer;
+}
 </style>

@@ -31,8 +31,8 @@ function startEdit(rowIndex, btnIndex, event) {
         rowIndex,
         btnIndex,
         anchor: {
-            x: rect.left + rect.width / 2 + window.scrollX,
-            y: rect.bottom + window.scrollY,
+            x: rect.left + rect.width / 2,
+            y: rect.bottom,
         },
     };
 }

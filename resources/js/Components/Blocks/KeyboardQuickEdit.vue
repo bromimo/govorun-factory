@@ -16,7 +16,7 @@ const local = ref({ ...props.button });
 
 watch(() => props.button, (b) => {
     local.value = { ...b };
-});
+}, { deep: true });
 
 const showTypeSelect = computed(() => props.keyboardType === 'inline');
 const showActionField = computed(() => local.value.type === 'action');
