@@ -24,7 +24,8 @@ class BotController extends Controller
     {
         $bots = Bot::query()
             ->with('updater:id,name')
-            ->withCount(['routes', 'flows'])
+            ->withCount(['routes', 'flows', 'media', 'connections'])
+            ->withSum('media', 'size')
             ->when($request->search, fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
             ->latest('updated_at')
             ->get();

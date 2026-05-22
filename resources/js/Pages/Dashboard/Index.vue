@@ -46,6 +46,13 @@ function toggleRow(id) {
 function formatDate(d) {
     return new Date(d).toLocaleString('ru', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
+
+function formatSize(bytes) {
+    if (!bytes) return '—'
+    if (bytes < 1024) return bytes + ' Б'
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' КБ'
+    return (bytes / 1024 / 1024).toFixed(1) + ' МБ'
+}
 </script>
 
 <template>
@@ -109,6 +116,9 @@ function formatDate(d) {
                     <th>Название</th>
                     <th style="text-align: right;">Маршрутов</th>
                     <th style="text-align: right;">Диалогов</th>
+                    <th style="text-align: right;">Медиа</th>
+                    <th style="text-align: right;">Подключений</th>
+                    <th style="text-align: right;">Размер медиа</th>
                     <th>Владелец</th>
                     <th>Обновлён</th>
                     <th style="width: 60px;"></th>
@@ -116,7 +126,7 @@ function formatDate(d) {
             </template>
 
             <tr v-if="bots.length === 0">
-                <td colspan="8">
+                <td colspan="11">
                     <ErEmpty
                         compact
                         title="Нет ботов"
@@ -139,6 +149,9 @@ function formatDate(d) {
                 </td>
                 <td class="tbl-num">{{ bot.routes_count ?? 0 }}</td>
                 <td class="tbl-num">{{ bot.flows_count ?? 0 }}</td>
+                <td class="tbl-num">{{ bot.media_count ?? 0 }}</td>
+                <td class="tbl-num">{{ bot.connections_count ?? 0 }}</td>
+                <td class="tbl-num tbl-muted">{{ formatSize(bot.media_size_sum) }}</td>
                 <td class="tbl-muted">{{ bot.updater?.name ?? '—' }}</td>
                 <td class="tbl-mono">{{ formatDate(bot.updated_at) }}</td>
                 <td>
