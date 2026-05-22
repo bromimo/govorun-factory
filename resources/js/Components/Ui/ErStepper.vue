@@ -11,9 +11,7 @@ defineProps({
 
 <template>
     <h4 class="er-step-h" :class="state" v-bind="$attrs">
-        <span class="er-step-num">
-            {{ n }}<span v-if="total" class="er-step-total">/{{ total }}</span>
-        </span>
+        <span class="er-step-num">{{ n }}<span v-if="total" class="er-step-total">/{{ total }}</span></span>
         <span class="er-step-title">{{ title }}</span>
     </h4>
 </template>
