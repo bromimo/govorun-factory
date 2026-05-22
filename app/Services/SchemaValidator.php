@@ -4,10 +4,11 @@ namespace App\Services;
 
 use App\Models\Bot;
 use App\Models\BotFlow;
-use App\Models\BotRoute;
 use App\Enums\RouteType;
-use App\Models\BotConnection;
+use App\Models\BotRoute;
 use App\Enums\HandlerType;
+use App\Enums\EntityStatus;
+use App\Models\BotConnection;
 use App\Services\CodeGenerator\FlowGenerator;
 
 /** Валидатор схемы бота перед экспортом. */
@@ -40,12 +41,41 @@ class SchemaValidator
         }
 
         foreach ($this->bot->flows as $flow) {
+            if ($flow->status !== EntityStatus::Active) {
+                continue;
+            }
             $this->validateFlow($flow, $errors);
         }
 
         foreach ($this->bot->routes as $route) {
+            if ($route->status !== EntityStatus::Active) {
+                continue;
+            }
             $this->validateRoute($route, $errors);
         }
+
+        return new ValidationResult($errors);
+    }
+
+    /** Валидировать один маршрут (для endpoint'а смены статуса и авто-drop в draft).
+     * @param  BotRoute  $route  Маршрут для проверки.
+     */
+    public function validateSingleRoute(BotRoute $route): ValidationResult
+    {
+        $errors = [];
+        $route->loadMissing('children', 'flow');
+        $this->validateRoute($route, $errors);
+
+        return new ValidationResult($errors);
+    }
+
+    /** Валидировать один диалог (для endpoint'а смены статуса и авто-drop в draft).
+     * @param  BotFlow  $flow  Диалог для проверки.
+     */
+    public function validateSingleFlow(BotFlow $flow): ValidationResult
+    {
+        $errors = [];
+        $this->validateFlow($flow, $errors);
 
         return new ValidationResult($errors);
     }
@@ -133,6 +163,13 @@ class SchemaValidator
 
             if ($type === 'reply') {
                 $this->validateReply($block['params'] ?? [], $where, $errors);
+            }
+        }
+
+        if ($route->handler_type === HandlerType::Flow && $route->flow_id) {
+            $flow = $route->flow ?? BotFlow::find($route->flow_id);
+            if ($flow && $flow->status !== EntityStatus::Active) {
+                $errors[] = "Маршрут {$label}: ссылается на неактивный диалог «{$flow->name}»";
             }
         }
     }
