@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { controllerBlockTypes } from '../Blocks/blockTypes.js';
 import RouteEditor from './RouteEditor.vue';
 import ErTable from '@/Components/Ui/ErTable.vue';
@@ -175,7 +175,7 @@ const blockSummaries = computed(() => {
                     <tr
                         :class="{ sel: overIndex === index && dragIndex !== index }"
                         :draggable="canUpdate && route.type !== 'fallback'"
-                        @dblclick="canUpdate && openEdit(route)"
+                        @dblclick="canUpdate && router.visit(route('bot-routes.edit', [botId, route.id]))"
                         @dragstart="onDragStart($event, index)"
                         @dragover="onDragOver($event, index)"
                         @drop="onDrop"
@@ -213,14 +213,14 @@ const blockSummaries = computed(() => {
                                 >
                                     <Plus :size="12" />
                                 </button>
-                                <button class="tbl-act-btn" @click="openEdit(route)">Изменить</button>
+                                <Link :href="route('bot-routes.edit', [botId, route.id])" class="tbl-act-btn">Изменить</Link>
                                 <button class="tbl-act-btn tbl-act-btn--danger" @click="deleteRoute(route)">Удалить</button>
                             </div>
                         </td>
                     </tr>
                     <!-- Дочерние маршруты -->
                     <tr v-for="child in route.children ?? []" :key="child.id" class="child-row"
-                        @dblclick="canUpdate && openEdit(child)"
+                        @dblclick="canUpdate && router.visit(route('bot-routes.edit', [botId, child.id]))"
                     >
                         <td></td>
                         <td><input type="checkbox" /></td>
@@ -240,7 +240,7 @@ const blockSummaries = computed(() => {
                         </td>
                         <td>
                             <div v-if="canUpdate" class="tbl-acts">
-                                <button class="tbl-act-btn" @click="openEdit(child)">Изменить</button>
+                                <Link :href="route('bot-routes.edit', [botId, child.id])" class="tbl-act-btn">Изменить</Link>
                                 <button class="tbl-act-btn tbl-act-btn--danger" @click="deleteRoute(child)">Удалить</button>
                             </div>
                         </td>
