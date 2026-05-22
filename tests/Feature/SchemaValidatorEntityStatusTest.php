@@ -48,7 +48,7 @@ test('validateSingleRoute reports errors for empty controller blocks', function 
 
     $result = (new SchemaValidator($bot))->validateSingleRoute($route);
 
-    expect($result->errors)->not->toBeEmpty();
+    expect(implode(' ', $result->errors))->toContain('нет ни одного блока');
 });
 
 test('active route referencing inactive flow yields validation error', function () {
@@ -70,4 +70,17 @@ test('active route referencing inactive flow yields validation error', function 
     $result = (new SchemaValidator($bot))->validateSingleRoute($route);
 
     expect(implode(' ', $result->errors))->toContain('неактивный диалог');
+});
+
+test('validateSingleFlow reports error when flow has no on_complete', function () {
+    $bot = Bot::factory()->for(User::factory()->admin(), 'creator')->create([
+        'messenger_config' => ['telegram' => ['token' => 'x']],
+    ]);
+    $flow = BotFlow::factory()->for($bot)->create([
+        'graph' => ['nodes' => [['id' => 'start', 'type' => 'start']], 'edges' => []],
+    ]);
+
+    $result = (new SchemaValidator($bot))->validateSingleFlow($flow);
+
+    expect(implode(' ', $result->errors))->toContain('on_complete');
 });

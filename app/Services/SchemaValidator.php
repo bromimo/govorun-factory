@@ -24,15 +24,18 @@ class SchemaValidator
         private Bot $bot,
     ) {}
 
-    /** Валидировать схему бота.
+    /** Валидировать схему бота. Проверяются только активные сущности (status=active).
      */
     public function validate(): ValidationResult
     {
         $this->bot->load(['routes' => fn ($q) => $q->with('children'), 'flows']);
         $errors = [];
 
-        if ($this->bot->routes->isEmpty()) {
-            $errors[] = 'Бот должен иметь хотя бы один маршрут';
+        $activeRoutes = $this->bot->routes->filter(
+            fn ($r) => $r->status === EntityStatus::Active
+        );
+        if ($activeRoutes->isEmpty()) {
+            $errors[] = 'Бот должен иметь хотя бы один активный маршрут';
         }
 
         $messengerConfig = $this->bot->messenger_config ?? [];
