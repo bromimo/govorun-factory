@@ -54,6 +54,7 @@ const gradTo = computed(() => NODE_TYPE_COLORS[props.type]?.gradTo ?? '#6a7a8a')
 
 <style scoped>
 .base-node {
+    position: relative;
     background:
         linear-gradient(180deg, v-bind(gradFrom) 0%, v-bind(gradTo) 100%) 0 0 / 10px 100% no-repeat,
         var(--surface);
@@ -104,11 +105,20 @@ const gradTo = computed(() => NODE_TYPE_COLORS[props.type]?.gradTo ?? '#6a7a8a')
     line-height: 1;
     animation: badge-pulse 2.2s ease-in-out infinite;
 }
-.node-validation-badge svg { display: block; }
-.node-validation-count { font-family: var(--mono); font-size: 10px; }
+.node-validation-badge svg {
+    display: block;
+}
+.node-validation-count {
+    font-family: var(--mono);
+    font-size: 10px;
+}
 
 @keyframes badge-pulse {
-    0%, 100% { box-shadow: 0 1px 3px rgba(0,0,0,.18), 0 0 0 0 rgba(58,114,196,.4); }
-    50% { box-shadow: 0 1px 3px rgba(0,0,0,.18), 0 0 0 5px rgba(58,114,196,0); }
+    0%, 100% {
+        box-shadow: 0 1px 3px rgba(0,0,0,.18), 0 0 0 0 rgba(58,114,196,.4);
+    }
+    50% {
+        box-shadow: 0 1px 3px rgba(0,0,0,.18), 0 0 0 5px rgba(58,114,196,0);
+    }
 }
 </style>
