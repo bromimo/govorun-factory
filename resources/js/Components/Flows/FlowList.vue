@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { Plus } from 'lucide-vue-next';
 import ErTable from '@/Components/Ui/ErTable.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
@@ -79,7 +79,6 @@ function doDeleteFlow() {
             <template #thead>
                 <tr>
                     <th>Название</th>
-                    <th>Описание</th>
                     <th style="width: 80px;"></th>
                 </tr>
             </template>
@@ -91,10 +90,13 @@ function doDeleteFlow() {
                     class="flow-row"
                     @dblclick="goToFlow(f)"
                 >
-                    <td class="flow-name">{{ f.name }}</td>
-                    <td class="flow-desc">{{ f.description || '—' }}</td>
+                    <td>
+                        <Link :href="route('bot-flows.show', [botId, f.id])" class="tbl-link">{{ f.name }}</Link>
+                        <div v-if="f.description" class="tbl-sub">{{ f.description }}</div>
+                    </td>
                     <td>
                         <div class="tbl-acts">
+                            <Link :href="route('bot-flows.show', [botId, f.id])" class="tbl-act-btn">Открыть</Link>
                             <button v-if="canUpdate" class="tbl-act-btn" @click.stop="openEdit(f)">Изменить</button>
                             <button v-if="canUpdate" class="tbl-act-btn tbl-act-btn--danger" @click.stop="deleteFlow(f)">Удалить</button>
                         </div>
@@ -102,12 +104,11 @@ function doDeleteFlow() {
                 </tr>
             </template>
             <tr v-else>
-                <td colspan="3" class="tbl-empty">Нет диалогов</td>
+                <td colspan="2" class="tbl-empty">Нет диалогов</td>
             </tr>
 
             <template #paging>
                 <span>{{ flows.length }} диалогов</span>
-                <span style="color: var(--ink-4); font-size: 10px;">Двойной клик — открыть редактор</span>
             </template>
         </ErTable>
 
@@ -160,9 +161,10 @@ function doDeleteFlow() {
 <style scoped>
 .flow-row { cursor: pointer; }
 .flow-row:hover td { background: var(--surface-2); }
-.flow-name { font-weight: 500; color: var(--blue-d); }
-.flow-desc { color: var(--ink-3); font-size: 11px; }
-.tbl-acts { display: flex; gap: 4px; }
+.tbl-link { color: var(--blue); text-decoration: none; font-weight: 500; }
+.tbl-link:hover { text-decoration: underline; }
+.tbl-sub { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
+.tbl-acts { display: flex; gap: 2px; }
 .tbl-empty { text-align: center; padding: 20px; color: var(--ink-4); font-size: 12px; }
 
 .fl-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }

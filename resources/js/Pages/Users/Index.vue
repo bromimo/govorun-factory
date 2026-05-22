@@ -162,7 +162,7 @@ const roles = [
 .tbl-row { cursor: pointer; }
 .tbl-name { font-weight: 500; color: var(--ink); }
 .tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
-.tbl-acts { display: flex; gap: 4px; }
+.tbl-acts { display: flex; gap: 2px; }
 
 .roles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .role-card { background: var(--surface); border: 1px solid var(--bdr); border-radius: var(--r-md); overflow: hidden; }

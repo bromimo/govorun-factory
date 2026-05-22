@@ -67,7 +67,7 @@ function doDestroy() {
                 <span v-if="c.auth_config_preview" class="auth-preview">{{ c.auth_config_preview }}</span>
             </td>
             <td>
-                <div style="display: flex; gap: 4px;">
+                <div class="tbl-acts">
                     <button class="tbl-act-btn" @click="openEdit(c)">Изменить</button>
                     <button class="tbl-act-btn tbl-act-btn--danger" @click="confirmConn = c">Удалить</button>
                 </div>
@@ -96,4 +96,5 @@ function doDestroy() {
 <style scoped>
 .tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
 .auth-preview { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: 6px; }
+.tbl-acts { display: flex; gap: 2px; }
 </style>
