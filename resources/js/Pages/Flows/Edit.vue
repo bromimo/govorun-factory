@@ -162,18 +162,15 @@ function clearCanvas() {
 <template>
     <Head :title="`Flow: ${flow.name}`" />
     <AuthenticatedLayout :flush="true">
-        <template #breadcrumbs>
-            <Link :href="route('dashboard')">Главная</Link>
-            <span class="sep">›</span>
-            <Link :href="route('bots.edit', bot.id)">{{ bot.name }}</Link>
-            <span class="sep">›</span>
-            <span>Флоу: {{ flow.name }}</span>
-        </template>
         <template #subbar>
             <div class="fl-toolbar">
-                <a :href="route('bots.edit', bot.id)" class="fl-back">← {{ bot.name }}</a>
-                <span class="fl-sep">/</span>
-                <span class="fl-title">{{ flow.name }}</span>
+                <nav class="fl-bcr">
+                    <Link :href="route('dashboard')">Главная</Link>
+                    <span class="sep">›</span>
+                    <Link :href="route('bots.edit', bot.id)">{{ bot.name }}</Link>
+                    <span class="sep">›</span>
+                    <span>Флоу: {{ flow.name }}</span>
+                </nav>
                 <div style="flex: 1;" />
                 <span class="save-state">
                     <template v-if="saving">Сохраняем…</template>
@@ -271,19 +268,24 @@ function clearCanvas() {
     gap: 6px;
     width: 100%;
 }
-.fl-back {
+.fl-bcr {
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--ink-3);
-    text-decoration: none;
-    padding: 0 4px;
     flex-shrink: 0;
 }
-.fl-back:hover { color: var(--ink); }
-.fl-sep { color: var(--bdr-d); font-size: 14px; padding: 0 2px; }
-.fl-title { font-size: 12px; font-weight: 600; color: var(--ink); }
+.fl-bcr a {
+    color: var(--blue);
+    text-decoration: none;
+}
+.fl-bcr a:hover {
+    text-decoration: underline;
+}
+.fl-bcr .sep {
+    color: var(--bdr-d);
+}
 .save-state {
     font-size: 11px;
     color: var(--ink-3);
