@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 
@@ -34,6 +34,12 @@ function hide() {
     visible.value = false;
 }
 
+onUnmounted(() => {
+    if (showTimerId !== null) {
+        clearTimeout(showTimerId);
+    }
+});
+
 const style = computed(() => ({
     top: `${position.value.top}px`,
     left: `${position.value.left}px`,
@@ -67,7 +73,7 @@ const style = computed(() => ({
     </Teleport>
 </template>
 
-<style scoped>
+<style>
 .er-tip-trigger {
     display: inline-block;
 }
