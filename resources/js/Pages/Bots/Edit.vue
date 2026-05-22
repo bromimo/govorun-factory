@@ -5,23 +5,14 @@ import { Head, Link, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import { useToast } from '@/composables/useToast'
 import Modal from '@/Components/Modal.vue'
+import BotSidebar from '@/Components/Bots/BotSidebar.vue'
 import SettingsForm from '@/Components/Bots/SettingsForm.vue'
 import MessengerConfigForm from '@/Components/Bots/MessengerConfigForm.vue'
 import RouteList from '@/Components/Routes/RouteList.vue'
 import FlowList from '@/Components/Flows/FlowList.vue'
 import ValidationMessagesForm from '@/Components/Bots/ValidationMessagesForm.vue'
 import MediaLibrary from '@/Components/Bots/MediaLibrary.vue'
-import {
-    Settings,
-    Route,
-    Workflow,
-    ShieldCheck,
-    MessageSquare,
-    Image,
-    Plug,
-    Download,
-    Trash2,
-} from 'lucide-vue-next'
+import { Download, Trash2 } from 'lucide-vue-next'
 
 const props = defineProps({
     bot: Object,
@@ -34,30 +25,6 @@ const activeTab = ref('settings')
 const exportErrors = ref([])
 const confirmingDeletion = ref(false)
 
-const sidebarGroups = [
-    {
-        label: 'Конфигурация',
-        items: [
-            { key: 'settings', label: 'Основные', icon: Settings },
-            { key: 'messengers', label: 'Мессенджеры', icon: MessageSquare },
-            { key: 'validation', label: 'Валидация', icon: ShieldCheck },
-        ],
-    },
-    {
-        label: 'Контент',
-        items: [
-            { key: 'routes', label: 'Маршруты', icon: Route, count: () => props.bot.routes?.length ?? 0 },
-            { key: 'flows', label: 'Flow-диалоги', icon: Workflow, count: () => props.bot.flows?.length ?? 0 },
-            { key: 'media', label: 'Медиатека', icon: Image },
-        ],
-    },
-    {
-        label: 'Интеграции',
-        items: [
-            { key: 'connections', label: 'Подключения', icon: Plug, link: () => route('bot-connections.index', props.bot.id) },
-        ],
-    },
-]
 
 function exportBot() {
     exportErrors.value = []
@@ -93,34 +60,7 @@ function deleteBot() {
             <span>{{ bot.name }}</span>
         </template>
         <template #sidebar>
-            <div
-                v-for="group in sidebarGroups"
-                :key="group.label"
-                class="side-group"
-            >
-                <div class="side-grp-h">{{ group.label }}</div>
-                <template v-for="item in group.items" :key="item.key">
-                    <Link
-                        v-if="item.link"
-                        :href="item.link()"
-                        class="side-item"
-                        :class="{ act: route().current('bot-connections.*') }"
-                    >
-                        <component :is="item.icon" :size="13" class="side-icon" />
-                        {{ item.label }}
-                    </Link>
-                    <button
-                        v-else
-                        class="side-item"
-                        :class="{ act: activeTab === item.key }"
-                        @click="activeTab = item.key"
-                    >
-                        <component :is="item.icon" :size="13" class="side-icon" />
-                        {{ item.label }}
-                        <span v-if="item.count" class="side-cnt">{{ item.count() }}</span>
-                    </button>
-                </template>
-            </div>
+            <BotSidebar :bot="bot" :active-key="activeTab" :on-tab-change="(key) => activeTab = key" />
         </template>
 
         <template #actions>
@@ -158,42 +98,6 @@ function deleteBot() {
 </template>
 
 <style scoped>
-.side-group { padding: 0; }
-.side-grp-h {
-    padding: 6px 10px 5px;
-    font-size: 9px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    color: var(--ink-3);
-    background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
-    border-top: 1px solid var(--bdr-l);
-    border-bottom: 1px solid var(--bdr-l);
-}
-.side-item {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    width: 100%;
-    padding: 5px 12px 5px 12px;
-    color: var(--ink-2);
-    cursor: pointer;
-    font-size: 12px;
-    border-left: 3px solid transparent;
-    background: none;
-    border-top: none;
-    border-right: none;
-    border-bottom: none;
-    font-family: var(--font);
-    text-align: left;
-    text-decoration: none;
-}
-.side-item:hover { background: var(--surface-3); }
-.side-item.act { background: var(--blue-soft); color: var(--blue-d); font-weight: 600; border-left-color: var(--blue); }
-.side-icon { flex-shrink: 0; opacity: .65; }
-.side-item.act .side-icon { opacity: 1; }
-.side-cnt { font-size: 10px; color: var(--ink-4); font-family: var(--mono); margin-left: auto; }
-
 .export-errors { background: var(--red-soft); border: 1px solid #e0a8a8; border-radius: var(--r-md); padding: 8px 12px; margin-bottom: 12px; font-size: 12px; color: var(--red); }
 .modal-body { padding: 16px 20px 20px; }
 .modal-desc { font-size: 12px; color: var(--ink-2); margin: 0 0 20px; }
