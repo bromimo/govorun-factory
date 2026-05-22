@@ -87,7 +87,12 @@ function clear() {
             </label>
         </div>
 
-        <KeyboardPreview :model-value="buttons" :keyboard-type="keyboardType" />
+        <KeyboardPreview
+            :model-value="buttons"
+            :keyboard-type="keyboardType"
+            @update:model-value="buttons = $event"
+            @open-full="editorOpen = true"
+        />
 
         <button type="button" @click="editorOpen = true" class="er-btn sm">
             {{ hasButtons ? 'Редактировать клавиатуру' : 'Добавить кнопки' }}
