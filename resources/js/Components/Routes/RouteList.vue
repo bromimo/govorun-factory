@@ -163,7 +163,12 @@ function changeRouteStatus(r, value) {
         })
         .catch((err) => {
             r.status = old;
-            const errors = err.response?.data?.errors ?? ['Не удалось сменить статус'];
+            const rawErrors = err.response?.data?.errors;
+            const errors = Array.isArray(rawErrors)
+                ? rawErrors
+                : rawErrors && typeof rawErrors === 'object'
+                    ? Object.values(rawErrors).flat()
+                    : ['Не удалось сменить статус'];
             toast.error('Не удалось перевести в ' + value, { title: 'Ошибка валидации' });
             for (const e of errors.slice(0, 5)) toast.error(e);
             if (errors.length > 5) toast.error(`и ещё ${errors.length - 5} ошибок`);
