@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\EntityStatus;
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBotFlowRequest extends FormRequest
@@ -23,6 +25,7 @@ class StoreBotFlowRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'status' => ['sometimes', 'string', Rule::in(array_column(EntityStatus::cases(), 'value'))],
         ];
     }
 }

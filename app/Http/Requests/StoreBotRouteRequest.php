@@ -6,6 +6,7 @@ use Closure;
 use App\Enums\RouteType;
 use App\Models\BotRoute;
 use App\Enums\HandlerType;
+use App\Enums\EntityStatus;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -34,6 +35,7 @@ class StoreBotRouteRequest extends FormRequest
 
         return [
             'parent_id' => ['nullable', 'integer', 'exists:bot_routes,id'],
+            'status' => ['sometimes', 'string', Rule::in(array_column(EntityStatus::cases(), 'value'))],
             'type' => [
                 'required', 'string',
                 Rule::in(array_column(RouteType::cases(), 'value')),
