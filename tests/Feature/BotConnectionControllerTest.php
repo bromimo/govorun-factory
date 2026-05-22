@@ -23,7 +23,7 @@ it('index возвращает список подключений с маски
     ]);
 
     $response = $this->actingAs($this->admin)
-        ->get(route('bot-connections.index', $this->bot));
+        ->get(route('bots.edit', $this->bot));
 
     $response->assertOk();
     $page = $response->viewData('page');
