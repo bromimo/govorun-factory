@@ -36,7 +36,14 @@ const hasValidation = computed(() => !isCallback.value && (props.data.validation
 </script>
 
 <template>
-    <BaseNode :id="id" :type="type" :selected="selected" label="Вопрос" :has-validation="hasValidation">
+    <BaseNode
+        :id="id"
+        :type="type"
+        :selected="selected"
+        label="Вопрос"
+        :has-validation="hasValidation"
+        :validation-count="data.validation?.length ?? 0"
+    >
         <template #header-right>
             <span class="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
                 {{ isCallback ? 'Кнопка' : 'Текст' }}
