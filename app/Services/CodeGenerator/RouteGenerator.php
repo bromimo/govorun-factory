@@ -21,7 +21,7 @@ class RouteGenerator
             ->whereNull('parent_id')
             ->where('status', EntityStatus::Active->value)
             ->orderBy('sort_order')
-            ->with('children')
+            ->with(['children' => fn ($q) => $q->where('status', EntityStatus::Active->value)])
             ->get();
 
         $entries = [];

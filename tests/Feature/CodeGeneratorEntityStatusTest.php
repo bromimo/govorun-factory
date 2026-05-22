@@ -5,8 +5,8 @@ use App\Models\User;
 use App\Models\BotFlow;
 use App\Models\BotRoute;
 use Illuminate\Support\Facades\File;
-use App\Services\CodeGenerator\CodeGeneratorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Services\CodeGenerator\CodeGeneratorService;
 
 uses(RefreshDatabase::class);
 
@@ -61,12 +61,48 @@ test('inactive flows are excluded from generated flow classes', function () {
         'graph' => ['nodes' => [['id' => 'start', 'type' => 'start']], 'edges' => []],
         'status' => 'inactive',
     ]);
+    BotFlow::factory()->for($bot)->create([
+        'name' => 'DraftFlow',
+        'graph' => ['nodes' => [['id' => 'start', 'type' => 'start']], 'edges' => []],
+        'status' => 'draft',
+    ]);
 
     $dir = generateForStatusTest($bot);
     $files = collect(File::files("{$dir}/app/Flows"))->map(fn ($f) => $f->getFilename());
 
     expect($files)->toContain('ActiveFlow.php');
     expect($files)->not->toContain('InactiveFlow.php');
+    expect($files)->not->toContain('DraftFlow.php');
+
+    File::deleteDirectory($dir);
+});
+
+test('inactive child routes are excluded from generated routes file', function () {
+    $bot = Bot::factory()->for(User::factory()->admin(), 'creator')->create();
+
+    $parent = BotRoute::factory()->for($bot)->create([
+        'type' => 'phrase', 'match' => 'menu', 'controller_name' => 'Menu',
+        'handler_type' => 'controller', 'handler_schema' => ['blocks' => []],
+        'status' => 'active',
+    ]);
+    BotRoute::factory()->for($bot)->create([
+        'parent_id' => $parent->id, 'type' => 'phrase', 'match' => 'active-child',
+        'controller_name' => 'ActiveChild',
+        'handler_type' => 'controller', 'handler_schema' => ['blocks' => []],
+        'status' => 'active',
+    ]);
+    BotRoute::factory()->for($bot)->create([
+        'parent_id' => $parent->id, 'type' => 'phrase', 'match' => 'inactive-child',
+        'controller_name' => 'InactiveChild',
+        'handler_type' => 'controller', 'handler_schema' => ['blocks' => []],
+        'status' => 'inactive',
+    ]);
+
+    $dir = generateForStatusTest($bot);
+    $routesCode = File::get("{$dir}/routes/messenger.php");
+
+    expect($routesCode)->toContain('active-child');
+    expect($routesCode)->not->toContain('inactive-child');
 
     File::deleteDirectory($dir);
 });
