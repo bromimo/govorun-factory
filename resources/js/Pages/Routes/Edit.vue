@@ -1,19 +1,22 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import ErInput from '@/Components/Ui/ErInput.vue'
+import { useToast } from '@/composables/useToast'
+import ErButton from '@/Components/Ui/ErButton.vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useForm, Head, Link } from '@inertiajs/vue3'
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import BlockList from '@/Components/Routes/BlockList.vue'
 import ToggleGroup from '@/Components/Ui/ToggleGroup.vue'
-import ErButton from '@/Components/Ui/ErButton.vue'
-import ErInput from '@/Components/Ui/ErInput.vue'
+import StatusBadge from '@/Components/Ui/StatusBadge.vue'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { toCamelCase, toPascalCase, sanitizeIdentifier, identifierWarning } from '@/utils/translit'
 
 const props = defineProps({
-    bot:         Object,
-    botRoute:    Object,
-    flows:       Array,
-    hasChildren: Boolean,
-    can:         Object,
+    bot:                  Object,
+    botRoute:             Object,
+    flows:                Array,
+    hasChildren:          Boolean,
+    can:                  Object,
+    auto_drafted_reasons: Array,
 })
 
 const isNested       = computed(() => !!props.botRoute.parent_id)
@@ -119,7 +122,32 @@ function submit() {
     form.put(route('bot-routes.update', [props.bot.id, props.botRoute.id]))
 }
 
+const toast = useToast()
+
+function changeStatus(value) {
+    window.axios.patch(
+        window.route('bot-routes.change-status', [props.bot.id, props.botRoute.id]),
+        { status: value }
+    ).catch((err) => {
+        const rawErrors = err.response?.data?.errors
+        const errors = Array.isArray(rawErrors)
+            ? rawErrors
+            : rawErrors && typeof rawErrors === 'object'
+                ? Object.values(rawErrors).flat()
+                : ['Не удалось сменить статус']
+        for (const e of errors.slice(0, 5)) toast.error(e)
+        if (errors.length > 5) toast.error(`и ещё ${errors.length - 5} ошибок`)
+    })
+}
+
 const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
+
+onMounted(() => {
+    if (props.auto_drafted_reasons?.length) {
+        toast.warning('Маршрут переведён в черновик', { title: 'Автоматически' })
+        for (const reason of props.auto_drafted_reasons.slice(0, 3)) toast.warning(reason)
+    }
+})
 </script>
 
 <template>
@@ -146,6 +174,12 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
                 <div class="re-panel-head">
                     <span class="re-id">ID {{ botRoute.id }}</span>
                     <span v-if="isNested" class="re-badge">вложенный</span>
+                    <StatusBadge
+                        v-if="can.update"
+                        :status="botRoute.status"
+                        @change="changeStatus"
+                    />
+                    <span v-else class="re-badge">{{ botRoute.status }}</span>
                 </div>
 
                 <div v-if="!isNested" class="re-field">
