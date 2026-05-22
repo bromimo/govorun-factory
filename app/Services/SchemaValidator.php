@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\Bot;
 use App\Models\BotFlow;
 use App\Models\BotRoute;
+use App\Enums\RouteType;
 use App\Models\BotConnection;
+use App\Enums\HandlerType;
 use App\Services\CodeGenerator\FlowGenerator;
 
 /** Валидатор схемы бота перед экспортом. */
@@ -101,11 +103,11 @@ class SchemaValidator
         $label = $route->match ? "«{$route->match}»" : "#{$route->id}";
 
         $isParentPhrase = is_null($route->parent_id)
-            && $route->type === 'phrase'
+            && $route->type === RouteType::Phrase
             && $route->children->isNotEmpty();
 
         if (! $isParentPhrase) {
-            if (($route->handler_type ?? 'controller') === 'flow') {
+            if ($route->handler_type === HandlerType::Flow) {
                 if (empty($route->flow_id)) {
                     $errors[] = "Маршрут {$label}: не выбран диалог (handler_type = flow)";
                 }
