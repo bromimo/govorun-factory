@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { router, Head, Link } from '@inertiajs/vue3';
 import { Plus } from 'lucide-vue-next';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import BotSidebar from '@/Components/Bots/BotSidebar.vue';
 import ConnectionDrawer from '@/Components/Connections/ConnectionDrawer.vue';
 import ErTable from '@/Components/Ui/ErTable.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
@@ -55,11 +56,10 @@ function doDestroy() {
             <span class="sep">›</span>
             <span>Подключения</span>
         </template>
+        <template #sidebar>
+            <BotSidebar :bot="bot" active-key="connections" />
+        </template>
         <div class="page-wrap">
-            <div class="back-row">
-                <Link :href="route('bots.edit', bot.id)" class="back-link">← Назад к боту</Link>
-            </div>
-
             <ErTable>
                 <template #toolbar>
                     <ErButton variant="primary" size="sm" @click="openCreate">
@@ -117,9 +117,6 @@ function doDestroy() {
 
 <style scoped>
 .page-wrap { padding: 16px 20px; }
-.back-row { margin-bottom: 12px; }
-.back-link { font-size: 12px; color: var(--ink-3); text-decoration: none; }
-.back-link:hover { color: var(--ink); }
 .tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
 .auth-preview { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: 6px; }
 </style>
