@@ -3,6 +3,7 @@
 namespace App\Services\CodeGenerator;
 
 use App\Models\Bot;
+use App\Enums\EntityStatus;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 
@@ -41,7 +42,11 @@ class CodeGeneratorService
      */
     public function generate(Bot $bot, string $outputPath): void
     {
-        $bot->load(['routes.flow', 'flows', 'media']);
+        $bot->load([
+            'routes' => fn ($q) => $q->where('status', EntityStatus::Active->value)->with('flow'),
+            'flows' => fn ($q) => $q->where('status', EntityStatus::Active->value),
+            'media',
+        ]);
 
         $this->buildFlowClassNames($bot);
         $mediaMap = $this->buildMediaMap($bot);
@@ -126,7 +131,12 @@ class CodeGeneratorService
     {
         File::ensureDirectoryExists("{$outputPath}/app/Controllers");
 
-        $topRoutes = $bot->routes()->whereNull('parent_id')->orderBy('sort_order')->with('children')->get();
+        $topRoutes = $bot->routes()
+            ->whereNull('parent_id')
+            ->where('status', EntityStatus::Active->value)
+            ->orderBy('sort_order')
+            ->with(['children' => fn ($q) => $q->where('status', EntityStatus::Active->value)])
+            ->get();
 
         foreach ($topRoutes as $route) {
             if ($route->children->isNotEmpty()) {

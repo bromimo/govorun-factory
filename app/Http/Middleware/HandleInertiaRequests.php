@@ -37,6 +37,7 @@ class HandleInertiaRequests extends Middleware
             'plugins' => fn () => Plugin::where('active', true)
                 ->select('id', 'name', 'description', 'block_schema', 'vue_component')
                 ->get(),
+            'auto_drafted_reasons' => fn () => $request->session()->get('auto_drafted_reasons'),
         ];
     }
 }

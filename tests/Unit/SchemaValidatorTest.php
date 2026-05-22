@@ -31,7 +31,7 @@ test('fails when bot has no routes', function () {
     $result = $validator->validate();
 
     expect($result->isValid())->toBeFalse();
-    expect($result->errors)->toContain('Бот должен иметь хотя бы один маршрут');
+    expect($result->errors)->toContain('Бот должен иметь хотя бы один активный маршрут');
 });
 
 test('fails when messenger config is empty', function () {

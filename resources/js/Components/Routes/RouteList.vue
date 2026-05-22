@@ -1,13 +1,15 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
-import { controllerBlockTypes } from '../Blocks/blockTypes.js';
 import RouteEditor from './RouteEditor.vue';
 import ErTable from '@/Components/Ui/ErTable.vue';
 import ErBadge from '@/Components/Ui/ErBadge.vue';
+import { useToast } from '@/composables/useToast';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import { GripVertical, Plus } from 'lucide-vue-next';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
+import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import { controllerBlockTypes } from '../Blocks/blockTypes.js';
 
 const props = defineProps({
     botId: Number,
@@ -143,6 +145,34 @@ const blockSummaries = computed(() => {
     }
     return map;
 });
+
+const toast = useToast();
+
+function changeRouteStatus(r, value) {
+    const old = r.status;
+    r.status = value;
+    window.axios.patch(window.route('bot-routes.change-status', [props.botId, r.id]), { status: value })
+        .then(({ data }) => {
+            if (data.cascaded_children?.length) {
+                for (const child of (r.children ?? [])) {
+                    if (data.cascaded_children.includes(child.id)) {
+                        child.status = 'inactive';
+                    }
+                }
+            }
+        })
+        .catch((err) => {
+            r.status = old;
+            const rawErrors = err.response?.data?.errors;
+            const errors = Array.isArray(rawErrors)
+                ? rawErrors
+                : rawErrors && typeof rawErrors === 'object'
+                    ? Object.values(rawErrors).flat()
+                    : ['Не удалось сменить статус'];
+            for (const e of errors.slice(0, 5)) toast.error(e);
+            if (errors.length > 5) toast.error(`и ещё ${errors.length - 5} ошибок`);
+        });
+}
 </script>
 
 <template>
@@ -208,7 +238,7 @@ const blockSummaries = computed(() => {
                             <span v-else>{{ r.handler_type }}</span>
                         </td>
                         <td>
-                            <ErBadge color="gr" dot>активен</ErBadge>
+                            <StatusBadge :status="r.status" :disabled="!canUpdate" @change="(v) => changeRouteStatus(r, v)" />
                         </td>
                         <td>
                             <div v-if="canUpdate" class="tbl-acts">
@@ -244,7 +274,7 @@ const blockSummaries = computed(() => {
                             <span v-else>{{ child.handler_type }}</span>
                         </td>
                         <td>
-                            <ErBadge color="gr" dot>активен</ErBadge>
+                            <StatusBadge :status="child.status" :disabled="!canUpdate" @change="(v) => changeRouteStatus(child, v)" />
                         </td>
                         <td>
                             <div v-if="canUpdate" class="tbl-acts">
