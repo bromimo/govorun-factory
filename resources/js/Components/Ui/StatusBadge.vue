@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import ErBadge from '@/Components/Ui/ErBadge.vue';
 
 const props = defineProps({
@@ -9,7 +9,8 @@ const props = defineProps({
 const emit = defineEmits(['change']);
 
 const open = ref(false);
-const root = ref(null);
+const btnRef = ref(null);
+const popupStyle = ref({});
 
 const meta = {
     active:   { label: 'активен',   color: 'gr', dot: true  },
@@ -23,6 +24,15 @@ const options = ['active', 'inactive', 'draft'];
 
 function toggle() {
     if (props.disabled) return;
+    if (!open.value) {
+        const rect = btnRef.value.getBoundingClientRect();
+        popupStyle.value = {
+            position: 'fixed',
+            top: (rect.bottom + 4) + 'px',
+            left: rect.left + 'px',
+            minWidth: '140px',
+        };
+    }
     open.value = !open.value;
 }
 
@@ -33,14 +43,16 @@ function pick(value) {
 }
 
 function onDocClick(e) {
-    if (root.value && !root.value.contains(e.target)) open.value = false;
+    if (btnRef.value && !btnRef.value.contains(e.target)) open.value = false;
 }
 function onEsc(e) {
     if (e.key === 'Escape') open.value = false;
 }
 
-document.addEventListener('click', onDocClick);
-document.addEventListener('keydown', onEsc);
+onMounted(() => {
+    document.addEventListener('click', onDocClick);
+    document.addEventListener('keydown', onEsc);
+});
 onBeforeUnmount(() => {
     document.removeEventListener('click', onDocClick);
     document.removeEventListener('keydown', onEsc);
@@ -48,25 +60,27 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <span ref="root" class="sb-host">
-        <button type="button" class="sb-btn" :disabled="disabled" @click.stop="toggle">
+    <span class="sb-host">
+        <button ref="btnRef" type="button" class="sb-btn" :disabled="disabled" @click.stop="toggle">
             <ErBadge :color="current.color" :dot="current.dot">
                 {{ current.label }}<span v-if="!disabled" class="sb-arr">▾</span>
             </ErBadge>
         </button>
-        <div v-if="open" class="sb-popup">
-            <button
-                v-for="opt in options"
-                :key="opt"
-                type="button"
-                class="sb-item"
-                @click.stop="pick(opt)"
-            >
-                <span class="sb-ic" :class="meta[opt].color"></span>
-                {{ meta[opt].label }}
-                <span v-if="opt === status" class="sb-check">✓</span>
-            </button>
-        </div>
+        <Teleport to="body">
+            <div v-if="open" class="sb-popup" :style="popupStyle" @click.stop>
+                <button
+                    v-for="opt in options"
+                    :key="opt"
+                    type="button"
+                    class="sb-item"
+                    @click.stop="pick(opt)"
+                >
+                    <span class="sb-ic" :class="meta[opt].color"></span>
+                    {{ meta[opt].label }}
+                    <span v-if="opt === status" class="sb-check">✓</span>
+                </button>
+            </div>
+        </Teleport>
     </span>
 </template>
 
@@ -75,11 +89,13 @@ onBeforeUnmount(() => {
 .sb-btn { background: none; border: 0; padding: 0; cursor: pointer; }
 .sb-btn:disabled { cursor: default; }
 .sb-arr { font-size: 8px; opacity: .7; margin-left: 4px; }
+</style>
+
+<style>
 .sb-popup {
-    position: absolute; top: calc(100% + 4px); left: 0;
-    min-width: 140px; background: #fff;
+    background: #fff;
     border: 1px solid var(--bdr); border-radius: var(--r-md);
-    box-shadow: var(--sh-md); padding: 4px; z-index: 10;
+    box-shadow: var(--sh-md); padding: 4px; z-index: 9999;
 }
 .sb-item {
     display: flex; align-items: center; gap: 8px;
