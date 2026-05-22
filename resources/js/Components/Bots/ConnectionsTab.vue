@@ -48,6 +48,8 @@ function doDestroy() {
         </template>
         <template #thead>
             <tr>
+                <th style="width: 28px;"><input type="checkbox" /></th>
+                <th style="width: 48px;">ID</th>
                 <th>Название</th>
                 <th>Slug</th>
                 <th>Base URL</th>
@@ -56,9 +58,11 @@ function doDestroy() {
             </tr>
         </template>
         <tr v-if="connections.length === 0">
-            <td colspan="5" style="text-align: center; color: var(--ink-3); padding: 24px;">Нет подключений</td>
+            <td colspan="7" style="text-align: center; color: var(--ink-3); padding: 24px;">Нет подключений</td>
         </tr>
         <tr v-for="c in connections" :key="c.id" @dblclick="openEdit(c)" style="cursor: pointer;">
+            <td><input type="checkbox" /></td>
+            <td class="tbl-mono">{{ c.id }}</td>
             <td>{{ c.name }}</td>
             <td class="tbl-mono">{{ c.slug }}</td>
             <td class="tbl-mono">{{ c.base_url }}</td>

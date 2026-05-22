@@ -113,6 +113,7 @@ function formatSize(bytes) {
                 <tr>
                     <th style="width: 32px;"><input type="checkbox" @change="toggleAll" /></th>
                     <th style="width: 8px;"></th>
+                    <th style="width: 48px;">ID</th>
                     <th>Название</th>
                     <th style="text-align: right;">Маршрутов</th>
                     <th style="text-align: right;">Диалогов</th>
@@ -121,7 +122,6 @@ function formatSize(bytes) {
                     <th style="text-align: right;">Размер медиа</th>
                     <th>Владелец</th>
                     <th>Обновлён</th>
-                    <th style="width: 60px;"></th>
                 </tr>
             </template>
 
@@ -143,6 +143,7 @@ function formatSize(bytes) {
             >
                 <td><input type="checkbox" :checked="selected.has(bot.id)" @change="toggleRow(bot.id)" /></td>
                 <td><span class="status-dot"></span></td>
+                <td class="tbl-mono">{{ bot.id }}</td>
                 <td>
                     <Link :href="route('bots.edit', bot.id)" class="tbl-link">{{ bot.name }}</Link>
                     <div v-if="bot.description" class="tbl-sub">{{ bot.description }}</div>
@@ -154,11 +155,6 @@ function formatSize(bytes) {
                 <td class="tbl-num tbl-muted">{{ formatSize(bot.used_media_size) }}</td>
                 <td class="tbl-muted">{{ bot.updater?.name ?? '—' }}</td>
                 <td class="tbl-mono">{{ formatDate(bot.updated_at) }}</td>
-                <td>
-                    <div class="tbl-acts">
-                        <Link :href="route('bots.edit', bot.id)" class="tbl-act-btn">Открыть</Link>
-                    </div>
-                </td>
             </tr>
 
             <template #paging>

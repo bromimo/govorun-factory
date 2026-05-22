@@ -78,6 +78,8 @@ function doDeleteFlow() {
 
             <template #thead>
                 <tr>
+                    <th style="width: 28px;"><input type="checkbox" /></th>
+                    <th style="width: 48px;">ID</th>
                     <th>Название</th>
                     <th style="width: 80px;"></th>
                 </tr>
@@ -90,13 +92,14 @@ function doDeleteFlow() {
                     class="flow-row"
                     @dblclick="goToFlow(f)"
                 >
+                    <td><input type="checkbox" /></td>
+                    <td class="tbl-mono">{{ f.id }}</td>
                     <td>
                         <Link :href="route('bot-flows.show', [botId, f.id])" class="tbl-link">{{ f.name }}</Link>
                         <div v-if="f.description" class="tbl-sub">{{ f.description }}</div>
                     </td>
                     <td>
                         <div class="tbl-acts">
-                            <Link :href="route('bot-flows.show', [botId, f.id])" class="tbl-act-btn">Открыть</Link>
                             <button v-if="canUpdate" class="tbl-act-btn" @click.stop="openEdit(f)">Изменить</button>
                             <button v-if="canUpdate" class="tbl-act-btn tbl-act-btn--danger" @click.stop="deleteFlow(f)">Удалить</button>
                         </div>
@@ -104,7 +107,7 @@ function doDeleteFlow() {
                 </tr>
             </template>
             <tr v-else>
-                <td colspan="2" class="tbl-empty">Нет диалогов</td>
+                <td colspan="4" class="tbl-empty">Нет диалогов</td>
             </tr>
 
             <template #paging>
