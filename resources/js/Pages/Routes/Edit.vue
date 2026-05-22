@@ -123,21 +123,27 @@ function submit() {
 }
 
 const toast = useToast()
+const localStatus = ref(props.botRoute.status)
 
 function changeStatus(value) {
     window.axios.patch(
         window.route('bot-routes.change-status', [props.bot.id, props.botRoute.id]),
         { status: value }
-    ).catch((err) => {
-        const rawErrors = err.response?.data?.errors
-        const errors = Array.isArray(rawErrors)
-            ? rawErrors
-            : rawErrors && typeof rawErrors === 'object'
-                ? Object.values(rawErrors).flat()
-                : ['Не удалось сменить статус']
-        for (const e of errors.slice(0, 5)) toast.error(e)
-        if (errors.length > 5) toast.error(`и ещё ${errors.length - 5} ошибок`)
-    })
+    )
+        .then(({ data }) => {
+            localStatus.value = data.status;
+            toast.success('Статус изменён');
+        })
+        .catch((err) => {
+            const rawErrors = err.response?.data?.errors
+            const errors = Array.isArray(rawErrors)
+                ? rawErrors
+                : rawErrors && typeof rawErrors === 'object'
+                    ? Object.values(rawErrors).flat()
+                    : ['Не удалось сменить статус']
+            for (const e of errors.slice(0, 5)) toast.error(e)
+            if (errors.length > 5) toast.error(`и ещё ${errors.length - 5} ошибок`)
+        })
 }
 
 const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
@@ -176,10 +182,10 @@ onMounted(() => {
                     <span v-if="isNested" class="re-badge">вложенный</span>
                     <StatusBadge
                         v-if="can.update"
-                        :status="botRoute.status"
+                        :status="localStatus"
                         @change="changeStatus"
                     />
-                    <span v-else class="re-badge">{{ botRoute.status }}</span>
+                    <span v-else class="re-badge">{{ localStatus }}</span>
                 </div>
 
                 <div v-if="!isNested" class="re-field">
