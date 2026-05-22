@@ -46,7 +46,7 @@ class BotFlowObserver
 
         DB::table('bot_flows')->where('id', $flow->id)->update([
             'blocks_count'     => count($nodes),
-            'ask_count'        => count(array_filter($nodes, fn ($n) => in_array($n['type'] ?? '', ['ask_text', 'ask_keyboard']))),
+            'ask_count'        => count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'ask')),
             'api_call_count'   => count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'api_call')),
             'used_media_count' => count($mediaIds),
             'used_media_size'  => $usedMediaSize,
