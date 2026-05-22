@@ -94,6 +94,7 @@ function save() {
     if (saving.value) return;
     saving.value = true;
     saved.value = false;
+    flowDirty.value = false;
 
     const graph = canvasRef.value.getGraph();
 
@@ -105,8 +106,10 @@ function save() {
         preserveState: true,
         onSuccess: () => {
             saved.value = true;
-            flowDirty.value = false;
             setTimeout(() => (saved.value = false), 2000);
+        },
+        onError: () => {
+            flowDirty.value = true;
         },
         onFinish: () => { saving.value = false; },
     });
