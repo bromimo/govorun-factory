@@ -59,7 +59,10 @@ class BotController extends Controller
         $this->authorize('view', $bot);
 
         $bot->load([
-            'routes' => fn ($q) => $q->whereNull('parent_id')->orderBy('sort_order')->with('children'),
+            'routes' => fn ($q) => $q->whereNull('parent_id')->orderBy('sort_order')->with([
+                'children' => fn ($q) => $q->with('flow:id,name'),
+                'flow:id,name',
+            ]),
             'flows',
             'connections' => fn ($q) => $q->latest(),
         ]);

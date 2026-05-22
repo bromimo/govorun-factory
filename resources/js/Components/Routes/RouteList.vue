@@ -198,6 +198,7 @@ const blockSummaries = computed(() => {
                             <span v-if="blockSummaries[r.id]" :title="blockSummaries[r.id].full || undefined">
                                 {{ blockSummaries[r.id].label }}<span v-if="blockSummaries[r.id].short"> · {{ blockSummaries[r.id].short }}</span>
                             </span>
+                            <span v-else-if="r.handler_type === 'flow'">{{ r.flow?.name ?? 'flow' }}</span>
                             <span v-else>{{ r.handler_type }}</span>
                         </td>
                         <td>
@@ -233,6 +234,7 @@ const blockSummaries = computed(() => {
                             <span v-if="blockSummaries[child.id]" :title="blockSummaries[child.id].full || undefined">
                                 {{ blockSummaries[child.id].label }}<span v-if="blockSummaries[child.id].short"> · {{ blockSummaries[child.id].short }}</span>
                             </span>
+                            <span v-else-if="child.handler_type === 'flow'">{{ child.flow?.name ?? 'flow' }}</span>
                             <span v-else>{{ child.handler_type }}</span>
                         </td>
                         <td>
