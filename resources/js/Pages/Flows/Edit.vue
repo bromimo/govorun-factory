@@ -4,7 +4,9 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 import NodePalette from '@/Components/Flows/NodePalette.vue';
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import { useToast } from '@/composables/useToast';
+import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue';
 import KeyboardHints from '@/Components/Flows/KeyboardHints.vue';
 import NodeProperties from '@/Components/Flows/NodeProperties.vue';
 import EdgeProperties from '@/Components/Flows/EdgeProperties.vue';
@@ -16,14 +18,20 @@ const props = defineProps({
     bot: Object,
     flow: Object,
     can: Object,
+    auto_drafted_reasons: Array,
 });
 
+const toast = useToast();
 const canvasRef = ref(null);
 const saving = ref(false);
 const saved = ref(false);
 const flowDirty = ref(false);
 const showDirtyGuard = ref(false);
 let dirtyResume = null;
+
+const localFlowStatus = ref(props.flow.status);
+const statusImpactRoutes = ref([]);
+const pendingStatusValue = ref(null);
 
 useDirtyGuard(() => flowDirty.value, (resume) => {
     dirtyResume = resume;
@@ -134,9 +142,64 @@ function save() {
 
 const saveDebounced = debounce(save, 500);
 
+watch(() => props.auto_drafted_reasons, (reasons) => {
+    if (reasons?.length) {
+        toast.warning('Флоу переведён в черновик', { title: 'Автоматически' });
+        for (const reason of reasons.slice(0, 3)) toast.warning(reason);
+        localFlowStatus.value = 'draft';
+    }
+});
+
 function handleSave() {
     saveDebounced.cancel();
     save();
+}
+
+async function requestStatusChange(value) {
+    if (value === 'inactive' || value === 'draft') {
+        try {
+            const { data } = await window.axios.get(
+                window.route('bot-flows.status-impact', [props.bot.id, props.flow.id])
+            );
+            statusImpactRoutes.value = data.affected_routes ?? [];
+            pendingStatusValue.value = value;
+        } catch {
+            toast.error('Не удалось получить данные о влиянии');
+        }
+    } else {
+        applyStatus(value);
+    }
+}
+
+function applyStatus(value) {
+    const old = localFlowStatus.value;
+    localFlowStatus.value = value;
+    window.axios.patch(
+        window.route('bot-flows.change-status', [props.bot.id, props.flow.id]),
+        { status: value }
+    )
+        .then(({ data }) => {
+            localFlowStatus.value = data.status;
+            toast.success('Статус изменён');
+        })
+        .catch((err) => {
+            localFlowStatus.value = old;
+            const rawErrors = err.response?.data?.errors;
+            const errors = Array.isArray(rawErrors)
+                ? rawErrors
+                : rawErrors && typeof rawErrors === 'object'
+                    ? Object.values(rawErrors).flat()
+                    : ['Не удалось сменить статус'];
+            for (const e of errors.slice(0, 5)) toast.error(e);
+            if (errors.length > 5) toast.error(`и ещё ${errors.length - 5} ошибок`);
+        });
+    statusImpactRoutes.value = [];
+    pendingStatusValue.value = null;
+}
+
+function cancelStatusChange() {
+    statusImpactRoutes.value = [];
+    pendingStatusValue.value = null;
 }
 
 onMounted(() => document.body.classList.add('overflow-hidden'));
@@ -171,6 +234,12 @@ function clearCanvas() {
                     <span class="sep">›</span>
                     <span>Флоу: {{ flow.name }}</span>
                 </nav>
+                <StatusBadge
+                    v-if="can.update"
+                    :status="localFlowStatus"
+                    @change="requestStatusChange"
+                />
+                <span v-else class="save-state" style="font-size:11px">{{ localFlowStatus }}</span>
                 <div style="flex: 1;" />
                 <span class="save-state">
                     <template v-if="saving">Сохраняем…</template>
@@ -250,6 +319,16 @@ function clearCanvas() {
             variant="danger"
             @confirm="clearCanvas"
             @cancel="showClearModal = false"
+        />
+
+        <ConfirmModal
+            :show="!!pendingStatusValue"
+            title="Сменить статус диалога?"
+            :message="statusImpactRoutes.length
+                ? `${statusImpactRoutes.length} маршрут(ов) будут переведены в черновик.`
+                : 'Подтвердите смену статуса.'"
+            @confirm="applyStatus(pendingStatusValue)"
+            @cancel="cancelStatusChange"
         />
     </AuthenticatedLayout>
 </template>
