@@ -121,3 +121,21 @@ test('PUT on active route with empty handler auto-drops to draft', function () {
 
     expect($route->fresh()->status->value)->toBe('draft');
 });
+
+test('PUT on inactive route with empty handler auto-drops to draft', function () {
+    $route = BotRoute::factory()->for($this->bot)->create([
+        'type' => 'command', 'match' => '/start', 'controller_name' => 'Start',
+        'handler_type' => 'controller',
+        'handler_schema' => ['blocks' => [['type' => 'reply', 'params' => ['text' => 'ok']]]],
+        'status' => 'inactive',
+    ]);
+
+    $this->actingAs($this->admin)->put("/bots/{$this->bot->id}/routes/{$route->id}", [
+        'type' => 'command', 'match' => '/start',
+        'controller_name' => 'Start',
+        'handler_type' => 'controller',
+        'handler_schema' => ['blocks' => []],
+    ])->assertRedirect();
+
+    expect($route->fresh()->status->value)->toBe('draft');
+});

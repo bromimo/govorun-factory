@@ -59,7 +59,9 @@ class BotRouteController extends Controller
      */
     public function update(UpdateBotRouteRequest $request, Bot $bot, BotRoute $route)
     {
-        $route->update($this->sanitizeAliases($request->validated()));
+        // Статус меняется только через PATCH /status — убираем из validated данных
+        $data = array_diff_key($this->sanitizeAliases($request->validated()), ['status' => true]);
+        $route->update($data);
 
         if (in_array($route->status, [EntityStatus::Active, EntityStatus::Inactive], true)) {
             $result = (new SchemaValidator($bot))->validateSingleRoute($route->fresh());
