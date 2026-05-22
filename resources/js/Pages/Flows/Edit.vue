@@ -183,7 +183,7 @@ function clearCanvas() {
                 <ErButton size="sm" @click="fitView">Фит</ErButton>
                 <ErButton v-if="can.update" variant="danger" size="sm" :disabled="!hasNonStartNodes" @click="showClearModal = true">Очистить</ErButton>
                 <ErButton as="a" size="sm" :href="route('bots.edit', bot.id)">Выйти</ErButton>
-                <ErButton v-if="can.update" variant="primary" size="sm" :disabled="saving" @click="handleSave">
+                <ErButton v-if="can.update" variant="primary" size="sm" :disabled="saving || !flowDirty" @click="handleSave">
                     Сохранить
                 </ErButton>
             </div>
