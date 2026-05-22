@@ -1,7 +1,7 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
-import Modal from '@/Components/Modal.vue';
+import ErDrawer from '@/Components/Ui/ErDrawer.vue';
 import ToggleGroup from '@/Components/Ui/ToggleGroup.vue';
 import BlockList from './BlockList.vue';
 import { toCamelCase, toPascalCase, sanitizeIdentifier, identifierWarning } from '@/utils/translit';
@@ -148,10 +148,10 @@ function submit() {
 </script>
 
 <template>
-    <Modal
+    <ErDrawer
         :show="true"
         :title="(isEditing ? 'Редактировать' : 'Новый') + (isNested ? ' вложенный' : '') + ' маршрут'"
-        max-width="lg"
+        width="520px"
         @close="emit('close')"
     >
         <form id="route-form" @submit.prevent="submit" class="re-form">
@@ -262,7 +262,7 @@ function submit() {
                 </ErButton>
             </div>
         </form>
-    </Modal>
+    </ErDrawer>
 </template>
 
 <style scoped>
