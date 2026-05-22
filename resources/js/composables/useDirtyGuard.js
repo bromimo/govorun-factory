@@ -18,8 +18,9 @@ export function useDirtyGuard(isDirtyFn, message = 'Есть несохранё�
 
     window.addEventListener('beforeunload', onBeforeUnload);
 
-    const removeInertiaGuard = router.on('before', () => {
+    const removeInertiaGuard = router.on('before', (event) => {
         if (!isDirtyFn()) return true;
+        if (event?.detail?.visit?.method !== 'get') return true;
         return window.confirm(message);
     });
 
