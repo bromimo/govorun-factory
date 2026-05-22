@@ -7,9 +7,10 @@ import { router } from '@inertiajs/vue3';
  * пока isDirtyFn() возвращает true.
  *
  * @param {() => boolean} isDirtyFn — функция-предикат
- * @param {string} [message] — текст подтверждения для internal-навигации
+ * @param {(resume: () => void) => void} onBlocked — вызывается при блокировке навигации;
+ *   resume() нужно вызвать если пользователь подтвердил уход
  */
-export function useDirtyGuard(isDirtyFn, message = 'Есть несохранённые изменения. Уйти?') {
+export function useDirtyGuard(isDirtyFn, onBlocked) {
     function onBeforeUnload(e) {
         if (!isDirtyFn()) return;
         e.preventDefault();
@@ -18,10 +19,22 @@ export function useDirtyGuard(isDirtyFn, message = 'Есть несохранё�
 
     window.addEventListener('beforeunload', onBeforeUnload);
 
+    let resuming = false;
+
     const removeInertiaGuard = router.on('before', (event) => {
+        if (resuming) {
+            resuming = false;
+            return true;
+        }
         if (!isDirtyFn()) return true;
         if (event?.detail?.visit?.method !== 'get') return true;
-        return window.confirm(message);
+
+        const url = event.detail.visit.url.href;
+        onBlocked(() => {
+            resuming = true;
+            router.visit(url);
+        });
+        return false;
     });
 
     onBeforeUnmount(() => {

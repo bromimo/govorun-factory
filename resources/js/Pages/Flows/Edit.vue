@@ -22,8 +22,25 @@ const canvasRef = ref(null);
 const saving = ref(false);
 const saved = ref(false);
 const flowDirty = ref(false);
+const showDirtyGuard = ref(false);
+let dirtyResume = null;
 
-useDirtyGuard(() => flowDirty.value);
+useDirtyGuard(() => flowDirty.value, (resume) => {
+    dirtyResume = resume;
+    showDirtyGuard.value = true;
+});
+
+function confirmDirtyGuard() {
+    showDirtyGuard.value = false;
+    dirtyResume?.();
+    dirtyResume = null;
+}
+
+function cancelDirtyGuard() {
+    showDirtyGuard.value = false;
+    dirtyResume = null;
+}
+
 const description = ref(props.flow.description ?? '');
 const panelWidth = ref(360);
 const resizing = ref(false);
@@ -217,6 +234,16 @@ function clearCanvas() {
                 />
             </div>
         </div>
+
+        <ConfirmModal
+            :show="showDirtyGuard"
+            title="Несохранённые изменения"
+            message="Есть несохранённые изменения. Уйти без сохранения?"
+            confirm-label="Уйти"
+            variant="default"
+            @confirm="confirmDirtyGuard"
+            @cancel="cancelDirtyGuard"
+        />
 
         <ConfirmModal
             :show="showClearModal"
