@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EntityStatus;
 use App\Observers\BotFlowObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,7 +18,7 @@ class BotFlow extends Model
 
     protected $fillable = [
         'bot_id', 'name', 'description', 'graph',
-        'interrupt_commands', 'interrupt_on_event',
+        'interrupt_commands', 'interrupt_on_event', 'status',
     ];
 
     /** Приведение атрибутов модели.
@@ -30,6 +31,7 @@ class BotFlow extends Model
             'graph' => 'array',
             'interrupt_commands' => 'array',
             'interrupt_on_event' => 'boolean',
+            'status' => EntityStatus::class,
         ];
     }
 
