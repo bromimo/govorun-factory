@@ -25,7 +25,7 @@ class SchemaValidator
      */
     public function validate(): ValidationResult
     {
-        $this->bot->load(['routes', 'flows']);
+        $this->bot->load(['routes' => fn ($q) => $q->with('children'), 'flows']);
         $errors = [];
 
         if ($this->bot->routes->isEmpty()) {
@@ -98,12 +98,30 @@ class SchemaValidator
      */
     private function validateRoute(BotRoute $route, array &$errors): void
     {
+        $label = $route->match ? "«{$route->match}»" : "#{$route->id}";
+
+        $isParentPhrase = is_null($route->parent_id)
+            && $route->type === 'phrase'
+            && $route->children->isNotEmpty();
+
+        if (! $isParentPhrase) {
+            if (($route->handler_type ?? 'controller') === 'flow') {
+                if (empty($route->flow_id)) {
+                    $errors[] = "Маршрут {$label}: не выбран диалог (handler_type = flow)";
+                }
+            } else {
+                if (empty($route->handler_schema['blocks'] ?? [])) {
+                    $errors[] = "Маршрут {$label}: нет ни одного блока в контроллере";
+                }
+            }
+        }
+
         $blocks = $route->handler_schema['blocks'] ?? [];
 
         foreach ($blocks as $index => $block) {
             $type = $block['type'] ?? '';
             $blockNum = $index + 1;
-            $where = "Маршрут «{$route->match}», блок #{$blockNum}";
+            $where = "Маршрут {$label}, блок #{$blockNum}";
 
             if (in_array($type, self::LEGACY_BLOCK_TYPES, true)) {
                 $errors[] = "Тип блока «{$type}» больше не поддерживается. Откройте маршрут в редакторе для миграции.";
