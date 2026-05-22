@@ -119,7 +119,7 @@ const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
         </template>
         <template #actions>
             <ErButton as="a" :href="backUrl">Назад</ErButton>
-            <ErButton v-if="can.update" variant="primary" :disabled="form.processing" @click="submit">Сохранить</ErButton>
+            <ErButton v-if="can.update" variant="primary" :disabled="form.processing || !form.isDirty" @click="submit">Сохранить</ErButton>
         </template>
 
         <form class="re-layout" @submit.prevent="submit">
