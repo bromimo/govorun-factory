@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
+use Inertia\Response;
 use App\Models\Bot;
 use App\Enums\RouteType;
 use App\Models\BotRoute;
@@ -13,6 +15,22 @@ use App\Http\Requests\ReorderBotRoutesRequest;
 
 class BotRouteController extends Controller
 {
+    /** Страница редактирования маршрута.
+     * @return Response
+     */
+    public function edit(Bot $bot, BotRoute $route): Response
+    {
+        $this->authorize('update', $bot);
+
+        return Inertia::render('Routes/Edit', [
+            'bot'         => $bot->only('id', 'name'),
+            'route'       => $route,
+            'flows'       => $bot->flows()->select('id', 'name')->get(),
+            'hasChildren' => $route->children()->exists(),
+            'can'         => ['update' => request()->user()->can('update', $bot)],
+        ]);
+    }
+
     /** Создание маршрута для бота.
      * @return RedirectResponse
      */
@@ -37,7 +55,7 @@ class BotRouteController extends Controller
     {
         $route->update($this->sanitizeAliases($request->validated()));
 
-        return redirect()->route('bots.edit', $bot);
+        return redirect()->route('bot-routes.edit', [$bot, $route]);
     }
 
     /** Очистить данные маршрута: алиасы и controller_name.
