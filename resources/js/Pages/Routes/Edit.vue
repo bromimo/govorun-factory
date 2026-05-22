@@ -1,7 +1,7 @@
 <script setup>
 import ErInput from '@/Components/Ui/ErInput.vue'
-import { useToast } from '@/composables/useToast'
 import ErButton from '@/Components/Ui/ErButton.vue'
+import { useToast } from '@/composables/useToast'
 import { ref, computed, watch, onMounted } from 'vue'
 import { useForm, Head, Link } from '@inertiajs/vue3'
 import BlockList from '@/Components/Routes/BlockList.vue'
