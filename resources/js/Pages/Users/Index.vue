@@ -104,6 +104,8 @@ const roles = [
             <ErTable>
                 <template #thead>
                     <tr>
+                        <th style="width: 28px;"><input type="checkbox" /></th>
+                        <th style="width: 48px;">ID</th>
                         <th>Имя</th>
                         <th>Email</th>
                         <th>Роль</th>
@@ -113,12 +115,14 @@ const roles = [
                 </template>
 
                 <tr v-if="filtered.length === 0">
-                    <td colspan="5">
+                    <td colspan="7">
                         <ErEmpty compact title="Пользователи не найдены" text="Попробуйте изменить запрос" />
                     </td>
                 </tr>
                 <tr v-for="user in filtered" :key="user.id" class="tbl-row"
                     @dblclick="router.visit(route('users.edit', user.id))">
+                    <td><input type="checkbox" /></td>
+                    <td class="tbl-mono">{{ user.id }}</td>
                     <td class="tbl-name">{{ user.name }}</td>
                     <td class="tbl-mono">{{ user.email }}</td>
                     <td>
@@ -162,7 +166,7 @@ const roles = [
 .tbl-row { cursor: pointer; }
 .tbl-name { font-weight: 500; color: var(--ink); }
 .tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
-.tbl-acts { display: flex; gap: 4px; }
+.tbl-acts { display: flex; gap: 2px; }
 
 .roles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .role-card { background: var(--surface); border: 1px solid var(--bdr); border-radius: var(--r-md); overflow: hidden; }

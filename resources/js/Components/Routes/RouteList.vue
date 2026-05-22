@@ -161,7 +161,7 @@ const blockSummaries = computed(() => {
                 <tr>
                     <th style="width: 24px;"></th>
                     <th style="width: 28px;"><input type="checkbox" /></th>
-                    <th style="width: 32px;">№</th>
+                    <th style="width: 48px;">ID</th>
                     <th>Тип</th>
                     <th>Паттерн / Команда</th>
                     <th>Обработчик</th>
@@ -189,7 +189,7 @@ const blockSummaries = computed(() => {
                             />
                         </td>
                         <td><input type="checkbox" /></td>
-                        <td class="tbl-mono">{{ index + 1 }}</td>
+                        <td class="tbl-mono">{{ route.id }}</td>
                         <td>
                             <ErBadge :color="routeBadgeColor(route.type)">{{ route.type }}</ErBadge>
                         </td>

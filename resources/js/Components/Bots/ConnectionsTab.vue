@@ -48,6 +48,8 @@ function doDestroy() {
         </template>
         <template #thead>
             <tr>
+                <th style="width: 28px;"><input type="checkbox" /></th>
+                <th style="width: 48px;">ID</th>
                 <th>Название</th>
                 <th>Slug</th>
                 <th>Base URL</th>
@@ -56,9 +58,11 @@ function doDestroy() {
             </tr>
         </template>
         <tr v-if="connections.length === 0">
-            <td colspan="5" style="text-align: center; color: var(--ink-3); padding: 24px;">Нет подключений</td>
+            <td colspan="7" style="text-align: center; color: var(--ink-3); padding: 24px;">Нет подключений</td>
         </tr>
         <tr v-for="c in connections" :key="c.id" @dblclick="openEdit(c)" style="cursor: pointer;">
+            <td><input type="checkbox" /></td>
+            <td class="tbl-mono">{{ c.id }}</td>
             <td>{{ c.name }}</td>
             <td class="tbl-mono">{{ c.slug }}</td>
             <td class="tbl-mono">{{ c.base_url }}</td>
@@ -67,7 +71,7 @@ function doDestroy() {
                 <span v-if="c.auth_config_preview" class="auth-preview">{{ c.auth_config_preview }}</span>
             </td>
             <td>
-                <div style="display: flex; gap: 4px;">
+                <div class="tbl-acts">
                     <button class="tbl-act-btn" @click="openEdit(c)">Изменить</button>
                     <button class="tbl-act-btn tbl-act-btn--danger" @click="confirmConn = c">Удалить</button>
                 </div>
@@ -96,4 +100,5 @@ function doDestroy() {
 <style scoped>
 .tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
 .auth-preview { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: 6px; }
+.tbl-acts { display: flex; gap: 2px; }
 </style>
