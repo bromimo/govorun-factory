@@ -48,6 +48,8 @@ Route::middleware('auth')->group(function () {
             Route::get('{flow}', [BotFlowController::class, 'show'])->name('bot-flows.show');
             Route::put('{flow}', [BotFlowController::class, 'update'])->name('bot-flows.update');
             Route::delete('{flow}', [BotFlowController::class, 'destroy'])->name('bot-flows.destroy');
+            Route::get('{flow}/status/impact', [BotFlowController::class, 'statusImpact'])->name('bot-flows.status-impact');
+            Route::patch('{flow}/status', [BotFlowController::class, 'changeStatus'])->name('bot-flows.change-status');
         });
 
         Route::prefix('{bot}/connections')->group(function () {
