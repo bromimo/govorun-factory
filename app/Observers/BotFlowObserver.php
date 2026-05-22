@@ -16,6 +16,7 @@ class BotFlowObserver
     public function saved(BotFlow $flow): void
     {
         $this->recomputeStats($flow);
+        Bot::recomputeMediaStats($flow->bot_id);
         $this->touchBot($flow->bot_id);
     }
 
@@ -23,6 +24,7 @@ class BotFlowObserver
      */
     public function deleted(BotFlow $flow): void
     {
+        Bot::recomputeMediaStats($flow->bot_id);
         $this->touchBot($flow->bot_id);
     }
 

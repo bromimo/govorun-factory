@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Observers\BotObserver;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -80,6 +81,29 @@ class Bot extends Model
     public function connections(): HasMany
     {
         return $this->hasMany(BotConnection::class);
+    }
+
+    /** Пересчитать и сохранить кешированную статистику медиа бота.
+     * Загружает свежие данные из БД, поэтому безопасен для вызова из обсерверов.
+     */
+    public static function recomputeMediaStats(int $botId): void
+    {
+        $bot = static::with([
+            'flows:id,bot_id,graph',
+            'routes:id,bot_id,handler_schema',
+        ])->find($botId);
+
+        if ($bot === null) {
+            return;
+        }
+
+        $ids = $bot->extractUsedMediaIds();
+        $size = empty($ids) ? 0 : BotMedia::whereIn('id', $ids)->sum('size');
+
+        DB::table('bots')->where('id', $botId)->update([
+            'used_media_count' => count($ids),
+            'used_media_size'  => $size,
+        ]);
     }
 
     /** Извлечь уникальные media_id, реально используемые в флоу и маршрутах.
