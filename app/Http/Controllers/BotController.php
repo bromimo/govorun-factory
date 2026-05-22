@@ -71,6 +71,8 @@ class BotController extends Controller
             'connections' => fn ($q) => $q->latest(),
         ]);
 
+        $this->attachFlowStats($bot->flows);
+
         return Inertia::render('Bots/Edit', [
             'bot' => $bot,
             'connections' => $bot->connections->map(fn ($c) => $c->toApiArray())->values(),
@@ -212,6 +214,52 @@ class BotController extends Controller
         imagedestroy($source);
 
         return $binary;
+    }
+
+    /** Добавить статистику нод к коллекции flow-диалогов.
+     *
+     * @param  \Illuminate\Support\Collection<int, \App\Models\BotFlow>  $flows
+     */
+    private function attachFlowStats(\Illuminate\Support\Collection $flows): void
+    {
+        $mediaIdsByFlow = [];
+
+        foreach ($flows as $flow) {
+            $nodes = $flow->graph['nodes'] ?? [];
+
+            $flow->blocks_count = count($nodes);
+            $flow->ask_count = count(array_filter($nodes, fn ($n) => in_array($n['type'] ?? '', ['ask_text', 'ask_keyboard'])));
+            $flow->api_call_count = count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'api_call'));
+
+            $mediaIds = [];
+            foreach ($nodes as $node) {
+                $id = data_get($node, 'data.media.media_id');
+                if ($id) {
+                    $mediaIds[] = (int) $id;
+                }
+            }
+            $mediaIdsByFlow[$flow->id] = array_unique($mediaIds);
+        }
+
+        $allIds = array_unique(array_merge(...array_values($mediaIdsByFlow) ?: [[]]));
+
+        if (empty($allIds)) {
+            foreach ($flows as $flow) {
+                $flow->used_media_count = 0;
+                $flow->used_media_size = 0;
+            }
+            return;
+        }
+
+        $mediaById = BotMedia::whereIn('id', $allIds)
+            ->get(['id', 'size'])
+            ->keyBy('id');
+
+        foreach ($flows as $flow) {
+            $ids = $mediaIdsByFlow[$flow->id];
+            $flow->used_media_count = count($ids);
+            $flow->used_media_size = collect($ids)->sum(fn ($id) => $mediaById[$id]?->size ?? 0);
+        }
     }
 
     /** Добавить статистику используемых медиа к коллекции ботов.

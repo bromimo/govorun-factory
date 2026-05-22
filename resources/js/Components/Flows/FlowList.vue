@@ -54,6 +54,13 @@ function save() {
     }
 }
 
+function formatSize(bytes) {
+    if (!bytes) return '—'
+    if (bytes < 1024) return bytes + ' Б'
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' КБ'
+    return (bytes / 1024 / 1024).toFixed(1) + ' МБ'
+}
+
 const confirmFlow = ref(null);
 
 function deleteFlow(flow) {
@@ -81,6 +88,11 @@ function doDeleteFlow() {
                     <th style="width: 28px;"><input type="checkbox" /></th>
                     <th style="width: 48px;">ID</th>
                     <th>Название</th>
+                    <th style="text-align: right;">Блоков</th>
+                    <th style="text-align: right;">Вопросов</th>
+                    <th style="text-align: right;">API</th>
+                    <th style="text-align: right;">Медиа</th>
+                    <th style="text-align: right;">Размер медиа</th>
                     <th style="width: 80px;"></th>
                 </tr>
             </template>
@@ -98,6 +110,11 @@ function doDeleteFlow() {
                         <Link :href="route('bot-flows.show', [botId, f.id])" class="tbl-link">{{ f.name }}</Link>
                         <div v-if="f.description" class="tbl-sub">{{ f.description }}</div>
                     </td>
+                    <td class="tbl-num">{{ f.blocks_count || '—' }}</td>
+                    <td class="tbl-num">{{ f.ask_count || '—' }}</td>
+                    <td class="tbl-num">{{ f.api_call_count || '—' }}</td>
+                    <td class="tbl-num">{{ f.used_media_count || '—' }}</td>
+                    <td class="tbl-num tbl-muted">{{ formatSize(f.used_media_size) }}</td>
                     <td>
                         <div class="tbl-acts">
                             <button v-if="canUpdate" class="tbl-act-btn" @click.stop="openEdit(f)">Изменить</button>
@@ -107,7 +124,7 @@ function doDeleteFlow() {
                 </tr>
             </template>
             <tr v-else>
-                <td colspan="4" class="tbl-empty">Нет диалогов</td>
+                <td colspan="9" class="tbl-empty">Нет диалогов</td>
             </tr>
 
             <template #paging>
@@ -167,6 +184,8 @@ function doDeleteFlow() {
 .tbl-link { color: var(--blue); text-decoration: none; font-weight: 500; }
 .tbl-link:hover { text-decoration: underline; }
 .tbl-sub { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
+.tbl-num { text-align: right; font-family: var(--mono); font-size: 12px; }
+.tbl-muted { color: var(--ink-2); }
 .tbl-acts { display: flex; gap: 2px; }
 .tbl-empty { text-align: center; padding: 20px; color: var(--ink-4); font-size: 12px; }
 
