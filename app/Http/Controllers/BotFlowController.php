@@ -59,10 +59,11 @@ class BotFlowController extends Controller
      */
     public function update(UpdateBotFlowRequest $request, Bot $bot, BotFlow $flow)
     {
+        $currentStatus = $flow->status;
         $data = array_diff_key($request->validated(), ['status' => true]);
         $flow->update($data);
 
-        if (in_array($flow->status, [EntityStatus::Active, EntityStatus::Inactive], true)) {
+        if (in_array($currentStatus, [EntityStatus::Active, EntityStatus::Inactive], true)) {
             $result = (new SchemaValidator($bot))->validateSingleFlow($flow->fresh());
             if (! empty($result->errors)) {
                 $flow->update(['status' => EntityStatus::Draft]);
@@ -91,7 +92,7 @@ class BotFlowController extends Controller
 
     /** Список маршрутов, которые будут затронуты при смене статуса flow на не-active.
      */
-    public function statusImpact(Request $request, Bot $bot, BotFlow $flow): JsonResponse
+    public function statusImpact(Bot $bot, BotFlow $flow): JsonResponse
     {
         $this->authorize('view', $bot);
 
