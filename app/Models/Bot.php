@@ -81,4 +81,34 @@ class Bot extends Model
     {
         return $this->hasMany(BotConnection::class);
     }
+
+    /** Извлечь уникальные media_id, реально используемые в флоу и маршрутах.
+     * Требует загруженных relations: flows, routes.
+     *
+     * @return array<int>
+     */
+    public function extractUsedMediaIds(): array
+    {
+        $ids = [];
+
+        foreach ($this->flows ?? [] as $flow) {
+            foreach ($flow->graph['nodes'] ?? [] as $node) {
+                $id = data_get($node, 'data.media.media_id');
+                if ($id) {
+                    $ids[] = (int) $id;
+                }
+            }
+        }
+
+        foreach ($this->routes ?? [] as $route) {
+            foreach ($route->handler_schema['blocks'] ?? [] as $block) {
+                $id = data_get($block, 'media.media_id');
+                if ($id) {
+                    $ids[] = (int) $id;
+                }
+            }
+        }
+
+        return array_unique($ids);
+    }
 }

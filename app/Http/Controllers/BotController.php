@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bot;
+use App\Models\BotMedia;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\Request;
@@ -23,11 +24,17 @@ class BotController extends Controller
     public function index(Request $request)
     {
         $bots = Bot::query()
-            ->with('updater:id,name')
-            ->withCount(['routes', 'flows'])
+            ->with([
+                'updater:id,name',
+                'flows:id,bot_id,graph',
+                'routes:id,bot_id,handler_schema',
+            ])
+            ->withCount(['routes', 'flows', 'connections'])
             ->when($request->search, fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
             ->latest('updated_at')
             ->get();
+
+        $this->attachUsedMediaStats($bots);
 
         return Inertia::render('Dashboard/Index', [
             'bots' => $bots,
@@ -205,5 +212,41 @@ class BotController extends Controller
         imagedestroy($source);
 
         return $binary;
+    }
+
+    /** Добавить статистику используемых медиа к коллекции ботов.
+     *
+     * @param  \Illuminate\Support\Collection<int, Bot>  $bots
+     */
+    private function attachUsedMediaStats(\Illuminate\Support\Collection $bots): void
+    {
+        $mediaIdsByBot = [];
+
+        foreach ($bots as $bot) {
+            $mediaIdsByBot[$bot->id] = $bot->extractUsedMediaIds();
+        }
+
+        $allIds = array_unique(array_merge(...array_values($mediaIdsByBot) ?: [[]]));
+
+        if (empty($allIds)) {
+            foreach ($bots as $bot) {
+                $bot->used_media_count = 0;
+                $bot->used_media_size = 0;
+            }
+            return;
+        }
+
+        $mediaByBotAndId = BotMedia::whereIn('id', $allIds)
+            ->get(['id', 'bot_id', 'size'])
+            ->groupBy('bot_id')
+            ->map(fn ($items) => $items->keyBy('id'));
+
+        foreach ($bots as $bot) {
+            $ids = $mediaIdsByBot[$bot->id];
+            $botMedia = $mediaByBotAndId[$bot->id] ?? collect();
+            $used = $botMedia->only($ids);
+            $bot->used_media_count = $used->count();
+            $bot->used_media_size = $used->sum('size');
+        }
     }
 }
