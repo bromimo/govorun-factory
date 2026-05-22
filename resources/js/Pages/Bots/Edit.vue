@@ -23,7 +23,7 @@ const props = defineProps({
 
 const toast = useToast()
 
-const activeTab = ref('settings')
+const activeTab = ref(new URLSearchParams(window.location.search).get('tab') ?? 'settings')
 const exportErrors = ref([])
 const confirmingDeletion = ref(false)
 

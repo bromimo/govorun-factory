@@ -167,7 +167,7 @@ function clearCanvas() {
                 <nav class="fl-bcr">
                     <Link :href="route('dashboard')">Главная</Link>
                     <span class="sep">›</span>
-                    <Link :href="route('bots.edit', bot.id)">{{ bot.name }}</Link>
+                    <Link :href="route('bots.edit', bot.id) + '?tab=flows'">{{ bot.name }}</Link>
                     <span class="sep">›</span>
                     <span>Флоу: {{ flow.name }}</span>
                 </nav>
@@ -179,7 +179,7 @@ function clearCanvas() {
                 <ErButton v-if="can.update" size="sm" @click="autoLayout">Авто</ErButton>
                 <ErButton size="sm" @click="fitView">Фит</ErButton>
                 <ErButton v-if="can.update" variant="danger" size="sm" :disabled="!hasNonStartNodes" @click="showClearModal = true">Очистить</ErButton>
-                <ErButton as="a" size="sm" :href="route('bots.edit', bot.id)">Выйти</ErButton>
+                <ErButton as="a" size="sm" :href="route('bots.edit', bot.id) + '?tab=flows'">Выйти</ErButton>
                 <ErButton v-if="can.update" variant="primary" size="sm" :disabled="saving || !flowDirty" @click="handleSave">
                     Сохранить
                 </ErButton>
