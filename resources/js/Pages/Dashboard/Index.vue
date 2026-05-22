@@ -147,10 +147,10 @@ function formatSize(bytes) {
                     <Link :href="route('bots.edit', bot.id)" class="tbl-link">{{ bot.name }}</Link>
                     <div v-if="bot.description" class="tbl-sub">{{ bot.description }}</div>
                 </td>
-                <td class="tbl-num">{{ bot.routes_count ?? 0 }}</td>
-                <td class="tbl-num">{{ bot.flows_count ?? 0 }}</td>
-                <td class="tbl-num">{{ bot.connections_count ?? 0 }}</td>
-                <td class="tbl-num">{{ bot.used_media_count ?? 0 }}</td>
+                <td class="tbl-num">{{ bot.routes_count || '—' }}</td>
+                <td class="tbl-num">{{ bot.flows_count || '—' }}</td>
+                <td class="tbl-num">{{ bot.connections_count || '—' }}</td>
+                <td class="tbl-num">{{ bot.used_media_count || '—' }}</td>
                 <td class="tbl-num tbl-muted">{{ formatSize(bot.used_media_size) }}</td>
                 <td class="tbl-muted">{{ bot.updater?.name ?? '—' }}</td>
                 <td class="tbl-mono">{{ formatDate(bot.updated_at) }}</td>
