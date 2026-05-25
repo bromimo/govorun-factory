@@ -2,19 +2,15 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Bot;
 use Illuminate\Foundation\Http\FormRequest;
 
 /** Запрос обновления настроек профиля Telegram-бота. */
 class UpdateTelegramProfileRequest extends FormRequest
 {
-    /** Авторизация: разрешено только тем, кто может update бота.
-     */
+    /** Авторизация: разрешено только тем, кто может update бота. */
     public function authorize(): bool
     {
-        $bot = $this->route('bot');
-
-        return $bot instanceof Bot && $this->user()->can('update', $bot);
+        return $this->user()->can('update', $this->route('bot'));
     }
 
     /** Правила валидации формы профиля Telegram.
