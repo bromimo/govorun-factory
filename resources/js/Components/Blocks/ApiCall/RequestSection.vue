@@ -122,7 +122,7 @@ function getPairId(pair) {
                     <option :value="null">— выбрать —</option>
                     <option v-for="c in connections" :key="c.id" :value="c.id">{{ c.name }}</option>
                 </select>
-                <a :href="route('bot-connections.index', botId)" target="_blank" class="er-btn sm">+ новое</a>
+                <a :href="route('bot-connections.create', botId)" target="_blank" class="er-btn sm">+ новое</a>
             </div>
         </div>
 

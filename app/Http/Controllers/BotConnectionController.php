@@ -6,6 +6,7 @@ use App\Models\Bot;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\BotConnection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreBotConnectionRequest;
 use App\Http\Requests\UpdateBotConnectionRequest;
@@ -13,6 +14,16 @@ use App\Http\Requests\UpdateBotConnectionRequest;
 /** CRUD подключений бота к внешним API. */
 class BotConnectionController extends Controller
 {
+    /** Список подключений бота (JSON, для flow-редактора). */
+    public function index(Bot $bot): JsonResponse
+    {
+        $this->authorize('view', $bot);
+
+        return response()->json([
+            'connections' => $bot->connections()->get()->map->toApiArray()->values(),
+        ]);
+    }
+
     /** Страница создания нового подключения. */
     public function create(Bot $bot): Response
     {
