@@ -1,34 +1,21 @@
 <script setup>
 import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { Plus } from 'lucide-vue-next';
 import ErTable from '@/Components/Ui/ErTable.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import ErBadge from '@/Components/Ui/ErBadge.vue';
 import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
-import ConnectionDrawer from '@/Components/Connections/ConnectionDrawer.vue';
 
 const props = defineProps({
     bot: Object,
     connections: Array,
 });
 
-const drawerOpen = ref(false);
-const editingConnection = ref(null);
 const confirmConn = ref(null);
 
-function openCreate() {
-    editingConnection.value = null;
-    drawerOpen.value = true;
-}
-
 function openEdit(connection) {
-    editingConnection.value = connection;
-    drawerOpen.value = true;
-}
-
-function onSaved() {
-    drawerOpen.value = false;
+    router.visit(route('bot-connections.edit', [props.bot.id, connection.id]));
 }
 
 function doDestroy() {
@@ -42,9 +29,11 @@ function doDestroy() {
 <template>
     <ErTable>
         <template #toolbar>
-            <ErButton variant="primary" size="sm" @click="openCreate">
-                <Plus :size="12" />Добавить подключение
-            </ErButton>
+            <Link :href="route('bot-connections.create', bot.id)">
+                <ErButton variant="primary" size="sm">
+                    <Plus :size="12" />Добавить подключение
+                </ErButton>
+            </Link>
         </template>
         <template #thead>
             <tr>
@@ -72,20 +61,12 @@ function doDestroy() {
             </td>
             <td>
                 <div class="tbl-acts">
-                    <button class="tbl-act-btn" @click="openEdit(c)">Изменить</button>
+                    <Link :href="route('bot-connections.edit', [bot.id, c.id])" class="tbl-act-btn">Изменить</Link>
                     <button class="tbl-act-btn tbl-act-btn--danger" @click="confirmConn = c">Удалить</button>
                 </div>
             </td>
         </tr>
     </ErTable>
-
-    <ConnectionDrawer
-        v-if="drawerOpen"
-        :bot="bot"
-        :connection="editingConnection"
-        @close="drawerOpen = false"
-        @saved="onSaved"
-    />
 
     <ConfirmModal
         :show="!!confirmConn"
