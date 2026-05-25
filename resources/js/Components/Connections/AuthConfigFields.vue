@@ -1,4 +1,7 @@
 <script setup>
+import ErInput from '@/Components/Ui/ErInput.vue';
+import ErSelect from '@/Components/Ui/ErSelect.vue';
+
 const props = defineProps({
     type: String,
     modelValue: Object,
@@ -13,78 +16,85 @@ function update(key, value) {
 </script>
 
 <template>
-    <div class="mt-3 space-y-2">
+    <div class="acf-wrap">
         <template v-if="type === 'api_key'">
-            <div>
-                <label class="text-xs text-gray-500">Название заголовка / параметра</label>
-                <input
-                    :value="modelValue.key ?? 'X-API-Key'"
-                    @input="update('key', $event.target.value)"
+            <div class="acf-field">
+                <label class="acf-lbl">Название заголовка / параметра</label>
+                <ErInput
+                    :modelValue="modelValue.key ?? 'X-API-Key'"
+                    @update:modelValue="update('key', $event)"
                     placeholder="X-API-Key"
-                    class="mt-1 w-full rounded border-gray-300 font-mono text-sm"
+                    long
                 />
             </div>
-            <div>
-                <label class="text-xs text-gray-500">Значение ключа</label>
-                <input
-                    :value="isEdit ? '' : (modelValue.value ?? '')"
-                    @input="update('value', $event.target.value)"
+            <div class="acf-field">
+                <label class="acf-lbl">Значение ключа</label>
+                <ErInput
+                    :modelValue="isEdit ? '' : (modelValue.value ?? '')"
+                    @update:modelValue="update('value', $event)"
                     :placeholder="isEdit ? 'Оставьте пустым — сохранится текущее значение' : 'Значение ключа'"
                     type="password"
-                    class="mt-1 w-full rounded border-gray-300 text-sm"
+                    long
                 />
-                <div v-if="errors['auth_config.value']" class="text-xs text-red-600 mt-1">{{ errors['auth_config.value'] }}</div>
+                <div v-if="errors['auth_config.value']" class="acf-err">{{ errors['auth_config.value'] }}</div>
             </div>
-            <div>
-                <label class="text-xs text-gray-500">Передавать в</label>
-                <select
-                    :value="modelValue.in ?? 'header'"
-                    @change="update('in', $event.target.value)"
-                    class="mt-1 w-full rounded border-gray-300 text-sm"
+            <div class="acf-field">
+                <label class="acf-lbl">Передавать в</label>
+                <ErSelect
+                    :modelValue="modelValue.in ?? 'header'"
+                    @update:modelValue="update('in', $event)"
                 >
                     <option value="header">Заголовке</option>
                     <option value="query">Query-параметре</option>
-                </select>
-                <div v-if="errors['auth_config.in']" class="text-xs text-red-600 mt-1">{{ errors['auth_config.in'] }}</div>
+                </ErSelect>
+                <div v-if="errors['auth_config.in']" class="acf-err">{{ errors['auth_config.in'] }}</div>
             </div>
         </template>
 
         <template v-else-if="type === 'bearer'">
-            <div>
-                <label class="text-xs text-gray-500">Bearer token</label>
-                <input
-                    :value="isEdit ? '' : (modelValue.token ?? '')"
-                    @input="update('token', $event.target.value)"
+            <div class="acf-field">
+                <label class="acf-lbl">Bearer token</label>
+                <ErInput
+                    :modelValue="isEdit ? '' : (modelValue.token ?? '')"
+                    @update:modelValue="update('token', $event)"
                     :placeholder="isEdit ? 'Оставьте пустым — сохранится текущий токен' : 'Bearer token'"
                     type="password"
-                    class="mt-1 w-full rounded border-gray-300 text-sm"
+                    long
                 />
-                <div v-if="errors['auth_config.token']" class="text-xs text-red-600 mt-1">{{ errors['auth_config.token'] }}</div>
-                <div v-if="isEdit" class="mt-1 text-xs text-gray-400">Пустое значение — оставить текущий токен</div>
+                <div v-if="errors['auth_config.token']" class="acf-err">{{ errors['auth_config.token'] }}</div>
+                <div v-if="isEdit" class="acf-hint">Пустое значение — оставить текущий токен</div>
             </div>
         </template>
 
         <template v-else-if="type === 'basic'">
-            <div>
-                <label class="text-xs text-gray-500">Логин</label>
-                <input
-                    :value="modelValue.login ?? ''"
-                    @input="update('login', $event.target.value)"
+            <div class="acf-field">
+                <label class="acf-lbl">Логин</label>
+                <ErInput
+                    :modelValue="modelValue.login ?? ''"
+                    @update:modelValue="update('login', $event)"
                     placeholder="Логин"
-                    class="mt-1 w-full rounded border-gray-300 text-sm"
+                    long
                 />
             </div>
-            <div>
-                <label class="text-xs text-gray-500">Пароль</label>
-                <input
-                    :value="isEdit ? '' : (modelValue.password ?? '')"
-                    @input="update('password', $event.target.value)"
+            <div class="acf-field">
+                <label class="acf-lbl">Пароль</label>
+                <ErInput
+                    :modelValue="isEdit ? '' : (modelValue.password ?? '')"
+                    @update:modelValue="update('password', $event)"
                     :placeholder="isEdit ? 'Оставьте пустым — сохранится текущий пароль' : 'Пароль'"
                     type="password"
-                    class="mt-1 w-full rounded border-gray-300 text-sm"
+                    long
                 />
-                <div v-if="errors['auth_config.password']" class="text-xs text-red-600 mt-1">{{ errors['auth_config.password'] }}</div>
+                <div v-if="errors['auth_config.password']" class="acf-err">{{ errors['auth_config.password'] }}</div>
             </div>
         </template>
     </div>
 </template>
+
+<style scoped>
+.acf-wrap { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.acf-field { display: flex; flex-direction: column; gap: 4px; }
+.acf-lbl { font-size: 11px; font-weight: 600; color: var(--ink-2); }
+.acf-hint { font-size: 11px; color: var(--ink-3); }
+.acf-err  { font-size: 11px; color: var(--red); }
+</style>
