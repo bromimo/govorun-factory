@@ -96,3 +96,69 @@ it('editor чужого бота получает 403', function () {
         ->put(route('bot-connections.update', [$otherBot, $conn]), ['name' => 'x'])
         ->assertForbidden();
 });
+
+it('create страница доступна admin', function () {
+    $this->actingAs($this->admin)
+        ->get(route('bot-connections.create', $this->bot))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Bots/Connections/Edit', false)
+            ->where('connection', null)
+            ->where('can.update', true)
+        );
+});
+
+it('edit страница загружает подключение', function () {
+    $conn = BotConnection::factory()->for($this->bot)->create(['name' => 'Bitrix']);
+
+    $this->actingAs($this->admin)
+        ->get(route('bot-connections.edit', [$this->bot, $conn]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Bots/Connections/Edit', false)
+            ->where('connection.id', $conn->id)
+            ->where('connection.name', 'Bitrix')
+            ->where('can.update', true)
+        );
+});
+
+it('edit возвращает 404 для подключения чужого бота', function () {
+    $otherBot = Bot::factory()->create();
+    $conn = BotConnection::factory()->for($otherBot)->create();
+
+    $this->actingAs($this->admin)
+        ->get(route('bot-connections.edit', [$this->bot, $conn]))
+        ->assertNotFound();
+});
+
+it('viewer на edit видит can.update = false', function () {
+    $viewer = User::factory()->create(['role' => UserRole::Viewer]);
+    $conn = BotConnection::factory()->for($this->bot)->create();
+
+    $this->actingAs($viewer)
+        ->get(route('bot-connections.edit', [$this->bot, $conn]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('can.update', false)
+        );
+});
+
+it('viewer не может открыть create', function () {
+    $viewer = User::factory()->create(['role' => UserRole::Viewer]);
+
+    $this->actingAs($viewer)
+        ->get(route('bot-connections.create', $this->bot))
+        ->assertForbidden();
+});
+
+it('update после сохранения возвращает back()', function () {
+    $conn = BotConnection::factory()->for($this->bot)->create();
+    $referer = route('bot-connections.edit', [$this->bot, $conn]);
+
+    $this->actingAs($this->admin)
+        ->from($referer)
+        ->put(route('bot-connections.update', [$this->bot, $conn]), [
+            'name' => 'Renamed',
+        ])
+        ->assertRedirect($referer);
+});

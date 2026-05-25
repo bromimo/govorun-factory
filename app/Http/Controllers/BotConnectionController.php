@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bot;
+use Inertia\Inertia;
+use Inertia\Response;
 use App\Models\BotConnection;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreBotConnectionRequest;
@@ -11,6 +13,35 @@ use App\Http\Requests\UpdateBotConnectionRequest;
 /** CRUD подключений бота к внешним API. */
 class BotConnectionController extends Controller
 {
+    /** Страница создания нового подключения. */
+    public function create(Bot $bot): Response
+    {
+        $this->authorize('update', $bot);
+
+        return Inertia::render('Bots/Connections/Edit', [
+            'bot' => $bot,
+            'connection' => null,
+            'can' => [
+                'update' => request()->user()->can('update', $bot),
+            ],
+        ]);
+    }
+
+    /** Страница редактирования подключения. */
+    public function edit(Bot $bot, BotConnection $connection): Response
+    {
+        $this->authorize('view', $bot);
+        abort_if($connection->bot_id !== $bot->id, 404);
+
+        return Inertia::render('Bots/Connections/Edit', [
+            'bot' => $bot,
+            'connection' => $connection,
+            'can' => [
+                'update' => request()->user()->can('update', $connection),
+            ],
+        ]);
+    }
+
     /** Создать подключение. */
     public function store(StoreBotConnectionRequest $request, Bot $bot): RedirectResponse
     {
@@ -35,7 +66,7 @@ class BotConnectionController extends Controller
 
         $connection->update($payload);
 
-        return redirect()->route('bots.edit', $bot);
+        return back();
     }
 
     /** Удалить подключение. */

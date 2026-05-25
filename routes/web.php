@@ -59,6 +59,10 @@ Route::middleware('auth')->group(function () {
         });
 
         Route::prefix('{bot}/connections')->group(function () {
+            Route::get('create', [BotConnectionController::class, 'create'])
+                ->name('bot-connections.create');
+            Route::get('{connection}/edit', [BotConnectionController::class, 'edit'])
+                ->name('bot-connections.edit');
             Route::post('', [BotConnectionController::class, 'store'])->name('bot-connections.store');
             Route::put('{connection}', [BotConnectionController::class, 'update'])->name('bot-connections.update');
             Route::delete('{connection}', [BotConnectionController::class, 'destroy'])->name('bot-connections.destroy');
