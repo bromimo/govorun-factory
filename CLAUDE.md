@@ -145,6 +145,12 @@ Runtime input validation on `ask_text`/`ask_keyboard` nodes. Rules stored in `no
 
 `UserRole` (admin/editor/viewer), `RouteType` (command/phrase/pattern/action/event/media/location/contact/referral/fallback), `HandlerType` (controller/flow), `ConnectionAuthType` (none/api_key/bearer/basic), `EntityStatus` (active/inactive/draft). All backed enums в PHP, в БД хранятся как строки — **никогда не использовать `enum` column type в миграциях** (`string(16)` + `default('...')`).
 
+## Git Workflow
+
+- Feature-ветка создаётся от `develop` (`git checkout develop && git pull && git checkout -b feat/...`).
+- После завершения реализации: пушить ветку и создавать PR в `develop` без вопросов — не спрашивать, не предлагать альтернативы.
+- PR создаётся через URL (не через `gh`): `https://github.com/bromimo/govorun-factory/compare/develop...<branch>` — выводить ссылку + title + body для копирования.
+
 ## Code Style
 
 - PHPDocs на русском для всех классов: описание на первой строке сразу после `/**`. Теги: `@param`, `@return`, `@throws`.
