@@ -1,7 +1,5 @@
 <script setup>
-import { ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import TelegramProfileModal from '@/Components/Bots/TelegramProfileModal.vue';
+import { Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
     bot: Object,
@@ -34,8 +32,6 @@ const form = useForm({
     messenger_config: buildInitialConfig(props.bot.messenger_config),
 });
 
-const showProfileModal = ref(false);
-
 function isEnabled(driverKey) {
     return form.messenger_config[driverKey]?.enabled === true;
 }
@@ -58,11 +54,11 @@ function save() {
             <div class="flex items-center justify-between">
                 <h4 class="font-medium text-gray-900">{{ driver.label }}</h4>
                 <div class="flex items-center gap-3">
-                    <button v-if="driver.key === 'telegram' && isEnabled('telegram') && can.update"
-                        type="button" @click="showProfileModal = true"
-                        class="text-sm text-indigo-600 hover:text-indigo-500">
+                    <Link v-if="driver.key === 'telegram' && isEnabled('telegram') && can.update"
+                          :href="route('bots.telegram.profile.edit', bot.id)"
+                          class="text-sm text-indigo-600 hover:text-indigo-500">
                         Настройки профиля
-                    </button>
+                    </Link>
                     <button type="button" @click="toggleDriver(driver.key)" class="text-sm"
                         :class="isEnabled(driver.key) ? 'text-red-600' : 'text-indigo-600'">
                         {{ isEnabled(driver.key) ? 'Отключить' : 'Подключить' }}
@@ -84,6 +80,4 @@ function save() {
         </div>
     </form>
 
-    <TelegramProfileModal :show="showProfileModal" :bot="bot" :can="can"
-        @close="showProfileModal = false" />
 </template>
