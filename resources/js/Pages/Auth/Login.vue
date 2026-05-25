@@ -1,9 +1,12 @@
 <script setup>
+import { ref } from 'vue'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 
 defineProps({ canResetPassword: Boolean, status: String })
+
+const showPassword = ref(false)
 
 const form = useForm({
     email: '',
@@ -41,7 +44,25 @@ function submit() {
                         <div class="fld">
                             <label class="fld-l">Пароль <span class="req">*</span></label>
                             <div class="fld-c">
-                                <input v-model="form.password" type="password" class="er-inp" autocomplete="current-password" required />
+                                <div class="inp-wrap">
+                                    <input
+                                        v-model="form.password"
+                                        :type="showPassword ? 'text' : 'password'"
+                                        class="er-inp"
+                                        autocomplete="current-password"
+                                        required
+                                    />
+                                    <button type="button" class="eye-btn" @click="showPassword = !showPassword" tabindex="-1" :aria-label="showPassword ? 'Скрыть пароль' : 'Показать пароль'" :aria-pressed="showPassword">
+                                        <svg v-if="!showPassword" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                                            <line x1="1" y1="1" x2="23" y2="23"/>
+                                        </svg>
+                                    </button>
+                                </div>
                                 <div v-if="form.errors.password" class="fld-err">{{ form.errors.password }}</div>
                             </div>
                         </div>
@@ -87,4 +108,23 @@ function submit() {
 
 .er-inp { height: 26px; padding: 0 8px; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: #fff; color: var(--ink); font-size: 12px; font-family: var(--font); width: 100%; box-shadow: inset 0 1px 1px rgba(0,0,0,.06); }
 .er-inp:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+
+.inp-wrap { position: relative; }
+.inp-wrap .er-inp { padding-right: 28px; }
+.eye-btn {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-4);
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    border-radius: 3px;
+    line-height: 1;
+}
+.eye-btn:hover { color: var(--blue); }
 </style>
