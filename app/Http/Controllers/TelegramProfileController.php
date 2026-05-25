@@ -9,8 +9,7 @@ use Inertia\Response;
 /** Контроллер страницы настроек профиля Telegram-бота. */
 class TelegramProfileController extends Controller
 {
-    /** Страница настроек профиля Telegram-бота.
-     */
+    /** Страница настроек профиля Telegram-бота. */
     public function edit(Bot $bot): Response
     {
         $this->authorize('view', $bot);

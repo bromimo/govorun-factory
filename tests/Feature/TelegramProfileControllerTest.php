@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Bot;
-use App\Models\User;
 use Tests\TestCase;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 /** Тесты страницы настроек профиля Telegram-бота. */
@@ -76,12 +76,20 @@ class TelegramProfileControllerTest extends TestCase
         $bot = Bot::factory()->for($admin, 'creator')->create();
 
         $bot->routes()->create([
-            'type' => 'command', 'match' => '/start', 'description' => 'Запуск',
-            'handler_type' => 'controller', 'handler_schema' => ['blocks' => []], 'sort_order' => 0,
+            'type' => 'command',
+            'match' => '/start',
+            'description' => 'Запуск',
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'sort_order' => 0,
         ]);
         $bot->routes()->create([
-            'type' => 'phrase', 'match' => 'привет', 'description' => null,
-            'handler_type' => 'controller', 'handler_schema' => ['blocks' => []], 'sort_order' => 1,
+            'type' => 'phrase',
+            'match' => 'привет',
+            'description' => null,
+            'handler_type' => 'controller',
+            'handler_schema' => ['blocks' => []],
+            'sort_order' => 1,
         ]);
 
         $this->actingAs($admin)
