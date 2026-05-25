@@ -144,12 +144,12 @@ class ControllerGenerator
         $stubView = "stubs.blocks.{$type}";
 
         if (view()->exists($stubView)) {
-            return view($stubView, compact('params'))->render()."\n";
+            return str_replace("\r\n", "\n", view($stubView, compact('params'))->render())."\n";
         }
 
         $plugin = Plugin::where('name', $type)->where('active', true)->first();
         if ($plugin && $plugin->php_stub) {
-            return Blade::render($plugin->php_stub, compact('params'))."\n";
+            return str_replace("\r\n", "\n", Blade::render($plugin->php_stub, compact('params')))."\n";
         }
 
         return "        // Unknown block type: {$type}\n";
