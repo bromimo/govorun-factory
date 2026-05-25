@@ -32,13 +32,16 @@ php artisan test --filter="can create a route for a bot"
 # Database
 php artisan migrate
 php artisan db:seed
+
+# Бэкап БД (MySQL → .backups/, хранится один актуальный файл)
+php artisan db:backup
 ```
 
 ## Architecture
 
 Schema-first visual bot builder: **Vue UI → JSON Schema (DB) → PHP Code Generator → ZIP Export**.
 
-**Stack:** Laravel 13, PHP 8.3+, Vue 3 + Inertia.js, Tailwind CSS, Vue Flow, TipTap, Pest 4 / PHPUnit 12, SQLite (dev/test).
+**Stack:** Laravel 13, PHP 8.3+, Vue 3 + Inertia.js, Tailwind CSS, Vue Flow, TipTap, Pest 4 / PHPUnit 12. БД: **MySQL** для dev (см. `.env`, реальные данные — не запускать `migrate:fresh`/`db:wipe`!), SQLite `:memory:` только для тестов (см. `phpunit.xml`).
 
 ### Code Generator (ядро проекта)
 
@@ -71,31 +74,60 @@ Lifecycle-методы: `onComplete()`, `onCancel()`. См. `docs/plan-flow-gene
 - `TelegramHtml` — санитизация HTML до whitelist Telegram (`<b>`, `<i>`, `<a>`, `<span class="tg-spoiler">` и т.д.). Применяется при сохранении текстов reply/ask-нод.
 - `MediaOptimizerService` — оптимизация загружаемых медиа под лимиты Telegram (50 МБ, JPEG quality 85, max 5000px). Возвращает tmp_path + метаданные.
 - `TelegramProfileVideoConverter` — конвертация видео для аватара бота.
+- `Services\Http\ConnectionRequestService` — выполняет тестовый HTTP-запрос из UI редактора подключений (`POST bot-connections/{conn}/test`, throttle:30,1). Собирает URL/auth/headers/body, рендерит `{{state.*}}` плейсхолдеры, перед отправкой проверяет URL через `SsrfGuard`, ограничивает тело ответа 1 МБ, таймаут 10 сек. Возвращает `TestRequestResult` (status, durationMs, headers, bodyRaw/bodyJson, truncated, error). DTO запроса — `RequestDraft`.
+- `Services\Http\SsrfGuard` — запрещает не-http(s) схемы и резолвит DNS A/AAAA: блокирует приватные/зарезервированные IP через `FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE`.
+- `Services\Http\TemplatePlaceholderRenderer` — подставляет `{{state.*}}` в path/headers/query/body шаблонах.
 
 ### Data Model
 
-`User` (admin/editor/viewer) → `Bot` (config, messenger_config as JSON) → `BotRoute` (entry points with type/match/handler) + `BotFlow` (dialog graphs stored as JSON with nodes/edges) + `BotMedia` (библиотека загруженных файлов: photo/video/audio/document/animation, хранение в `bots/{bot_id}/media/`) + `BotConnection` (переиспользуемые HTTP-подключения: slug, base_url, auth_type, auth_config encrypted:array). `Plugin` — extensible block types.
+`User` (admin/editor/viewer) → `Bot` (config, messenger_config as JSON, cached `used_media_count`/`used_media_size`) → `BotRoute` (entry points с type/match/handler + `status: EntityStatus`) + `BotFlow` (dialog graphs as JSON nodes/edges + `status: EntityStatus` + кешированные счётчики узлов) + `BotMedia` (библиотека загруженных файлов: photo/video/audio/document/animation, хранение в `bots/{bot_id}/media/`) + `BotConnection` (переиспользуемые HTTP-подключения: slug, base_url, auth_type, auth_config encrypted:array). `Plugin` — extensible block types.
+
+`Bot::recomputeMediaStats(int $botId)` пересчитывает `used_media_count`/`used_media_size` через `extractUsedMediaIds()` — вызывается из observer'ов после изменения flows/routes.
 
 Observers регистрируются атрибутом `#[ObservedBy(...)]` на модели (`Bot`, `BotRoute`, `BotFlow`), не через `Model::observe()` в провайдере.
 
 ### Authorization
 
-Role-based via `UserRole` enum + `BotPolicy`. Admin: full access. Editor: own bots only. Viewer: read-only. Custom `RoleMiddleware` for admin-only routes (/users).
+Role-based via `UserRole` enum + `BotPolicy`/`BotConnectionPolicy`. Admin: full access. Editor: own bots only. Viewer: read-only. Custom `RoleMiddleware` (alias `role` в `bootstrap/app.php`) для admin-only роутов (`/users`, `/plugins`).
+
+### Entity Status (active / inactive / draft)
+
+`EntityStatus` enum применяется и к `BotRoute`, и к `BotFlow`. Storage — `string(16)` (см. правило проекта: никаких DB enum). Бизнес-правила:
+
+- При создании сущность всегда `draft` (см. `BotRouteController::store`, `BotFlowController::store`).
+- Активация требует прохождения `SchemaValidator::validateSingleRoute()` / `validateSingleFlow()` — иначе 422.
+- Активация дочернего phrase-маршрута требует активного родителя.
+- Деактивация родителя (`inactive`/`draft`) каскадно переводит активных детей в `inactive`. Деактивация flow каскадно переводит ссылающиеся маршруты в `draft` и обнуляет `flow_id` (UI показывает `affected_routes_count`).
+- В `PUT update` поле `status` **отрезается** через `array_diff_key(..., ['status' => true])` — статус меняется только через PATCH `.../status`. Но если после `update` сущность стала невалидной, сама падает в `draft` с `session()->flash('auto_drafted_reasons', $errors)` — фронт показывает причины тостом.
+- `CodeGeneratorService::generate()` и `SchemaValidator::validate()` обрабатывают **только** `EntityStatus::Active`. `inactive`/`draft` не попадают в экспорт.
+- UI: `Components/Ui/StatusBadge.vue` — интерактивный badge с popup-меню; рендерит popup через `Teleport to="body"` (иначе клипается в `overflow:hidden` контейнерах таблиц).
 
 ### Route Structure
 
-All routes in `routes/web.php` under `auth` middleware, grouped by prefix: `bots/`, `bots/{bot}/routes/`, `bots/{bot}/flows/`, `bots/{bot}/media/`, `bots/{bot}/profile-photo/`, `bots/{bot}/connections/` (index/store/update/destroy + POST `{connection}/test` throttle:30,1), `bots/{bot}/export`, `profile/`, `users/` (admin-only), `plugins/` (admin-only).
+All routes in `routes/web.php` under `auth` middleware. Корневой `/` → `BotController@index` (имя `dashboard`, рендерит `Dashboard/Index.vue`). Группы по префиксу:
+- `bots/` — CRUD + загрузка/просмотр аватара (`profile-photo`)
+- `bots/{bot}/routes/` — CRUD, `POST reorder`, **`PATCH {route}/status`** (`bot-routes.change-status`)
+- `bots/{bot}/flows/` — CRUD, **`PATCH {flow}/status`** + **`GET {flow}/status/impact`** (`bot-flows.status-impact` — список маршрутов, падающих в draft при деактивации flow)
+- `bots/{bot}/media/` — index/store/file/destroy
+- `bots/{bot}/connections/` — store/update/destroy + `POST {connection}/test` throttle:30,1 (single-action `BotConnectionTestController`)
+- `bots/{bot}/export`
+- `profile/`
+- `users/` (admin-only через `role:admin`)
+- `plugins/` (admin-only)
+
 Роуты пробрасываются во фронт через Ziggy (`tightenco/ziggy`).
 
 ### Frontend
 
-Inertia.js SFC pages in `resources/js/Pages/` (точки входа: `Bots/Edit.vue`, `Bots/Media/Index.vue`, `Flows/Edit.vue`). Reusable components in `resources/js/Components/`. Alias `@/` → `resources/js/` (см. `jsconfig.json`). Key areas:
-- `Blocks/` — shared block form components (used in both route editor and flow editor). Диспетчер форм — `BlockFormResolver.vue` (по типу узла рендерит нужную форму).
-- `Routes/` — route list, editor drawer, block list
-- `Flows/` — Vue Flow canvas, node palette, properties panels, custom nodes in `nodes/`. Drag-and-drop из палитры на канвас — composable `useFlowDragDrop`.
-- `Bots/MediaLibrary.vue` + `Blocks/MediaLibraryModal.vue` + `Blocks/MediaPicker.vue` — библиотека медиа и выбор файлов в формах reply_media.
-- `Bots/Connections/Index.vue` — страница переиспользуемых HTTP-подключений бота (таблица + drawer `Connections/ConnectionDrawer.vue`). AJAX JSON-ответ через `wantsJson()` для загрузки списка в форме ноды.
+Inertia.js SFC pages в `resources/js/Pages/` (точки входа: `Dashboard/Index.vue` — список ботов, `Bots/Edit.vue` — табы `settings`/`routes`/`flows`/`messengers`/`connections`/`validation`/`media` (имя таба читается из query `?tab=...`), `Flows/Edit.vue`, `Routes/Edit.vue`). Reusable components — в `resources/js/Components/`. Alias `@/` → `resources/js/` (см. `jsconfig.json`). Key areas:
+- `Ui/` — собственная design system с префиксом `Er*` (ErButton, ErBadge, ErDrawer, ErFormField, ErTable, ErTabs, ErInput, ErSelect, ErToast, ErTooltip, ErStepper, ErEmpty, ErCounterCard, ErAlert, ErTextarea), плюс `StatusBadge`, `ConfirmModal`, `ToggleGroup`. **Использовать эти компоненты вместо сырых HTML-инпутов.**
+- `Blocks/` — shared block form components (используются и в route-editor, и во flow-editor). Диспетчер форм — `BlockFormResolver.vue` (по типу узла рендерит нужную форму).
+- `Routes/` — route list, editor drawer, block list.
+- `Flows/` — Vue Flow canvas (`FlowCanvas.vue`), node palette, properties panels, custom nodes в `nodes/`. Drag-and-drop из палитры на канвас — composable `useFlowDragDrop`. Кастомные edges — `edges/EditableEdge.vue`.
+- `Bots/MediaLibrary.vue` + `Blocks/MediaLibraryModal.vue` + `Blocks/MediaPicker.vue` — библиотека медиа и выбор файлов в формах reply/ask с media.
+- `Bots/ConnectionsTab.vue` + `Connections/ConnectionDrawer.vue` — переиспользуемые HTTP-подключения бота (вкладка `connections` в `Bots/Edit.vue`).
 - `Blocks/ApiCall/` — форма ноды api_call: `RequestSection.vue` (подключение/метод/путь/заголовки/тело), `ResponsePicker.vue` (визуальный JSON-tree picker маппинга ответа), `ErrorBehavior.vue` (stop_flow/continue/branch), `JsonTree.vue`, `ResponseMappingList.vue`, `StateSampleEditor.vue`.
+- `composables/useToast.js`, `composables/useDirtyGuard.js` — общие helpers; `utils/` — `debounce`, `translit`, `useClickOutside`, `useFloatingPosition`, `telegramHtml`, `systemVars`, `insertAtCursor`.
 
 **TipTap** используется как rich text editor для текстов нод/сообщений (`Blocks/RichTextEditor.vue` + `FormattingToolbar.vue` + `InsertToolbar.vue`); результат — Telegram-HTML, проходящий через `TelegramHtml::sanitize()`.
 
@@ -111,7 +143,7 @@ Runtime input validation on `ask_text`/`ask_keyboard` nodes. Rules stored in `no
 
 ### Enums
 
-`UserRole` (admin/editor/viewer), `RouteType` (command/phrase/pattern/action/event/media/location/contact/referral/fallback), `HandlerType` (controller/flow), `ConnectionAuthType` (none/api_key/bearer/basic). All backed enums in PHP, stored as strings in DB — never use `enum` column type in migrations.
+`UserRole` (admin/editor/viewer), `RouteType` (command/phrase/pattern/action/event/media/location/contact/referral/fallback), `HandlerType` (controller/flow), `ConnectionAuthType` (none/api_key/bearer/basic), `EntityStatus` (active/inactive/draft). All backed enums в PHP, в БД хранятся как строки — **никогда не использовать `enum` column type в миграциях** (`string(16)` + `default('...')`).
 
 ## Code Style
 
