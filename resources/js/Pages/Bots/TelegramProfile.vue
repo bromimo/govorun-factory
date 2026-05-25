@@ -1,49 +1,42 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
-import Modal from '@/Components/Modal.vue';
+import { computed, ref } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import BotSidebar from '@/Components/Bots/BotSidebar.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
+import { useToast } from '@/composables/useToast';
 
 const props = defineProps({
-    show: { type: Boolean, default: false },
     bot: Object,
     can: Object,
 });
 
-const emit = defineEmits(['close']);
+const toast = useToast();
 
 const profileSource = props.bot.messenger_config?.telegram?.profile ?? {};
 
 const form = useForm({
-    messenger_config: {
-        ...(props.bot.messenger_config ?? {}),
-        telegram: {
-            ...(props.bot.messenger_config?.telegram ?? { enabled: true }),
-            profile: {
-                name: profileSource.name ?? '',
-                short_description: profileSource.short_description ?? '',
-                description: profileSource.description ?? '',
-                photo_path: profileSource.photo_path ?? null,
-            },
-        },
+    profile: {
+        name: profileSource.name ?? '',
+        short_description: profileSource.short_description ?? '',
+        description: profileSource.description ?? '',
+        photo_path: profileSource.photo_path ?? null,
     },
 });
 
-const profile = computed(() => form.messenger_config.telegram.profile);
 const photoVersion = ref(Date.now());
 const photoBusy = ref(false);
 const photoError = ref('');
 
 const photoUrl = computed(() => {
-    if (!profile.value.photo_path) {
+    if (!form.profile.photo_path) {
         return null;
     }
-
     return `${route('bots.profile-photo.show', props.bot.id)}?v=${photoVersion.value}`;
 });
 
 const photoIsVideo = computed(() => {
-    return (profile.value.photo_path ?? '').toLowerCase().endsWith('.mp4');
+    return (form.profile.photo_path ?? '').toLowerCase().endsWith('.mp4');
 });
 
 const commandRoutes = computed(() => {
@@ -74,7 +67,7 @@ function uploadPhoto(event) {
             preserveScroll: true,
             onSuccess: () => {
                 const newPath = props.bot.messenger_config?.telegram?.profile?.photo_path ?? null;
-                profile.value.photo_path = newPath;
+                form.profile.photo_path = newPath;
                 photoVersion.value = Date.now();
             },
             onError: (errors) => {
@@ -95,7 +88,7 @@ function deletePhoto() {
     router.delete(route('bots.profile-photo.delete', props.bot.id), {
         preserveScroll: true,
         onSuccess: () => {
-            profile.value.photo_path = null;
+            form.profile.photo_path = null;
         },
         onFinish: () => {
             photoBusy.value = false;
@@ -104,21 +97,41 @@ function deletePhoto() {
 }
 
 function save() {
-    form.put(route('bots.update', props.bot.id), {
+    form.put(route('bots.telegram.profile.update', props.bot.id), {
         preserveScroll: true,
+        onSuccess: () => toast.success('Профиль сохранён'),
     });
 }
 
-watch(() => form.recentlySuccessful, (val) => {
-    if (val && props.show) {
-        emit('close');
-    }
-});
+function goBack() {
+    router.visit(route('bots.edit', props.bot.id), { data: { tab: 'messengers' } });
+}
+
+function goToTab(key) {
+    router.visit(route('bots.edit', props.bot.id), { data: { tab: key } });
+}
 </script>
 
 <template>
-    <Modal :show="show" title="Профиль Telegram-бота" max-width="2xl" @close="emit('close')">
-        <form @submit.prevent="save" class="tp-form">
+    <Head :title="`Профиль Telegram — ${bot.name}`" />
+    <AuthenticatedLayout :title="`Профиль Telegram — ${bot.name}`">
+        <template #breadcrumbs>
+            <Link :href="route('dashboard')">Главная</Link>
+            <span class="sep">›</span>
+            <Link :href="route('bots.edit', bot.id)">{{ bot.name }}</Link>
+            <span class="sep">›</span>
+            <Link :href="route('bots.edit', bot.id) + '?tab=messengers'">Мессенджеры</Link>
+            <span class="sep">›</span>
+            <span>Telegram</span>
+            <span class="sep">›</span>
+            <span>Настройки профиля</span>
+        </template>
+
+        <template #sidebar>
+            <BotSidebar :bot="bot" active-key="messengers" :on-tab-change="goToTab" />
+        </template>
+
+        <form @submit.prevent="save" class="tp-page">
             <div class="tp-body">
                 <div class="tp-notice">
                     При синхронизации <strong>пустые поля очистят</strong> соответствующие значения в Telegram.
@@ -129,40 +142,40 @@ watch(() => form.recentlySuccessful, (val) => {
                 <div class="tp-field">
                     <div class="tp-field-hdr">
                         <label class="tp-lbl">Имя бота</label>
-                        <span class="tp-cnt">{{ profile.name.length }}/64</span>
+                        <span class="tp-cnt">{{ form.profile.name.length }}/64</span>
                     </div>
-                    <input v-model="profile.name" type="text" maxlength="64" class="tp-inp" />
-                    <p v-if="form.errors['messenger_config.telegram.profile.name']" class="tp-err">
-                        {{ form.errors['messenger_config.telegram.profile.name'] }}
+                    <input v-model="form.profile.name" type="text" maxlength="64" class="tp-inp" />
+                    <p v-if="form.errors['profile.name']" class="tp-err">
+                        {{ form.errors['profile.name'] }}
                     </p>
                 </div>
 
                 <div class="tp-field">
                     <div class="tp-field-hdr">
                         <label class="tp-lbl">Короткое описание (about)</label>
-                        <span class="tp-cnt">{{ profile.short_description.length }}/120</span>
+                        <span class="tp-cnt">{{ form.profile.short_description.length }}/120</span>
                     </div>
-                    <textarea v-model="profile.short_description" rows="2" maxlength="120" class="tp-tx" />
-                    <p v-if="form.errors['messenger_config.telegram.profile.short_description']" class="tp-err">
-                        {{ form.errors['messenger_config.telegram.profile.short_description'] }}
+                    <textarea v-model="form.profile.short_description" rows="2" maxlength="120" class="tp-tx" />
+                    <p v-if="form.errors['profile.short_description']" class="tp-err">
+                        {{ form.errors['profile.short_description'] }}
                     </p>
                 </div>
 
                 <div class="tp-field">
                     <div class="tp-field-hdr">
                         <label class="tp-lbl">Описание</label>
-                        <span class="tp-cnt">{{ profile.description.length }}/512</span>
+                        <span class="tp-cnt">{{ form.profile.description.length }}/512</span>
                     </div>
-                    <textarea v-model="profile.description" rows="4" maxlength="512" class="tp-tx" />
-                    <p v-if="form.errors['messenger_config.telegram.profile.description']" class="tp-err">
-                        {{ form.errors['messenger_config.telegram.profile.description'] }}
+                    <textarea v-model="form.profile.description" rows="4" maxlength="512" class="tp-tx" />
+                    <p v-if="form.errors['profile.description']" class="tp-err">
+                        {{ form.errors['profile.description'] }}
                     </p>
                 </div>
 
                 <div class="tp-field">
                     <label class="tp-lbl">Аватар</label>
                     <div class="tp-photo-box">
-                        <div v-if="profile.photo_path" class="tp-photo-row">
+                        <div v-if="form.profile.photo_path" class="tp-photo-row">
                             <video v-if="photoIsVideo" :src="photoUrl"
                                 class="tp-photo-preview" muted loop autoplay playsinline />
                             <img v-else :src="photoUrl" alt="Аватар" class="tp-photo-preview" />
@@ -214,25 +227,24 @@ watch(() => form.recentlySuccessful, (val) => {
                     <code>php artisan bot:profile-sync</code> в развёрнутом боте.
                 </p>
                 <div class="tp-foot-acts">
-                    <ErButton type="button" @click="emit('close')">Отмена</ErButton>
-                    <ErButton variant="primary" type="submit" :disabled="form.processing">Сохранить профиль</ErButton>
+                    <ErButton type="button" @click="goBack">Назад</ErButton>
+                    <ErButton variant="primary" type="submit" :disabled="form.processing || !can.update">
+                        Сохранить профиль
+                    </ErButton>
                 </div>
             </div>
         </form>
-    </Modal>
+    </AuthenticatedLayout>
 </template>
 
 <style scoped>
-.tp-form {
+.tp-page {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: hidden;
 }
 .tp-body {
     flex: 1;
-    overflow-y: auto;
-    padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -240,9 +252,9 @@ watch(() => form.recentlySuccessful, (val) => {
 }
 .tp-foot {
     flex-shrink: 0;
-    padding: 10px 14px;
+    margin-top: 16px;
+    padding: 10px 0 0;
     border-top: 1px solid var(--bdr);
-    background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%);
     display: flex;
     align-items: flex-start;
     justify-content: space-between;

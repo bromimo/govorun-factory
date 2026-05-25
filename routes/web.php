@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BotMediaController;
 use App\Http\Controllers\BotRouteController;
 use App\Http\Controllers\BotConnectionController;
+use App\Http\Controllers\TelegramProfileController;
 use App\Http\Controllers\BotConnectionTestController;
 
 Route::middleware('auth')->group(function () {
@@ -26,6 +27,11 @@ Route::middleware('auth')->group(function () {
             ->name('bots.profile-photo.show');
         Route::delete('{bot}/profile-photo', [BotController::class, 'deleteProfilePhoto'])
             ->name('bots.profile-photo.delete');
+
+        Route::get('{bot}/telegram/profile', [TelegramProfileController::class, 'edit'])
+            ->name('bots.telegram.profile.edit');
+        Route::put('{bot}/telegram/profile', [TelegramProfileController::class, 'update'])
+            ->name('bots.telegram.profile.update');
 
         Route::get('{bot}/media', [BotMediaController::class, 'index'])->name('bots.media.index');
         Route::post('{bot}/media', [BotMediaController::class, 'store'])->name('bots.media.store');
