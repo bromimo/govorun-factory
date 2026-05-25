@@ -104,27 +104,29 @@ async function runTest() {
     try {
         const { data } = await axios.post(
             route('bot-connections.test', [props.bot.id, props.connection.id]),
+            { method: 'GET', path: '/', body_mode: 'none' },
         );
         const bodyStr = typeof data.body_json === 'object'
             ? JSON.stringify(data.body_json)
             : String(data.body_json ?? '');
         testResult.value = {
-            ok: data.status >= 200 && data.status < 300,
+            reachable: true,
             status: data.status,
             durationMs: data.durationMs,
-            bodyPreview: bodyStr.length > 200 ? bodyStr.slice(0, 200) + '…' : bodyStr,
+            body: bodyStr,
         };
     } catch (err) {
         testResult.value = {
-            ok: false,
-            status: err.response?.status ?? 0,
+            reachable: false,
+            status: null,
             durationMs: 0,
-            bodyPreview: err.response?.data?.message ?? err.message ?? 'Ошибка',
+            body: err.response?.data?.message ?? err.message ?? '',
         };
     } finally {
         testing.value = false;
     }
 }
+
 
 const pageTitle = computed(() => isEdit.value
     ? `Подключение: ${props.connection.name}`
@@ -200,14 +202,19 @@ const pageTitle = computed(() => isEdit.value
                 </details>
             </div>
 
-            <div v-if="testResult" class="cp-test-result" :class="testResult.ok ? 'ok' : 'fail'">
+            <div v-if="testResult" class="cp-test-result">
                 <div class="cp-test-h">
-                    <strong>{{ testResult.ok ? 'OK' : 'Ошибка' }}</strong>
-                    <span>HTTP {{ testResult.status || '—' }}</span>
-                    <span v-if="testResult.durationMs">{{ testResult.durationMs }} мс</span>
+                    <span class="cp-test-badge" :class="testResult.reachable ? 'badge-ok' : 'badge-fail'">
+                        {{ testResult.reachable ? 'Сервер доступен' : 'Сервер недоступен' }}
+                    </span>
+                    <span v-if="testResult.status" class="cp-test-status">HTTP {{ testResult.status }}</span>
+                    <span v-if="testResult.durationMs" class="cp-test-dur">{{ testResult.durationMs }} мс</span>
                     <button type="button" class="cp-test-x" @click="testResult = null">×</button>
                 </div>
-                <pre v-if="testResult.bodyPreview" class="cp-test-body">{{ testResult.bodyPreview }}</pre>
+                <details v-if="testResult.body" class="cp-test-details">
+                    <summary>Ответ сервера</summary>
+                    <pre class="cp-test-body">{{ testResult.body }}</pre>
+                </details>
             </div>
 
             <div class="cp-foot">
@@ -287,11 +294,21 @@ const pageTitle = computed(() => isEdit.value
     border: 1px solid var(--bdr);
     border-radius: var(--r-md);
     font-size: 11px;
+    background: var(--surface-2);
 }
-.cp-test-result.ok { background: var(--green-soft); border-color: var(--green); }
-.cp-test-result.fail { background: var(--red-soft); border-color: var(--red); }
-.cp-test-h { display: flex; align-items: center; gap: 10px; color: var(--ink); }
-.cp-test-h strong { font-size: 12px; }
+.cp-test-h { display: flex; align-items: center; gap: 8px; }
+.cp-test-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.badge-ok { background: var(--green-soft); color: var(--green); border: 1px solid var(--green); }
+.badge-fail { background: var(--red-soft); color: var(--red); border: 1px solid var(--red); }
+.cp-test-status { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+.cp-test-dur { font-size: 11px; color: var(--ink-3); }
 .cp-test-x {
     margin-left: auto;
     background: none;
@@ -300,6 +317,13 @@ const pageTitle = computed(() => isEdit.value
     font-size: 14px;
     color: var(--ink-3);
     padding: 0 4px;
+}
+.cp-test-details { margin-top: 6px; }
+.cp-test-details summary {
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--ink-3);
+    user-select: none;
 }
 .cp-test-body {
     margin: 6px 0 0;
