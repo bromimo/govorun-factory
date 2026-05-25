@@ -27,6 +27,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('{bot}/telegram/profile', [TelegramProfileController::class, 'edit'])
             ->name('bots.telegram.profile.edit');
+        Route::put('{bot}/telegram/profile', [TelegramProfileController::class, 'update'])
+            ->name('bots.telegram.profile.update');
 
         Route::prefix('{bot}/routes')->group(function () {
             Route::post('', [BotRouteController::class, 'store'])->name('bot-routes.store');

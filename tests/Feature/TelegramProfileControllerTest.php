@@ -91,4 +91,155 @@ class TelegramProfileControllerTest extends TestCase
                 ->where('bot.routes.0.match', '/start')
             );
     }
+
+    public function test_admin_can_update_telegram_profile(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create([
+            'messenger_config' => [
+                'telegram' => [
+                    'enabled' => true,
+                    'username' => 'mybot',
+                    'profile' => [
+                        'name' => 'Old',
+                        'short_description' => 'old short',
+                        'description' => 'old desc',
+                        'photo_path' => null,
+                    ],
+                ],
+                'vk' => ['enabled' => false],
+            ],
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('bots.telegram.profile.update', $bot), [
+                'profile' => [
+                    'name' => 'New',
+                    'short_description' => 'new short',
+                    'description' => 'new desc',
+                    'photo_path' => null,
+                ],
+            ])
+            ->assertRedirect();
+
+        $bot->refresh();
+        $this->assertSame('New', $bot->messenger_config['telegram']['profile']['name']);
+        $this->assertSame('new short', $bot->messenger_config['telegram']['profile']['short_description']);
+        $this->assertSame('mybot', $bot->messenger_config['telegram']['username']);
+        $this->assertFalse($bot->messenger_config['vk']['enabled']);
+    }
+
+    public function test_update_preserves_existing_photo_path(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create([
+            'messenger_config' => [
+                'telegram' => [
+                    'enabled' => true,
+                    'profile' => ['photo_path' => 'bot-profiles/1/profile.jpg'],
+                ],
+            ],
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('bots.telegram.profile.update', $bot), [
+                'profile' => [
+                    'name' => 'Bot',
+                    'short_description' => '',
+                    'description' => '',
+                    'photo_path' => 'bot-profiles/1/profile.jpg',
+                ],
+            ])
+            ->assertRedirect();
+
+        $bot->refresh();
+        $this->assertSame('bot-profiles/1/profile.jpg', $bot->messenger_config['telegram']['profile']['photo_path']);
+    }
+
+    public function test_update_validates_name_max_length(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create();
+
+        $this->actingAs($admin)
+            ->put(route('bots.telegram.profile.update', $bot), [
+                'profile' => [
+                    'name' => str_repeat('a', 65),
+                    'short_description' => '',
+                    'description' => '',
+                    'photo_path' => null,
+                ],
+            ])
+            ->assertSessionHasErrors('profile.name');
+    }
+
+    public function test_update_validates_short_description_max_length(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create();
+
+        $this->actingAs($admin)
+            ->put(route('bots.telegram.profile.update', $bot), [
+                'profile' => [
+                    'name' => 'Bot',
+                    'short_description' => str_repeat('a', 121),
+                    'description' => '',
+                    'photo_path' => null,
+                ],
+            ])
+            ->assertSessionHasErrors('profile.short_description');
+    }
+
+    public function test_update_validates_description_max_length(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $bot = Bot::factory()->for($admin, 'creator')->create();
+
+        $this->actingAs($admin)
+            ->put(route('bots.telegram.profile.update', $bot), [
+                'profile' => [
+                    'name' => 'Bot',
+                    'short_description' => '',
+                    'description' => str_repeat('a', 513),
+                    'photo_path' => null,
+                ],
+            ])
+            ->assertSessionHasErrors('profile.description');
+    }
+
+    public function test_viewer_cannot_update_telegram_profile(): void
+    {
+        $owner = User::factory()->editor()->create();
+        $viewer = User::factory()->viewer()->create();
+        $bot = Bot::factory()->for($owner, 'creator')->create();
+
+        $this->actingAs($viewer)
+            ->put(route('bots.telegram.profile.update', $bot), [
+                'profile' => [
+                    'name' => 'Hack',
+                    'short_description' => '',
+                    'description' => '',
+                    'photo_path' => null,
+                ],
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_editor_cannot_update_foreign_bot_telegram_profile(): void
+    {
+        $owner = User::factory()->editor()->create();
+        $other = User::factory()->editor()->create();
+        $bot = Bot::factory()->for($owner, 'creator')->create();
+
+        $this->actingAs($other)
+            ->put(route('bots.telegram.profile.update', $bot), [
+                'profile' => [
+                    'name' => 'Hack',
+                    'short_description' => '',
+                    'description' => '',
+                    'photo_path' => null,
+                ],
+            ])
+            ->assertForbidden();
+    }
 }
