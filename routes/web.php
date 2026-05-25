@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
         });
 
         Route::prefix('{bot}/connections')->group(function () {
+            Route::get('', [BotConnectionController::class, 'index'])->name('bot-connections.index');
             Route::get('create', [BotConnectionController::class, 'create'])
                 ->name('bot-connections.create');
             Route::get('{connection}/edit', [BotConnectionController::class, 'edit'])
