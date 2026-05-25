@@ -7,6 +7,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PluginController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\TelegramProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -23,6 +24,9 @@ Route::middleware('auth')->group(function () {
             ->name('bots.profile-photo.show');
         Route::delete('{bot}/profile-photo', [BotController::class, 'deleteProfilePhoto'])
             ->name('bots.profile-photo.delete');
+
+        Route::get('{bot}/telegram/profile', [TelegramProfileController::class, 'edit'])
+            ->name('bots.telegram.profile.edit');
 
         Route::prefix('{bot}/routes')->group(function () {
             Route::post('', [BotRouteController::class, 'store'])->name('bot-routes.store');
