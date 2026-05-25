@@ -1,0 +1,375 @@
+<script setup>
+import ErInput from '@/Components/Ui/ErInput.vue'
+import ErButton from '@/Components/Ui/ErButton.vue'
+import { useToast } from '@/composables/useToast'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useForm, Head, Link } from '@inertiajs/vue3'
+import BlockList from '@/Components/Routes/BlockList.vue'
+import ToggleGroup from '@/Components/Ui/ToggleGroup.vue'
+import StatusBadge from '@/Components/Ui/StatusBadge.vue'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { toCamelCase, toPascalCase, sanitizeIdentifier, identifierWarning } from '@/utils/translit'
+
+const props = defineProps({
+    bot:                  Object,
+    botRoute:             Object,
+    flows:                Array,
+    hasChildren:          Boolean,
+    can:                  Object,
+    auto_drafted_reasons: Array,
+})
+
+const isNested       = computed(() => !!props.botRoute.parent_id)
+const isParentPhrase = computed(() => props.hasChildren)
+const showHandler    = computed(() => !isParentPhrase.value)
+const isFallback     = computed(() => props.botRoute.type === 'fallback')
+
+const EVENT_TYPES = [
+    { value: 'new_chat_members',   label: 'new_chat_members — новый участник в группе' },
+    { value: 'left_chat_member',   label: 'left_chat_member — участник покинул группу' },
+    { value: 'new_chat_title',     label: 'new_chat_title — изменение названия группы' },
+    { value: 'new_chat_photo',     label: 'new_chat_photo — изменение фото группы' },
+    { value: 'group_chat_created', label: 'group_chat_created — создание группы' },
+]
+
+const routeTypes = computed(() => {
+    const items = [
+        { value: 'command',  label: 'Command' },
+        { value: 'phrase',   label: 'Phrase' },
+        { value: 'pattern',  label: 'Pattern' },
+        { value: 'action',   label: 'Action' },
+        { value: 'event',    label: 'Event' },
+        { value: 'media',    label: 'Media' },
+        { value: 'location', label: 'Location' },
+        { value: 'contact',  label: 'Contact' },
+        { value: 'referral', label: 'Referral' },
+        { value: 'fallback', label: 'Fallback' },
+    ]
+    return items.map(item => ({
+        ...item,
+        disabled: item.value !== 'fallback' ? isFallback.value : !isFallback.value,
+    }))
+})
+
+const form = useForm({
+    type:            props.botRoute.type,
+    match:           props.botRoute.match ?? '',
+    description:     props.botRoute.description ?? '',
+    aliases:         props.botRoute.aliases ?? [],
+    controller_name: props.botRoute.controller_name ?? '',
+    handler_type:    props.botRoute.handler_type ?? 'controller',
+    flow_id:         props.botRoute.handler_type === 'flow' ? (props.botRoute.flow_id ?? null) : null,
+    handler_schema:  props.botRoute.handler_schema ?? { blocks: [] },
+    middleware:      props.botRoute.middleware ?? [],
+})
+
+const showMatch          = computed(() => ['command', 'phrase', 'pattern', 'action', 'referral'].includes(form.type))
+const showAliases        = computed(() => form.type === 'phrase')
+const longMatch          = computed(() => (form.match?.length ?? 0) > 20)
+const showControllerName = computed(() => {
+    if (form.type === 'fallback') return false
+    return isParentPhrase.value || isNested.value || (showHandler.value && form.handler_type === 'controller')
+})
+const autoControllerName = computed(() => {
+    const match = form.match?.trim()
+    if (!match) return ''
+    return isNested.value ? toCamelCase(match) : toPascalCase(match)
+})
+
+const controllerNameWarning = ref('')
+let controllerNameWarningTimer = null
+
+function onControllerNameInput(e) {
+    const raw   = e.target.value
+    const clean = sanitizeIdentifier(raw)
+    const warn  = identifierWarning(raw)
+    if (warn) {
+        controllerNameWarning.value = warn
+        clearTimeout(controllerNameWarningTimer)
+        controllerNameWarningTimer = setTimeout(() => { controllerNameWarning.value = '' }, 3000)
+    } else {
+        controllerNameWarning.value = ''
+    }
+    form.controller_name = clean
+}
+
+watch(() => form.type, (newType) => {
+    if (newType !== 'phrase') form.aliases = []
+    if (newType === 'fallback') form.controller_name = ''
+    if (newType === 'event' && !EVENT_TYPES.some(e => e.value === form.match)) {
+        form.match = EVENT_TYPES[0].value
+    }
+})
+
+watch(() => form.handler_type, (newType) => {
+    if (newType === 'controller') form.flow_id = null
+    if (newType === 'flow') form.handler_schema = { blocks: [] }
+})
+
+const handlerWarning = computed(() => {
+    if (!showHandler.value) return null
+    if (form.handler_type === 'flow' && !form.flow_id) return 'Диалог не выбран'
+    if (form.handler_type === 'controller' && !(form.handler_schema?.blocks?.length)) return 'Нет ни одного блока'
+    return null
+})
+
+const showHandlerWarning = ref(false)
+
+function submit() {
+    if (handlerWarning.value) {
+        showHandlerWarning.value = true
+    }
+    form.put(route('bot-routes.update', [props.bot.id, props.botRoute.id]))
+}
+
+const toast = useToast()
+const localStatus = ref(props.botRoute.status)
+
+function changeStatus(value) {
+    window.axios.patch(
+        window.route('bot-routes.change-status', [props.bot.id, props.botRoute.id]),
+        { status: value }
+    )
+        .then(({ data }) => {
+            localStatus.value = data.status;
+            toast.success('Статус изменён');
+        })
+        .catch((err) => {
+            const rawErrors = err.response?.data?.errors
+            const errors = Array.isArray(rawErrors)
+                ? rawErrors
+                : rawErrors && typeof rawErrors === 'object'
+                    ? Object.values(rawErrors).flat()
+                    : ['Не удалось сменить статус']
+            for (const e of errors.slice(0, 5)) toast.error(e)
+            if (errors.length > 5) toast.error(`и ещё ${errors.length - 5} ошибок`)
+        })
+}
+
+const backUrl = route('bots.edit', props.bot.id) + '?tab=routes'
+
+onMounted(() => {
+    if (props.auto_drafted_reasons?.length) {
+        toast.warning('Маршрут переведён в черновик', { title: 'Автоматически' })
+        for (const reason of props.auto_drafted_reasons.slice(0, 3)) toast.warning(reason)
+    }
+})
+</script>
+
+<template>
+    <Head :title="`Маршрут — ${bot.name}`" />
+    <AuthenticatedLayout :title="bot.name">
+        <template #subbar>
+            <nav class="re-bcr">
+                <Link :href="route('dashboard')">Главная</Link>
+                <span class="sep">›</span>
+                <Link :href="backUrl">{{ bot.name }}</Link>
+                <span class="sep">›</span>
+                <span>Маршрут: {{ botRoute.type }}{{ botRoute.match ? ' ' + botRoute.match : '' }}</span>
+            </nav>
+        </template>
+        <template #actions>
+            <ErButton as="a" :href="backUrl">Назад</ErButton>
+            <ErButton v-if="can.update" variant="primary" :disabled="form.processing || !form.isDirty" @click="submit">Сохранить</ErButton>
+        </template>
+
+        <form class="re-layout" @submit.prevent="submit">
+
+            <!-- Левая колонка: метаданные маршрута -->
+            <div class="re-panel">
+                <div class="re-panel-head">
+                    <span class="re-id">ID {{ botRoute.id }}</span>
+                    <span v-if="isNested" class="re-badge">вложенный</span>
+                    <StatusBadge
+                        v-if="can.update"
+                        :status="localStatus"
+                        @change="changeStatus"
+                    />
+                    <span v-else class="re-badge">{{ localStatus }}</span>
+                </div>
+
+                <div v-if="!isNested" class="re-field">
+                    <label class="re-lbl">Тип маршрута</label>
+                    <select v-model="form.type" class="re-sel">
+                        <option v-for="rt in routeTypes" :key="rt.value" :value="rt.value" :disabled="rt.disabled">{{ rt.label }}</option>
+                    </select>
+                </div>
+
+                <div v-if="showMatch" class="re-field">
+                    <label class="re-lbl">Match</label>
+                    <ErInput v-model="form.match" :placeholder="form.type === 'command' ? '/start' : 'hello'" long />
+                </div>
+
+                <div v-if="form.type === 'event'" class="re-field">
+                    <label class="re-lbl">Событие</label>
+                    <select v-model="form.match" class="re-sel">
+                        <option v-for="et in EVENT_TYPES" :key="et.value" :value="et.value">{{ et.label }}</option>
+                    </select>
+                </div>
+
+                <div v-if="form.type === 'command'" class="re-field">
+                    <label class="re-lbl">Описание для меню Telegram</label>
+                    <ErInput v-model="form.description" :long="true" placeholder="Запустить бота" />
+                    <p class="re-hint">Если пусто — команда не попадёт в меню при <code>bot:profile-sync</code>.</p>
+                    <p v-if="form.errors.description" class="re-err">{{ form.errors.description }}</p>
+                </div>
+
+                <div v-if="showAliases" class="re-field">
+                    <label class="re-lbl">Алиасы</label>
+                    <div class="re-aliases">
+                        <div v-for="(alias, index) in form.aliases" :key="index" class="re-alias-row">
+                            <ErInput v-model="form.aliases[index]" :long="true" placeholder="Синоним фразы" />
+                            <button type="button" class="re-rm" @click="form.aliases.splice(index, 1)">✕</button>
+                        </div>
+                    </div>
+                    <button type="button" class="er-btn sm" style="margin-top:4px" @click="form.aliases.push('')">+ Добавить алиас</button>
+                </div>
+
+                <div v-if="showControllerName" class="re-field">
+                    <label class="re-lbl">{{ isNested ? 'Имя метода' : 'Имя контроллера' }}</label>
+                    <div class="re-mono-row">
+                        <input
+                            :value="form.controller_name"
+                            type="text"
+                            class="re-mono-inp"
+                            :placeholder="autoControllerName || (isNested ? 'method' : 'Controller')"
+                            @input="onControllerNameInput($event)"
+                        />
+                        <button v-if="form.controller_name" type="button" class="re-rm" @click="form.controller_name = ''">✕</button>
+                    </div>
+                    <p v-if="isNested" class="re-hint">camelCase. Например: <code>manicure</code></p>
+                    <p v-else-if="isParentPhrase" class="re-hint">PascalCase, без суффикса Controller. Например: <code>Price</code></p>
+                    <p v-else class="re-hint">PascalCase, без суффикса Controller</p>
+                    <p v-if="longMatch && !form.controller_name" class="re-warn">Фраза длинная — рекомендуется задать короткое имя вручную</p>
+                    <p v-if="controllerNameWarning" class="re-warn">{{ controllerNameWarning }}</p>
+                    <p v-if="form.errors.controller_name" class="re-err">{{ form.errors.controller_name }}</p>
+                </div>
+
+                <div class="re-field">
+                    <label class="re-lbl">Middleware</label>
+                    <ErInput
+                        :value="form.middleware.join(', ')"
+                        @update:modelValue="form.middleware = $event.split(',').map(s => s.trim()).filter(Boolean)"
+                        :long="true"
+                        placeholder="auth, throttle"
+                    />
+                    <p class="re-hint">Через запятую</p>
+                </div>
+            </div>
+
+            <!-- Правая колонка: обработчик -->
+            <div class="re-panel">
+                <template v-if="showHandler">
+                    <div class="re-field">
+                        <label class="re-lbl">Обработчик</label>
+                        <ToggleGroup
+                            v-model="form.handler_type"
+                            :options="[{ value: 'controller', label: 'Controller' }, { value: 'flow', label: 'Flow' }]"
+                        />
+                    </div>
+
+                    <div v-if="form.handler_type === 'flow'" class="re-field">
+                        <label class="re-lbl">Flow-диалог</label>
+                        <select v-model="form.flow_id" class="re-sel">
+                            <option :value="null">-- Выберите --</option>
+                            <option v-for="f in flows" :key="f.id" :value="f.id">{{ f.name }}</option>
+                        </select>
+                        <p v-if="showHandlerWarning && !form.flow_id" class="re-warn">{{ handlerWarning }}</p>
+                    </div>
+
+                    <div v-if="form.handler_type === 'controller'" class="re-field">
+                        <label class="re-lbl">Блоки</label>
+                        <BlockList v-model="form.handler_schema.blocks" :bot-id="bot.id" />
+                        <p v-if="showHandlerWarning && !form.handler_schema?.blocks?.length" class="re-warn">{{ handlerWarning }}</p>
+                    </div>
+                </template>
+
+                <p v-else class="re-hint-it">Обработчик задаётся у дочерних маршрутов</p>
+            </div>
+
+        </form>
+    </AuthenticatedLayout>
+</template>
+
+<style scoped>
+.re-bcr { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-3); flex-shrink: 0; }
+.re-bcr a { color: var(--blue); text-decoration: none; }
+.re-bcr a:hover { text-decoration: underline; }
+.re-bcr .sep { color: var(--bdr-d); }
+
+.re-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.re-panel {
+    background: var(--surface-2, #f8f9fa);
+    border: 1px solid var(--bdr);
+    border-radius: var(--r);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.re-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--bdr);
+}
+
+.re-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    background: var(--surface-3);
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    padding: 1px 6px;
+}
+
+.re-badge {
+    font-size: 10px;
+    color: var(--ink-3);
+    background: var(--surface-3);
+    border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm);
+    padding: 1px 6px;
+}
+
+.re-field { display: flex; flex-direction: column; gap: 4px; }
+.re-lbl { font-size: 11px; font-weight: 600; color: var(--ink-2); }
+
+.re-sel {
+    height: 26px; padding: 0 8px; border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm); background: #fff; color: var(--ink);
+    font-size: 12px; font-family: var(--font); width: 100%;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.05); cursor: pointer;
+}
+.re-sel:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+
+.re-mono-row { display: flex; gap: 6px; align-items: center; }
+.re-mono-inp {
+    flex: 1; height: 26px; padding: 0 8px; border: 1px solid var(--bdr-d);
+    border-radius: var(--r-sm); background: #fff; color: var(--ink);
+    font-size: 12px; font-family: var(--mono);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+}
+.re-mono-inp:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+
+.re-aliases { display: flex; flex-direction: column; gap: 6px; }
+.re-alias-row { display: flex; gap: 6px; align-items: center; }
+.re-rm { flex-shrink: 0; background: none; border: none; color: var(--ink-4); cursor: pointer; padding: 0 4px; font-size: 13px; line-height: 1; }
+.re-rm:hover { color: var(--red); }
+
+.re-hint { font-size: 11px; color: var(--ink-3); }
+.re-hint code { font-family: var(--mono); background: var(--surface-3); padding: 1px 3px; border-radius: 2px; }
+.re-hint-it { font-size: 12px; color: var(--ink-3); font-style: italic; }
+.re-warn { font-size: 11px; color: var(--orange); }
+.re-err  { font-size: 11px; color: var(--red); }
+</style>

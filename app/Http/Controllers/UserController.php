@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 
 class UserController extends Controller
 {
@@ -21,6 +21,24 @@ class UserController extends Controller
             'users' => User::select('id', 'name', 'email', 'role', 'created_at')
                 ->orderBy('name')
                 ->get(),
+        ]);
+    }
+
+    /** Форма создания пользователя.
+     * @return Response
+     */
+    public function create()
+    {
+        return Inertia::render('Users/Edit');
+    }
+
+    /** Форма редактирования пользователя.
+     * @return Response
+     */
+    public function edit(User $user)
+    {
+        return Inertia::render('Users/Edit', [
+            'user' => $user->only('id', 'name', 'email', 'role'),
         ]);
     }
 

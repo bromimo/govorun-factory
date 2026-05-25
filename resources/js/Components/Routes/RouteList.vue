@@ -1,8 +1,15 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
-import { router } from '@inertiajs/vue3';
-import { colorClasses } from '../Blocks/blockTypes.js';
+import { Link, router } from '@inertiajs/vue3';
 import RouteEditor from './RouteEditor.vue';
+import ErTable from '@/Components/Ui/ErTable.vue';
+import ErBadge from '@/Components/Ui/ErBadge.vue';
+import { useToast } from '@/composables/useToast';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import { GripVertical, Plus } from 'lucide-vue-next';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
+import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import { controllerBlockTypes } from '../Blocks/blockTypes.js';
 
 const props = defineProps({
     botId: Number,
@@ -49,10 +56,15 @@ function closeEditor() {
     editorParentId.value = null;
 }
 
+const confirmRoute = ref(null);
+
 function deleteRoute(route) {
-    if (confirm('Удалить маршрут?')) {
-        router.delete(window.route('bot-routes.destroy', [props.botId, route.id]));
-    }
+    confirmRoute.value = route;
+}
+
+function doDeleteRoute() {
+    router.delete(window.route('bot-routes.destroy', [props.botId, confirmRoute.value.id]));
+    confirmRoute.value = null;
 }
 
 function onDragStart(e, index) {
@@ -90,84 +102,230 @@ function onDragEnd() {
     overIndex.value = null;
 }
 
-const typeColors = {
-    command: 'blue', phrase: 'green', pattern: 'purple', action: 'orange',
-    event: 'gray', media: 'pink', fallback: 'gray', location: 'green',
-    contact: 'green', referral: 'orange',
-};
+function routeBadgeColor(type) {
+    const map = {
+        command: 'bl', phrase: 'bl', pattern: 'or',
+        action: 'nt', event: 'nt', media: 'nt',
+        location: 'nt', contact: 'nt', referral: 'yl',
+        fallback: 'rd',
+    };
+    return map[type] ?? 'nt';
+}
+
+function routeBlockSummary(route) {
+    if (route.handler_type !== 'controller') return null;
+    const block = (route.handler_schema?.blocks ?? [])[0];
+    if (!block) return null;
+    const bt = controllerBlockTypes.find(b => b.type === block.type);
+    const raw = block.type === 'api_call'
+        ? (block.params?.url ?? '')
+        : block.type === 'save_state'
+            ? (block.params?.variables ?? []).map(v => v.key).filter(Boolean).join(', ')
+            : (block.params?.text ?? '').replace(/<[^>]*>/g, '');
+    const full = raw.trim();
+    const short = full.length > 28 ? full.slice(0, 28) + '…' : full;
+    return { label: bt?.label ?? block.type, short, full };
+}
+
+function isHandlerIncomplete(r) {
+    if (r.children?.length > 0) return false
+    if (r.handler_type === 'flow') return !r.flow_id
+    return !(r.handler_schema?.blocks?.length)
+}
+
+const blockSummaries = computed(() => {
+    const map = {};
+    for (const r of localRoutes.value) {
+        const s = routeBlockSummary(r);
+        if (s) map[r.id] = s;
+        for (const c of r.children ?? []) {
+            const cs = routeBlockSummary(c);
+            if (cs) map[c.id] = cs;
+        }
+    }
+    return map;
+});
+
+const toast = useToast();
+
+function changeRouteStatus(r, value) {
+    const old = r.status;
+    r.status = value;
+    window.axios.patch(window.route('bot-routes.change-status', [props.botId, r.id]), { status: value })
+        .then(({ data }) => {
+            if (data.cascaded_children?.length) {
+                for (const child of (r.children ?? [])) {
+                    if (data.cascaded_children.includes(child.id)) {
+                        child.status = 'inactive';
+                    }
+                }
+            }
+        })
+        .catch((err) => {
+            r.status = old;
+            const rawErrors = err.response?.data?.errors;
+            const errors = Array.isArray(rawErrors)
+                ? rawErrors
+                : rawErrors && typeof rawErrors === 'object'
+                    ? Object.values(rawErrors).flat()
+                    : ['Не удалось сменить статус'];
+            for (const e of errors.slice(0, 5)) toast.error(e);
+            if (errors.length > 5) toast.error(`и ещё ${errors.length - 5} ошибок`);
+        });
+}
 </script>
 
 <template>
     <div>
-        <div v-if="sortedRoutes.length" class="divide-y divide-gray-100">
-            <template v-for="(r, index) in sortedRoutes" :key="r.id">
-                <div class="flex items-center gap-3 py-3 transition-colors"
-                    :class="{ 'border-t-2 border-indigo-400': overIndex === index && dragIndex !== index }"
-                    :draggable="canUpdate && r.type !== 'fallback'"
-                    @dragstart="onDragStart($event, index)"
-                    @dragover="onDragOver($event, index)"
-                    @drop="onDrop"
-                    @dragend="onDragEnd">
-                    <svg v-if="canUpdate" class="h-4 w-4 shrink-0 cursor-grab text-gray-300" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
-                    </svg>
-                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
-                        :class="[colorClasses[typeColors[r.type] ?? 'gray']?.badge, colorClasses[typeColors[r.type] ?? 'gray']?.text]">
-                        {{ r.type }}
-                    </span>
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                            <span v-if="r.match" class="text-sm text-gray-700">{{ r.match }}</span>
-                            <span v-if="!r.children?.length" class="text-xs text-gray-400">{{ r.handler_type }}</span>
-                        </div>
-                        <div v-if="r.aliases?.length" class="mt-1 flex flex-wrap gap-1">
-                            <span v-for="alias in r.aliases" :key="alias"
-                                class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                                {{ alias }}
-                            </span>
-                        </div>
-                    </div>
-                    <div v-if="canUpdate" class="ml-auto flex gap-2 shrink-0">
-                        <button v-if="r.type === 'phrase' && !r.parent_id" @click="openCreate(r.id)"
-                            class="text-xs text-green-600 hover:text-green-800">+ Вложенный</button>
-                        <button @click="openEdit(r)" class="text-xs text-indigo-600 hover:text-indigo-800">Изменить</button>
-                        <button @click="deleteRoute(r)" class="text-xs text-red-600 hover:text-red-800">Удалить</button>
-                    </div>
-                </div>
-                <!-- Дочерние маршруты -->
-                <div v-for="child in r.children ?? []" :key="child.id"
-                    class="flex items-center gap-3 py-2 pl-10">
-                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
-                        :class="[colorClasses[typeColors[child.type] ?? 'gray']?.badge, colorClasses[typeColors[child.type] ?? 'gray']?.text]">
-                        {{ child.type }}
-                    </span>
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                            <span v-if="child.match" class="text-sm text-gray-700">{{ child.match }}</span>
-                            <span class="text-xs text-gray-400">{{ child.handler_type }}</span>
-                        </div>
-                        <div v-if="child.aliases?.length" class="mt-1 flex flex-wrap gap-1">
-                            <span v-for="alias in child.aliases" :key="alias"
-                                class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                                {{ alias }}
-                            </span>
-                        </div>
-                    </div>
-                    <div v-if="canUpdate" class="ml-auto flex gap-2 shrink-0">
-                        <button @click="openEdit(child)" class="text-xs text-indigo-600 hover:text-indigo-800">Изменить</button>
-                        <button @click="deleteRoute(child)" class="text-xs text-red-600 hover:text-red-800">Удалить</button>
-                    </div>
-                </div>
+        <ErTable>
+            <template #toolbar>
+                <template v-if="false">
+                    <!-- TODO: реализовать массовые действия -->
+                    <select class="er-inp sm" style="width: 130px;">
+                        <option value="">Действие…</option>
+                        <option value="delete">Удалить</option>
+                    </select>
+                    <ErButton size="sm">Применить</ErButton>
+                </template>
+                <div style="flex: 1;"></div>
+                <ErButton v-if="canUpdate" variant="primary" size="sm" @click="openCreate()">
+                    <Plus :size="12" />Добавить
+                </ErButton>
             </template>
-        </div>
-        <p v-if="!sortedRoutes.length" class="text-sm text-gray-500">Нет маршрутов</p>
 
-        <button v-if="canUpdate" @click="openCreate()"
-            class="mt-4 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500">
-            Добавить маршрут
-        </button>
+            <template #thead>
+                <tr>
+                    <th style="width: 24px;"></th>
+                    <th style="width: 28px;"><input type="checkbox" /></th>
+                    <th style="width: 48px;">ID</th>
+                    <th>Тип</th>
+                    <th>Паттерн / Команда</th>
+                    <th>Обработчик</th>
+                    <th>Статус</th>
+                    <th style="width: 80px;"></th>
+                </tr>
+            </template>
 
-        <RouteEditor v-if="showEditor" :bot-id="botId" :route="editingRoute" :parent-id="editorParentId"
-            :has-children="!!editingRoute?.children?.length" :has-fallback="hasFallback" :flows="flows" @close="closeEditor" />
+            <template v-if="sortedRoutes.length">
+                <template v-for="(r, index) in sortedRoutes" :key="r.id">
+                    <tr
+                        :class="{ sel: overIndex === index && dragIndex !== index }"
+                        :draggable="canUpdate && r.type !== 'fallback'"
+                        @dblclick="canUpdate && router.visit(route('bot-routes.edit', [botId, r.id]))"
+                        @dragstart="onDragStart($event, index)"
+                        @dragover="onDragOver($event, index)"
+                        @drop="onDrop"
+                        @dragend="onDragEnd"
+                    >
+                        <td>
+                            <GripVertical
+                                v-if="canUpdate && r.type !== 'fallback'"
+                                :size="14"
+                                class="drag-handle"
+                            />
+                        </td>
+                        <td><input type="checkbox" /></td>
+                        <td class="tbl-mono">{{ r.id }}</td>
+                        <td>
+                            <ErBadge :color="routeBadgeColor(r.type)">{{ r.type }}</ErBadge>
+                        </td>
+                        <td class="tbl-mono">{{ r.match || r.command || '—' }}</td>
+                        <td class="tbl-mono tbl-handler">
+                            <span v-if="isHandlerIncomplete(r)" class="tbl-incomplete" :title="r.handler_type === 'flow' ? 'Диалог не выбран' : 'Нет блоков'">!</span>
+                            <span v-else-if="blockSummaries[r.id]" :title="blockSummaries[r.id].full || undefined">
+                                {{ blockSummaries[r.id].label }}<span v-if="blockSummaries[r.id].short"> · {{ blockSummaries[r.id].short }}</span>
+                            </span>
+                            <span v-else>{{ r.handler_type }}</span>
+                        </td>
+                        <td>
+                            <StatusBadge :status="r.status" :disabled="!canUpdate" @change="(v) => changeRouteStatus(r, v)" />
+                        </td>
+                        <td>
+                            <div v-if="canUpdate" class="tbl-acts">
+                                <button
+                                    v-if="r.type === 'phrase' && !r.parent_id"
+                                    class="tbl-act-btn"
+                                    title="Добавить вложенный"
+                                    @click="openCreate(r.id)"
+                                >
+                                    <Plus :size="12" />
+                                </button>
+                                <Link :href="route('bot-routes.edit', [botId, r.id])" class="tbl-act-btn">Изменить</Link>
+                                <button class="tbl-act-btn tbl-act-btn--danger" @click="deleteRoute(r)">Удалить</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Дочерние маршруты -->
+                    <tr v-for="child in r.children ?? []" :key="child.id" class="child-row"
+                        @dblclick="canUpdate && router.visit(route('bot-routes.edit', [botId, child.id]))"
+                    >
+                        <td></td>
+                        <td><input type="checkbox" /></td>
+                        <td class="tbl-mono tbl-child-idx">↳</td>
+                        <td>
+                            <ErBadge :color="routeBadgeColor(child.type)">{{ child.type }}</ErBadge>
+                        </td>
+                        <td class="tbl-mono">{{ child.match || child.command || '—' }}</td>
+                        <td class="tbl-mono tbl-handler">
+                            <span v-if="isHandlerIncomplete(child)" class="tbl-incomplete" :title="child.handler_type === 'flow' ? 'Диалог не выбран' : 'Нет блоков'">!</span>
+                            <span v-else-if="blockSummaries[child.id]" :title="blockSummaries[child.id].full || undefined">
+                                {{ blockSummaries[child.id].label }}<span v-if="blockSummaries[child.id].short"> · {{ blockSummaries[child.id].short }}</span>
+                            </span>
+                            <span v-else>{{ child.handler_type }}</span>
+                        </td>
+                        <td>
+                            <StatusBadge :status="child.status" :disabled="!canUpdate" @change="(v) => changeRouteStatus(child, v)" />
+                        </td>
+                        <td>
+                            <div v-if="canUpdate" class="tbl-acts">
+                                <Link :href="route('bot-routes.edit', [botId, child.id])" class="tbl-act-btn">Изменить</Link>
+                                <button class="tbl-act-btn tbl-act-btn--danger" @click="deleteRoute(child)">Удалить</button>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+            </template>
+            <tr v-else>
+                <td colspan="8" class="tbl-empty">Нет маршрутов</td>
+            </tr>
+
+            <template #paging>
+                <span>{{ sortedRoutes.length }} маршрутов</span>
+                <span style="color: var(--ink-4); font-size: 10px;">Перетаскивайте за ⋮⋮ для изменения приоритета</span>
+            </template>
+        </ErTable>
+
+        <RouteEditor
+            v-if="showEditor"
+            :bot-id="botId"
+            :route="editingRoute"
+            :parent-id="editorParentId"
+            :has-children="!!editingRoute?.children?.length"
+            :has-fallback="hasFallback"
+            :flows="flows"
+            @close="closeEditor"
+        />
+
+        <ConfirmModal
+            :show="!!confirmRoute"
+            title="Удалить маршрут?"
+            :message="confirmRoute ? `Маршрут «${confirmRoute.match || confirmRoute.command || confirmRoute.type}» будет удалён безвозвратно.` : ''"
+            @confirm="doDeleteRoute"
+            @cancel="confirmRoute = null"
+        />
     </div>
 </template>
+
+<style scoped>
+.drag-handle { cursor: grab; color: var(--ink-4); }
+.drag-handle:active { cursor: grabbing; }
+.tbl-mono { font-family: var(--mono); font-size: 11px; }
+.tbl-handler { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tbl-incomplete { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: var(--orange); color: #fff; font-size: 9px; font-weight: 700; font-family: var(--font); cursor: default; }
+.tbl-acts { display: flex; gap: 2px; }
+.tbl-child-idx { color: var(--ink-4); }
+.tbl-empty { text-align: center; padding: 20px; color: var(--ink-4); font-size: 12px; }
+.er-inp { height: 26px; padding: 0 8px; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: #fff; color: var(--ink); font-size: 12px; font-family: var(--font); width: 100%; box-shadow: inset 0 1px 1px rgba(0,0,0,.06); }
+.er-inp.sm { height: 22px; font-size: 11px; }
+.er-inp:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+</style>

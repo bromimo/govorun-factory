@@ -8,7 +8,6 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateBotRequest extends FormRequest
 {
     /** Проверка авторизации для обновления бота.
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -33,6 +32,8 @@ class UpdateBotRequest extends FormRequest
             'messenger_config' => ['sometimes', 'nullable', 'array'],
             'messenger_config.*' => ['nullable', 'array'],
             'messenger_config.*.enabled' => ['nullable', 'boolean'],
+
+            'messenger_config.telegram.username' => ['nullable', 'string', 'max:64'],
 
             'messenger_config.telegram.profile' => ['nullable', 'array'],
             'messenger_config.telegram.profile.name' => ['nullable', 'string', 'max:64'],

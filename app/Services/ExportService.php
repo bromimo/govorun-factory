@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Bot;
-use App\Services\CodeGenerator\CodeGeneratorService;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use ZipArchive;
+use App\Models\Bot;
+use App\Models\BotMedia;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use App\Services\CodeGenerator\CodeGeneratorService;
 
 /** Сервис экспорта бота в ZIP-архив с готовым проектом. */
 class ExportService
@@ -32,6 +34,7 @@ class ExportService
         try {
             File::ensureDirectoryExists($projectDir);
             $this->generator->generate($bot, $projectDir);
+            $this->copyMediaFiles($bot, $projectDir);
 
             $zipName = Str::slug($bot->name).'-'.now()->format('Ymd-His').'.zip';
             $zipPath = storage_path("exports/{$zipName}");
@@ -43,6 +46,31 @@ class ExportService
         } finally {
             File::deleteDirectory($tmpDir);
         }
+    }
+
+    /** Скопировать медиафайлы библиотеки бота в директорию ресурсов проекта. */
+    private function copyMediaFiles(Bot $bot, string $projectDir): void
+    {
+        $bot->loadMissing(['flows', 'routes']);
+
+        $mediaIds = $bot->extractUsedMediaIds();
+
+        if (empty($mediaIds)) {
+            return;
+        }
+
+        $mediaDir = "{$projectDir}/resources/media";
+        File::ensureDirectoryExists($mediaDir);
+
+        BotMedia::whereIn('id', array_unique($mediaIds))->each(
+            function (BotMedia $item) use ($bot, $mediaDir) {
+                $src = Storage::disk('local')->path("media/{$bot->id}/{$item->filename}");
+
+                if (file_exists($src)) {
+                    copy($src, $mediaDir.'/'.basename($item->filename));
+                }
+            }
+        );
     }
 
     /** Создать ZIP-архив из директории.

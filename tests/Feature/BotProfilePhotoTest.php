@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\Bot;
+use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Services\TelegramProfileVideoConverter;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 /** Тесты загрузки/показа/удаления аватара Telegram-бота. */
 class BotProfilePhotoTest extends TestCase

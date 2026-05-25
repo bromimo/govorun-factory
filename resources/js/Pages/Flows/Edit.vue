@@ -1,25 +1,58 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import KeyboardHints from '@/Components/Flows/KeyboardHints.vue';
+import { debounce } from '@/utils/debounce';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import { useToast } from '@/composables/useToast';
+import { Head, Link, router } from '@inertiajs/vue3';
+import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import FlowCanvas from '@/Components/Flows/FlowCanvas.vue';
+import ConfirmModal from '@/Components/Ui/ConfirmModal.vue';
 import NodePalette from '@/Components/Flows/NodePalette.vue';
+import { useDirtyGuard } from '@/composables/useDirtyGuard';
+import KeyboardHints from '@/Components/Flows/KeyboardHints.vue';
 import NodeProperties from '@/Components/Flows/NodeProperties.vue';
 import EdgeProperties from '@/Components/Flows/EdgeProperties.vue';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue';
 
 const props = defineProps({
     bot: Object,
     flow: Object,
     can: Object,
+    auto_drafted_reasons: Array,
 });
 
+const toast = useToast();
 const canvasRef = ref(null);
 const saving = ref(false);
 const saved = ref(false);
+const flowDirty = ref(false);
+const showDirtyGuard = ref(false);
+let dirtyResume = null;
+
+const localFlowStatus = ref(props.flow.status);
+const statusImpactRoutes = ref([]);
+const pendingStatusValue = ref(null);
+
+useDirtyGuard(() => flowDirty.value, (resume) => {
+    dirtyResume = resume;
+    showDirtyGuard.value = true;
+});
+
+function confirmDirtyGuard() {
+    showDirtyGuard.value = false;
+    dirtyResume?.();
+    dirtyResume = null;
+}
+
+function cancelDirtyGuard() {
+    showDirtyGuard.value = false;
+    dirtyResume = null;
+}
+
 const description = ref(props.flow.description ?? '');
 const panelWidth = ref(360);
 const resizing = ref(false);
+const showClearModal = ref(false);
 
 function startResize(e) {
     resizing.value = true;
@@ -61,8 +94,12 @@ const siblingLabels = computed(() => {
     return canvasRef.value.getOutgoingEdgeLabels(edge.source, edge.id);
 });
 
+const allNodes = computed(() => canvasRef.value?.getAllNodes() ?? []);
+const hasNonStartNodes = computed(() => allNodes.value.some(n => n.type !== 'start'));
+
 function onNodeDataUpdated(nodeId, newData) {
     canvasRef.value?.setNodeData(nodeId, newData);
+    flowDirty.value = true;
 }
 
 function onNodeRenamed(oldId, newId) {
@@ -79,8 +116,10 @@ function onClearWaypoints(edgeId) {
 
 function save() {
     if (!canvasRef.value) return;
+    if (saving.value) return;
     saving.value = true;
     saved.value = false;
+    flowDirty.value = false;
 
     const graph = canvasRef.value.getGraph();
 
@@ -90,13 +129,84 @@ function save() {
         graph,
     }, {
         preserveState: true,
-        onSuccess: () => { saved.value = true; setTimeout(() => saved.value = false, 2000); },
+        onSuccess: () => {
+            saved.value = true;
+            setTimeout(() => (saved.value = false), 2000);
+        },
+        onError: () => {
+            flowDirty.value = true;
+        },
         onFinish: () => { saving.value = false; },
     });
 }
 
+const saveDebounced = debounce(save, 500);
+
+watch(() => props.auto_drafted_reasons, (reasons) => {
+    if (reasons?.length) {
+        toast.warning('Флоу переведён в черновик', { title: 'Автоматически' });
+        for (const reason of reasons.slice(0, 3)) toast.warning(reason);
+        localFlowStatus.value = 'draft';
+    }
+}, { immediate: true });
+
+function handleSave() {
+    saveDebounced.cancel();
+    save();
+}
+
+async function requestStatusChange(value) {
+    if (value === 'inactive' || value === 'draft') {
+        try {
+            const { data } = await window.axios.get(
+                window.route('bot-flows.status-impact', [props.bot.id, props.flow.id])
+            );
+            statusImpactRoutes.value = data.affected_routes ?? [];
+            pendingStatusValue.value = value;
+        } catch {
+            toast.error('Не удалось получить данные о влиянии');
+        }
+    } else {
+        applyStatus(value);
+    }
+}
+
+function applyStatus(value) {
+    const old = localFlowStatus.value;
+    localFlowStatus.value = value;
+    window.axios.patch(
+        window.route('bot-flows.change-status', [props.bot.id, props.flow.id]),
+        { status: value }
+    )
+        .then(({ data }) => {
+            localFlowStatus.value = data.status;
+            toast.success('Статус изменён');
+        })
+        .catch((err) => {
+            localFlowStatus.value = old;
+            const rawErrors = err.response?.data?.errors;
+            const errors = Array.isArray(rawErrors)
+                ? rawErrors
+                : rawErrors && typeof rawErrors === 'object'
+                    ? Object.values(rawErrors).flat()
+                    : ['Не удалось сменить статус'];
+            for (const e of errors.slice(0, 5)) toast.error(e);
+            if (errors.length > 5) toast.error(`и ещё ${errors.length - 5} ошибок`);
+        });
+    statusImpactRoutes.value = [];
+    pendingStatusValue.value = null;
+}
+
+function cancelStatusChange() {
+    statusImpactRoutes.value = [];
+    pendingStatusValue.value = null;
+}
+
 onMounted(() => document.body.classList.add('overflow-hidden'));
-onBeforeUnmount(() => document.body.classList.remove('overflow-hidden'));
+onBeforeUnmount(() => {
+    document.body.classList.remove('overflow-hidden');
+    saveDebounced.cancel();
+});
 
 function fitView() {
     canvasRef.value?.doFitView();
@@ -105,41 +215,47 @@ function fitView() {
 function autoLayout() {
     canvasRef.value?.autoLayout();
 }
+
+function clearCanvas() {
+    canvasRef.value?.clearCanvas();
+    showClearModal.value = false;
+}
 </script>
 
 <template>
     <Head :title="`Flow: ${flow.name}`" />
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <a :href="route('bots.edit', bot.id)" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ bot.name }}</a>
-                    <span class="text-gray-300">/</span>
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-800">{{ flow.name }}</h2>
-                        <input v-if="can.update" v-model="description" type="text"
-                            class="mt-0.5 w-full border-0 border-b border-transparent bg-transparent px-0 py-0 text-xs text-gray-500 placeholder-gray-400 focus:border-gray-300 focus:ring-0"
-                            placeholder="Добавить описание..." />
-                        <p v-else-if="description" class="text-xs text-gray-500">{{ description }}</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button v-if="can.update" @click="autoLayout" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-                        Авто
-                    </button>
-                    <button @click="fitView" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-                        Вписать
-                    </button>
-                    <button v-if="can.update" @click="save" :disabled="saving"
-                        class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
-                        {{ saving ? 'Сохранение...' : 'Сохранить' }}
-                    </button>
-                    <span v-if="saved" class="text-sm text-green-600">Сохранено</span>
-                </div>
+    <AuthenticatedLayout :flush="true">
+        <template #subbar>
+            <div class="fl-toolbar">
+                <nav class="fl-bcr">
+                    <Link :href="route('dashboard')">Главная</Link>
+                    <span class="sep">›</span>
+                    <Link :href="route('bots.edit', bot.id) + '?tab=flows'">{{ bot.name }}</Link>
+                    <span class="sep">›</span>
+                    <span>Флоу: {{ flow.name }}</span>
+                </nav>
+                <StatusBadge
+                    v-if="can.update"
+                    :status="localFlowStatus"
+                    @change="requestStatusChange"
+                />
+                <span v-else class="save-state" style="font-size:11px">{{ localFlowStatus }}</span>
+                <div style="flex: 1;" />
+                <span class="save-state">
+                    <template v-if="saving">Сохраняем…</template>
+                    <template v-else-if="saved">Сохранено</template>
+                </span>
+                <ErButton v-if="can.update" size="sm" @click="autoLayout">Авто</ErButton>
+                <ErButton size="sm" @click="fitView">Фит</ErButton>
+                <ErButton v-if="can.update" variant="danger" size="sm" :disabled="!hasNonStartNodes" @click="showClearModal = true">Очистить</ErButton>
+                <ErButton as="a" size="sm" :href="route('bots.edit', bot.id) + '?tab=flows'">Выйти</ErButton>
+                <ErButton v-if="can.update" variant="primary" size="sm" :disabled="saving || !flowDirty" @click="handleSave">
+                    Сохранить
+                </ErButton>
             </div>
         </template>
 
-        <div class="relative flex h-[calc(100vh-10rem)] overflow-hidden">
+        <div class="flow-layout">
             <NodePalette v-if="can.update" class="w-48 shrink-0" />
 
             <KeyboardHints />
@@ -164,6 +280,7 @@ function autoLayout() {
                     :declared-state-keys="declaredStateKeys"
                     :possibly-declared-state-keys="possiblyDeclaredStateKeys"
                     :bot-validation-messages="botValidationMessages"
+                    :bot-id="bot.id"
                     class="flex-1 min-w-0"
                     @update="onNodeDataUpdated"
                     @rename="onNodeRenamed"
@@ -175,6 +292,7 @@ function autoLayout() {
                     :edge="selectedEdge"
                     :can-update="can.update"
                     :sibling-labels="siblingLabels"
+                    :all-nodes="allNodes"
                     class="flex-1 min-w-0"
                     @update="onEdgeLabelUpdated"
                     @clear-waypoints="onClearWaypoints"
@@ -182,5 +300,76 @@ function autoLayout() {
                 />
             </div>
         </div>
+
+        <ConfirmModal
+            :show="showDirtyGuard"
+            title="Несохранённые изменения"
+            message="Есть несохранённые изменения. Уйти без сохранения?"
+            confirm-label="Уйти"
+            variant="default"
+            @confirm="confirmDirtyGuard"
+            @cancel="cancelDirtyGuard"
+        />
+
+        <ConfirmModal
+            :show="showClearModal"
+            title="Очистить флоу"
+            message="Все ноды, кроме «Начало», и все связи будут удалены. Это действие нельзя отменить."
+            confirm-label="Очистить"
+            variant="danger"
+            @confirm="clearCanvas"
+            @cancel="showClearModal = false"
+        />
+
+        <ConfirmModal
+            :show="!!pendingStatusValue"
+            title="Сменить статус диалога?"
+            :message="statusImpactRoutes.length
+                ? `${statusImpactRoutes.length} маршрут(ов) будут переведены в черновик.`
+                : 'Подтвердите смену статуса.'"
+            @confirm="applyStatus(pendingStatusValue)"
+            @cancel="cancelStatusChange"
+        />
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.flow-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+}
+
+.fl-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+.fl-bcr {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--ink-3);
+    flex-shrink: 0;
+}
+.fl-bcr a {
+    color: var(--blue);
+    text-decoration: none;
+}
+.fl-bcr a:hover {
+    text-decoration: underline;
+}
+.fl-bcr .sep {
+    color: var(--bdr-d);
+}
+.save-state {
+    font-size: 11px;
+    color: var(--ink-3);
+    min-width: 80px;
+    display: inline-block;
+    text-align: right;
+}
+</style>

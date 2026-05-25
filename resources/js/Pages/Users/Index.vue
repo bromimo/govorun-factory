@@ -1,88 +1,179 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import UserForm from '@/Components/Users/UserForm.vue';
+import { ref, computed } from 'vue'
+import { Head, router } from '@inertiajs/vue3'
+import ErTable from '@/Components/Ui/ErTable.vue'
+import ErBadge from '@/Components/Ui/ErBadge.vue'
+import ErEmpty from '@/Components/Ui/ErEmpty.vue'
+import ErButton from '@/Components/Ui/ErButton.vue'
+import ErCounterCard from '@/Components/Ui/ErCounterCard.vue'
+import ErTabs from '@/Components/Ui/ErTabs.vue'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Users as UsersIcon, Shield, UserCheck, RefreshCw, Plus } from 'lucide-vue-next'
 
 const props = defineProps({
     users: Array,
-});
+})
 
-const showForm = ref(false);
-const editingUser = ref(null);
+const activeTab = ref('list')
+const search = ref('')
 
-function openCreate() {
-    editingUser.value = null;
-    showForm.value = true;
+const filtered = computed(() => {
+    if (!search.value) return props.users
+    const q = search.value.toLowerCase()
+    return props.users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
+})
+
+function roleBadgeColor(role) {
+    return { admin: 'rd', editor: 'bl', viewer: 'nt' }[role] ?? 'nt'
 }
 
-function openEdit(user) {
-    editingUser.value = user;
-    showForm.value = true;
-}
-
-function closeForm() {
-    showForm.value = false;
-    editingUser.value = null;
-}
-
-function deleteUser(user) {
-    if (confirm(`Удалить пользователя ${user.name}?`)) {
-        router.delete(route('users.destroy', user.id));
-    }
-}
+const roles = [
+    {
+        value: 'admin',
+        label: 'Администратор',
+        color: 'rd',
+        description: 'Полный доступ ко всем разделам системы.',
+        permissions: [
+            'Просмотр, создание, редактирование и удаление любых ботов',
+            'Экспорт любых ботов',
+            'Управление пользователями и ролями',
+            'Управление плагинами',
+        ],
+    },
+    {
+        value: 'editor',
+        label: 'Редактор',
+        color: 'bl',
+        description: 'Работает только со своими ботами.',
+        permissions: [
+            'Просмотр всех ботов',
+            'Создание, редактирование и экспорт своих ботов',
+            'Нет доступа к удалению ботов других пользователей',
+            'Нет доступа к управлению пользователями и плагинами',
+        ],
+    },
+    {
+        value: 'viewer',
+        label: 'Наблюдатель',
+        color: 'nt',
+        description: 'Только просмотр без возможности вносить изменения.',
+        permissions: [
+            'Просмотр всех ботов',
+            'Нет доступа к созданию, редактированию и удалению',
+            'Нет доступа к экспорту',
+            'Нет доступа к управлению пользователями и плагинами',
+        ],
+    },
+]
 </script>
 
 <template>
     <Head title="Пользователи" />
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">Пользователи</h2>
-                <button @click="openCreate"
-                    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
-                    Новый пользователь
-                </button>
-            </div>
+    <AuthenticatedLayout title="Пользователи">
+        <template #subbar>
+            <ErTabs
+                v-model="activeTab"
+                :tabs="[
+                    { value: 'list', label: 'Список' },
+                    { value: 'roles', label: 'Роли' },
+                ]"
+            />
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Имя</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Email</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Роль</th>
-                                <th class="px-6 py-3"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="user in users" :key="user.id">
-                                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{{ user.name }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ user.email }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm">
-                                    <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
-                                        :class="{
-                                            'bg-red-100 text-red-800': user.role === 'admin',
-                                            'bg-blue-100 text-blue-800': user.role === 'editor',
-                                            'bg-gray-100 text-gray-800': user.role === 'viewer',
-                                        }">
-                                        {{ user.role }}
-                                    </span>
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
-                                    <button @click="openEdit(user)" class="mr-3 text-indigo-600 hover:text-indigo-900">Изменить</button>
-                                    <button @click="deleteUser(user)" class="text-red-600 hover:text-red-900">Удалить</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <template #actions>
+            <ErButton v-if="activeTab === 'list'" variant="primary" :as="'a'" :href="route('users.create')">
+                <Plus :size="13" />Новый пользователь
+            </ErButton>
+        </template>
+
+        <!-- Counter cards -->
+        <div class="counter-row" style="margin-bottom: 12px;">
+            <ErCounterCard label="Всего" :value="users.length" color="blue" :icon="UsersIcon" />
+            <ErCounterCard label="Администраторов" :value="users.filter(u => u.role === 'admin').length" color="red" :icon="Shield" />
+            <ErCounterCard label="Редакторов" :value="users.filter(u => u.role === 'editor').length" color="orange" :icon="UserCheck" />
+            <ErCounterCard label="Наблюдателей" :value="users.filter(u => u.role === 'viewer').length" color="green" :icon="UserCheck" />
         </div>
 
-        <UserForm v-if="showForm" :user="editingUser" @close="closeForm" />
+        <!-- Вкладка: Список -->
+        <template v-if="activeTab === 'list'">
+            <div style="margin-bottom: 10px; display: flex; gap: 6px;">
+                <input v-model="search" type="text" class="er-inp" placeholder="Поиск по имени или email..." style="max-width: 320px;" />
+                <ErButton size="sm" @click="router.reload()"><RefreshCw :size="12" /></ErButton>
+            </div>
+
+            <ErTable>
+                <template #thead>
+                    <tr>
+                        <th style="width: 28px;"><input type="checkbox" /></th>
+                        <th style="width: 48px;">ID</th>
+                        <th>Имя</th>
+                        <th>Email</th>
+                        <th>Роль</th>
+                        <th>Создан</th>
+                        <th style="width: 80px;"></th>
+                    </tr>
+                </template>
+
+                <tr v-if="filtered.length === 0">
+                    <td colspan="7">
+                        <ErEmpty compact title="Пользователи не найдены" text="Попробуйте изменить запрос" />
+                    </td>
+                </tr>
+                <tr v-for="user in filtered" :key="user.id" class="tbl-row"
+                    @dblclick="router.visit(route('users.edit', user.id))">
+                    <td><input type="checkbox" /></td>
+                    <td class="tbl-mono">{{ user.id }}</td>
+                    <td class="tbl-name">{{ user.name }}</td>
+                    <td class="tbl-mono">{{ user.email }}</td>
+                    <td>
+                        <ErBadge :color="roleBadgeColor(user.role)">{{ user.role }}</ErBadge>
+                    </td>
+                    <td class="tbl-mono">{{ new Date(user.created_at).toLocaleDateString('ru') }}</td>
+                    <td>
+                        <div class="tbl-acts">
+                            <a :href="route('users.edit', user.id)" class="tbl-act-btn">Изменить</a>
+                        </div>
+                    </td>
+                </tr>
+
+                <template #paging>
+                    <span>Записи 1—{{ filtered.length }} из {{ users.length }}</span>
+                </template>
+            </ErTable>
+        </template>
+
+        <!-- Вкладка: Роли -->
+        <div v-else class="roles-grid">
+            <div v-for="role in roles" :key="role.value" class="role-card">
+                <div class="role-card-header">
+                    <ErBadge :color="role.color">{{ role.value }}</ErBadge>
+                    <span class="role-label">{{ role.label }}</span>
+                    <span class="role-count">{{ users.filter(u => u.role === role.value).length }} польз.</span>
+                </div>
+                <p class="role-desc">{{ role.description }}</p>
+                <ul class="role-perms">
+                    <li v-for="p in role.permissions" :key="p">{{ p }}</li>
+                </ul>
+            </div>
+        </div>
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.counter-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.er-inp { height: 26px; padding: 0 8px; border: 1px solid var(--bdr-d); border-radius: var(--r-sm); background: #fff; color: var(--ink); font-size: 12px; font-family: var(--font); width: 100%; box-shadow: inset 0 1px 1px rgba(0,0,0,.06); }
+.er-inp:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(58,114,196,.2); }
+.tbl-row { cursor: pointer; }
+.tbl-name { font-weight: 500; color: var(--ink); }
+.tbl-mono { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+.tbl-acts { display: flex; gap: 2px; }
+
+.roles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.role-card { background: var(--surface); border: 1px solid var(--bdr); border-radius: var(--r-md); overflow: hidden; }
+.role-card-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: linear-gradient(180deg, #f4f6f8 0%, #e8ecf0 100%); border-bottom: 1px solid var(--bdr); }
+.role-label { font-size: 12px; font-weight: 600; color: var(--ink); flex: 1; }
+.role-count { font-size: 11px; color: var(--ink-3); }
+.role-desc { padding: 8px 12px 4px; font-size: 12px; color: var(--ink-2); margin: 0; }
+.role-perms { margin: 0; padding: 4px 12px 10px 26px; display: flex; flex-direction: column; gap: 3px; }
+.role-perms li { font-size: 11px; color: var(--ink-3); }
+</style>

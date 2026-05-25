@@ -3,8 +3,8 @@
 namespace Tests\Unit;
 
 use Tests\TestCase;
-use Symfony\Component\Process\ExecutableFinder;
 use App\Services\TelegramProfileVideoConverter;
+use Symfony\Component\Process\ExecutableFinder;
 
 /** Тесты конвертера видео под Telegram-профиль. */
 class TelegramProfileVideoConverterTest extends TestCase

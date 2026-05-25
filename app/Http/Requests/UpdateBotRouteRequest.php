@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Closure;
 use App\Enums\RouteType;
 use App\Enums\HandlerType;
+use App\Enums\EntityStatus;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -33,6 +34,7 @@ class UpdateBotRouteRequest extends FormRequest
             ->ignore($routeModel);
 
         return [
+            'status' => ['sometimes', 'string', Rule::in(array_column(EntityStatus::cases(), 'value'))],
             'type' => [
                 'required', 'string',
                 Rule::in(array_column(RouteType::cases(), 'value')),

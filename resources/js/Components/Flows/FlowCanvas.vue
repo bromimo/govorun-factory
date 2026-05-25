@@ -1,15 +1,13 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { VueFlow, useVueFlow, MarkerType } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
+import FlowMinimap from './FlowMinimap.vue';
 import dagre from '@dagrejs/dagre';
 import { useFlowDragDrop } from './useFlowDragDrop.js';
-import AskTextNode from './nodes/AskTextNode.vue';
-import AskKeyboardNode from './nodes/AskKeyboardNode.vue';
-import ReplyTextNode from './nodes/ReplyTextNode.vue';
-import ReplyKeyboardNode from './nodes/ReplyKeyboardNode.vue';
-import ReplyMediaNode from './nodes/ReplyMediaNode.vue';
+import AskNode from './nodes/AskNode.vue';
+import ReplyNode from './nodes/ReplyNode.vue';
 import SaveStateNode from './nodes/SaveStateNode.vue';
 import ConditionNode from './nodes/ConditionNode.vue';
 import ApiCallNode from './nodes/ApiCallNode.vue';
@@ -24,23 +22,56 @@ const props = defineProps({
     initialViewport: { type: Object, default: null },
 });
 
-const nodes = ref([...props.initialNodes]);
+const nodes = ref(props.initialNodes.map(n => n.type === 'start' ? { ...n, deletable: false } : n));
 const arrowMarker = { type: MarkerType.ArrowClosed, width: 20, height: 20 };
 const edgeDefaults = { markerEnd: arrowMarker, interactionWidth: 20, updatable: 'target', type: 'editable' };
-const edges = ref(props.initialEdges.map(e => ({ ...edgeDefaults, ...e, data: e.data || {} })));
+// До исправления getGraph sourceHandle не сохранялся; восстанавливаем из id ребра.
+// Формат id: vueflow__edge-{source}{sourceHandle}-{target}
+function inferSourceHandle(edgeId, source) {
+    const prefix = `vueflow__edge-${source}`;
+    if (!edgeId.startsWith(prefix)) return null;
+    const afterSource = edgeId.slice(prefix.length);
+    const dashIdx = afterSource.indexOf('-');
+    if (dashIdx <= 0) return null;
+    return afterSource.slice(0, dashIdx);
+}
+
+const apiCallNodeIds = new Set(props.initialNodes.filter(n => n.type === 'api_call').map(n => n.id));
+const edges = ref(props.initialEdges.map(e => {
+    const edge = { ...edgeDefaults, ...e, data: e.data || {} };
+    if (apiCallNodeIds.has(edge.source) && !edge.sourceHandle) {
+        edge.sourceHandle = inferSourceHandle(edge.id, edge.source) ?? 'default';
+    }
+    return edge;
+}));
 
 const selectedNode = ref(null);
 const selectedEdge = ref(null);
 
-const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, getNodes, getEdges, onNodesChange } = useVueFlow();
+const { onConnect, addEdges, addNodes, onEdgeUpdate, onNodeClick, onEdgeClick, onPaneClick, toObject, fitView, updateNodeData, removeEdges, removeNodes, updateNodeInternals, getNodes, getEdges, onNodesChange } = useVueFlow();
 
 onNodesChange((changes) => {
-    return changes.filter(change => {
-        if (change.type === 'remove' && getNodes.value.find(n => n.id === change.id)?.type === 'start') {
-            return false;
+    for (const change of changes) {
+        if (change.type === 'remove') {
+            if (getNodes.value.find(n => n.id === change.id)?.type === 'start') {
+                return changes.filter(c => c.id !== change.id);
+            }
+            if (selectedNode.value?.id === change.id) {
+                selectedNode.value = null;
+            }
         }
-        return true;
-    });
+        if (change.type === 'select') {
+            if (change.selected) {
+                const node = getNodes.value.find(n => n.id === change.id);
+                if (node && node.type !== 'start') {
+                    selectedEdge.value = null;
+                    selectedNode.value = { id: node.id, type: node.type, data: node.data };
+                }
+            } else if (selectedNode.value?.id === change.id) {
+                selectedNode.value = null;
+            }
+        }
+    }
 });
 
 function isValidConnection(connection) {
@@ -50,7 +81,9 @@ function isValidConnection(connection) {
     if (!sourceNode) return false;
 
     if (sourceNode.type !== 'condition') {
-        const hasOutgoing = getEdges.value.some(e => e.source === connection.source);
+        const hasOutgoing = getEdges.value.some(
+            e => e.source === connection.source && e.sourceHandle === connection.sourceHandle,
+        );
         if (hasOutgoing) return false;
     }
 
@@ -78,7 +111,14 @@ onNodeClick(({ node }) => {
 });
 
 onEdgeClick(({ edge }) => {
-    selectedEdge.value = { id: edge.id, source: edge.source, target: edge.target, label: edge.label };
+    const sourceNode = getNodes.value.find(n => n.id === edge.source);
+    selectedEdge.value = {
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        label: edge.label,
+        sourceIsCondition: sourceNode?.type === 'condition',
+    };
     selectedNode.value = null;
 });
 
@@ -102,6 +142,7 @@ function getGraph() {
             id: e.id,
             source: e.source,
             target: e.target,
+            sourceHandle: e.sourceHandle || undefined,
             label: e.label || undefined,
             data: e.data?.waypoints?.length ? { waypoints: e.data.waypoints } : undefined,
         })),
@@ -113,11 +154,25 @@ function doFitView() {
 }
 
 function setNodeData(nodeId, data) {
+    const node = getNodes.value.find(n => n.id === nodeId);
+    if (node?.type === 'api_call' && node.data.on_error === 'branch' && data.on_error !== 'branch') {
+        const stale = getEdges.value
+            .filter(e => e.source === nodeId && e.sourceHandle === 'on_error')
+            .map(e => e.id);
+        if (stale.length) removeEdges(stale);
+    }
     updateNodeData(nodeId, data);
+    if (node?.type === 'api_call') {
+        nextTick(() => updateNodeInternals(nodeId));
+    }
 }
 
 function getAllNodeIds() {
     return getNodes.value.map(n => n.id);
+}
+
+function getAllNodes() {
+    return getNodes.value.map(n => ({ id: n.id, type: n.type }));
 }
 
 function renameNode(oldId, newId) {
@@ -345,7 +400,16 @@ function autoLayout() {
     setTimeout(() => fitView({ padding: 0.2 }), 50);
 }
 
-defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, getPossiblyDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
+function clearCanvas() {
+    const nonStartIds = getNodes.value
+        .filter(n => n.type !== 'start')
+        .map(n => n.id);
+    removeNodes(nonStartIds);
+    selectedNode.value = null;
+    selectedEdge.value = null;
+}
+
+defineExpose({ getGraph, doFitView, autoLayout, clearCanvas, setNodeData, getAllNodeIds, getAllNodes, renameNode, setEdgeLabel, getOutgoingEdgeLabels, getAllStateKeys, getDeclaredStateKeysBefore, getPossiblyDeclaredStateKeysBefore, clearEdgeWaypoints, selectedNode, selectedEdge });
 </script>
 
 <template>
@@ -364,11 +428,8 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
         @drop="onDrop"
     >
         <template #node-start="p"><StartNode v-bind="p" /></template>
-        <template #node-ask_text="p"><AskTextNode v-bind="p" /></template>
-        <template #node-ask_keyboard="p"><AskKeyboardNode v-bind="p" /></template>
-        <template #node-reply_text="p"><ReplyTextNode v-bind="p" /></template>
-        <template #node-reply_keyboard="p"><ReplyKeyboardNode v-bind="p" /></template>
-        <template #node-reply_media="p"><ReplyMediaNode v-bind="p" /></template>
+        <template #node-ask="p"><AskNode v-bind="p" /></template>
+        <template #node-reply="p"><ReplyNode v-bind="p" /></template>
         <template #node-save_state="p"><SaveStateNode v-bind="p" /></template>
         <template #node-condition="p"><ConditionNode v-bind="p" /></template>
         <template #node-api_call="p"><ApiCallNode v-bind="p" /></template>
@@ -379,5 +440,12 @@ defineExpose({ getGraph, doFitView, autoLayout, setNodeData, getAllNodeIds, rena
 
         <Background :gap="16" />
         <Controls />
+        <FlowMinimap />
     </VueFlow>
 </template>
+
+<style scoped>
+:deep(.vue-flow__background) {
+    background-color: #eaedf0;
+}
+</style>

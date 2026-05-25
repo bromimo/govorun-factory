@@ -35,12 +35,21 @@ class CodeHelper
 
     /** Отрендерить переменную в PHP-выражение.
      * Dot-нотация (user.firstName) → $this->message->user->firstName
+     * bot.name → config('app.name')
      * Простое имя (name) → $this->state->get('name')
      *
      * @return string PHP-выражение
      */
     private static function renderVariable(string $variable): string
     {
+        if ($variable === 'bot.name') {
+            return "config('app.name')";
+        }
+
+        if ($variable === 'bot.username') {
+            return "config('app.username')";
+        }
+
         if (str_contains($variable, '.')) {
             return '$this->message->'.str_replace('.', '->', $variable);
         }
@@ -403,7 +412,6 @@ class CodeHelper
      * Для contact/location — только label.
      *
      * @param  array<string, mixed>  $btn
-     * @return string
      */
     public static function renderButton(array $btn): string
     {
@@ -422,7 +430,6 @@ class CodeHelper
     /** Отрендерить вызов ->action(...) с опциональным param-массивом.
      *
      * @param  array<string, mixed>  $btn
-     * @return string
      */
     private static function renderActionCall(array $btn): string
     {
@@ -443,7 +450,6 @@ class CodeHelper
      * Поддерживает только скалярные значения и вложенные массивы тех же типов.
      *
      * @param  array<string|int, mixed>  $arr
-     * @return string
      */
     private static function phpArrayLiteral(array $arr): string
     {
@@ -466,8 +472,6 @@ class CodeHelper
 
     /** Отрендерить скалярное значение или массив как PHP-литерал.
      *
-     * @param  mixed  $value
-     * @return string
      */
     private static function phpScalarLiteral(mixed $value): string
     {

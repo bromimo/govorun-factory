@@ -3,23 +3,39 @@
 namespace App\Services;
 
 use App\Models\Bot;
+use App\Models\BotFlow;
+use App\Enums\RouteType;
+use App\Models\BotRoute;
+use App\Enums\HandlerType;
+use App\Enums\EntityStatus;
+use App\Models\BotConnection;
 use App\Services\CodeGenerator\FlowGenerator;
 
 /** Валидатор схемы бота перед экспортом. */
 class SchemaValidator
 {
+    private const ALLOWED_MEDIA_TYPES = ['photo', 'video', 'audio', 'document', 'animation'];
+
+    private const LEGACY_BLOCK_TYPES = [
+        'ask_text', 'ask_keyboard', 'reply_text', 'reply_keyboard', 'reply_media',
+    ];
+
     public function __construct(
         private Bot $bot,
     ) {}
 
-    /** Валидировать схему бота. */
+    /** Валидировать схему бота. Проверяются только активные сущности (status=active).
+     */
     public function validate(): ValidationResult
     {
-        $this->bot->load(['routes', 'flows']);
+        $this->bot->load(['routes' => fn ($q) => $q->with('children'), 'flows']);
         $errors = [];
 
-        if ($this->bot->routes->isEmpty()) {
-            $errors[] = 'Бот должен иметь хотя бы один маршрут';
+        $activeRoutes = $this->bot->routes->filter(
+            fn ($r) => $r->status === EntityStatus::Active
+        );
+        if ($activeRoutes->isEmpty()) {
+            $errors[] = 'Бот должен иметь хотя бы один активный маршрут';
         }
 
         $messengerConfig = $this->bot->messenger_config ?? [];
@@ -28,56 +44,245 @@ class SchemaValidator
         }
 
         foreach ($this->bot->flows as $flow) {
-            $nodes = $flow->graph['nodes'] ?? [];
-
-            if (empty($nodes)) {
-                $errors[] = "Flow «{$flow->name}» не содержит ни одного узла";
-
+            if ($flow->status !== EntityStatus::Active) {
                 continue;
             }
-
-            $hasOnComplete = collect($nodes)->contains(fn ($n) => $n['type'] === 'on_complete');
-            if (! $hasOnComplete) {
-                $errors[] = "Flow «{$flow->name}» должен содержать узел on_complete";
-            }
-
-            $duplicates = $this->findDuplicateStepNames($nodes);
-            foreach ($duplicates as $name) {
-                $errors[] = "Flow «{$flow->name}»: имя шага «{$name}» используется более одного раза";
-            }
-
-            foreach ($nodes as $node) {
-                if (! in_array($node['type'] ?? '', ['ask_keyboard', 'reply_keyboard'], true)) {
-                    continue;
-                }
-
-                if ($this->isLegacyKeyboardFormat($node['data']['buttons'] ?? [])) {
-                    $nodeLabel = $node['id'] ?? '—';
-                    $errors[] = "Клавиатура в ноде «{$nodeLabel}» flow «{$flow->name}» в устаревшем формате. Откройте и сохраните flow в редакторе, чтобы обновить.";
-                }
-            }
+            $this->validateFlow($flow, $errors);
         }
 
         foreach ($this->bot->routes as $route) {
-            $blocks = $route->handler_schema['blocks'] ?? [];
-
-            foreach ($blocks as $index => $block) {
-                if (! in_array($block['type'] ?? '', ['ask_keyboard', 'reply_keyboard'], true)) {
-                    continue;
-                }
-
-                if ($this->isLegacyKeyboardFormat($block['params']['buttons'] ?? [])) {
-                    $blockNum = $index + 1;
-                    $errors[] = "Клавиатура в блоке #{$blockNum} маршрута «{$route->match}» в устаревшем формате. Откройте и сохраните маршрут в редакторе, чтобы обновить.";
-                }
+            if ($route->status !== EntityStatus::Active) {
+                continue;
             }
+            $this->validateRoute($route, $errors);
         }
 
         return new ValidationResult($errors);
     }
 
-    /** Найти дублирующиеся имена ask-шагов (с учётом автогена).
-     * @param  array<int, array<string, mixed>>  $nodes
+    /** Валидировать один маршрут (для endpoint'а смены статуса и авто-drop в draft).
+     * @param  BotRoute  $route  Маршрут для проверки.
+     */
+    public function validateSingleRoute(BotRoute $route): ValidationResult
+    {
+        $errors = [];
+        $route->loadMissing('children', 'flow');
+        $this->validateRoute($route, $errors);
+
+        return new ValidationResult($errors);
+    }
+
+    /** Валидировать один диалог (для endpoint'а смены статуса и авто-drop в draft).
+     * @param  BotFlow  $flow  Диалог для проверки.
+     */
+    public function validateSingleFlow(BotFlow $flow): ValidationResult
+    {
+        $errors = [];
+        $this->validateFlow($flow, $errors);
+
+        return new ValidationResult($errors);
+    }
+
+    /** Проверить flow.
+     * @param  BotFlow  $flow  Flow для проверки.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
+     */
+    private function validateFlow(BotFlow $flow, array &$errors): void
+    {
+        $nodes = $flow->graph['nodes'] ?? [];
+
+        if (empty($nodes)) {
+            $errors[] = "Flow «{$flow->name}» не содержит ни одного узла";
+
+            return;
+        }
+
+        $hasOnComplete = collect($nodes)->contains(fn ($n) => ($n['type'] ?? '') === 'on_complete');
+        if (! $hasOnComplete) {
+            $errors[] = "Flow «{$flow->name}» должен содержать узел on_complete";
+        }
+
+        foreach ($this->findDuplicateStepNames($nodes) as $name) {
+            $errors[] = "Flow «{$flow->name}»: имя шага «{$name}» используется более одного раза";
+        }
+
+        foreach ($nodes as $node) {
+            $type = $node['type'] ?? '';
+
+            if (in_array($type, self::LEGACY_BLOCK_TYPES, true)) {
+                $errors[] = "Тип блока «{$type}» больше не поддерживается. Откройте flow в редакторе для миграции.";
+
+                continue;
+            }
+
+            $where = "Flow «{$flow->name}», узел «{$node['id']}»";
+
+            if ($type === 'ask') {
+                $this->validateAsk($node['data'] ?? [], $where, $errors);
+            } elseif ($type === 'reply') {
+                $this->validateReply($node['data'] ?? [], $where, $errors);
+            } elseif ($type === 'api_call') {
+                $this->validateApiCall($node, $flow->graph['edges'] ?? [], $where, $errors);
+            }
+        }
+    }
+
+    /** Проверить route.
+     * @param  BotRoute  $route  Маршрут для проверки.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
+     */
+    private function validateRoute(BotRoute $route, array &$errors): void
+    {
+        $label = $route->match ? "«{$route->match}»" : "#{$route->id}";
+
+        $isParentPhrase = is_null($route->parent_id)
+            && $route->type === RouteType::Phrase
+            && $route->children->isNotEmpty();
+
+        if (! $isParentPhrase) {
+            if ($route->handler_type === HandlerType::Flow) {
+                if (empty($route->flow_id)) {
+                    $errors[] = "Маршрут {$label}: не выбран диалог (handler_type = flow)";
+                }
+            } else {
+                if (empty($route->handler_schema['blocks'] ?? [])) {
+                    $errors[] = "Маршрут {$label}: нет ни одного блока в контроллере";
+                }
+            }
+        }
+
+        $blocks = $route->handler_schema['blocks'] ?? [];
+
+        foreach ($blocks as $index => $block) {
+            $type = $block['type'] ?? '';
+            $blockNum = $index + 1;
+            $where = "Маршрут {$label}, блок #{$blockNum}";
+
+            if (in_array($type, self::LEGACY_BLOCK_TYPES, true)) {
+                $errors[] = "Тип блока «{$type}» больше не поддерживается. Откройте маршрут в редакторе для миграции.";
+
+                continue;
+            }
+
+            if ($type === 'reply') {
+                $this->validateReply($block['params'] ?? [], $where, $errors);
+            }
+        }
+
+        if ($route->handler_type === HandlerType::Flow && $route->flow_id) {
+            $flow = $route->flow ?? BotFlow::find($route->flow_id);
+            if ($flow && $flow->status !== EntityStatus::Active) {
+                $errors[] = "Маршрут {$label}: ссылается на неактивный диалог «{$flow->name}»";
+            }
+        }
+    }
+
+    /** Валидировать данные ask-блока.
+     * @param  array<string, mixed>  $data  Данные узла.
+     * @param  string  $where  Контекст для сообщений об ошибках.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
+     */
+    private function validateAsk(array $data, string $where, array &$errors): void
+    {
+        $mode = $data['mode'] ?? null;
+
+        if (! in_array($mode, ['text', 'callback'], true)) {
+            $errors[] = "{$where}: ask должен иметь mode = 'text' или 'callback'";
+
+            return;
+        }
+
+        $hasText = trim((string) ($data['text'] ?? '')) !== '';
+        $hasMedia = ! empty($data['media']);
+
+        if (! $hasText && ! $hasMedia) {
+            $errors[] = "{$where}: ask должен содержать text или media";
+        }
+
+        if ($hasMedia) {
+            $this->validateMedia($data['media'], $where, $errors);
+        }
+
+        $this->validateTextHtml($data['text'] ?? null, $where, $errors);
+
+        if ($mode === 'callback') {
+            $kb = $data['keyboard'] ?? null;
+            if (empty($kb) || empty($kb['buttons'] ?? [])) {
+                $errors[] = "{$where}: ask в режиме callback должен иметь непустую клавиатуру";
+            }
+        } elseif ($mode === 'text') {
+            if (! empty($data['keyboard'])) {
+                $errors[] = "{$where}: ask в режиме text не должен иметь клавиатуру";
+            }
+        }
+    }
+
+    /** Валидировать данные reply-блока.
+     * @param  array<string, mixed>  $data  Параметры блока.
+     * @param  string  $where  Контекст для сообщений об ошибках.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
+     */
+    private function validateReply(array $data, string $where, array &$errors): void
+    {
+        $hasText = trim((string) ($data['text'] ?? '')) !== '';
+        $hasMedia = ! empty($data['media']);
+
+        if (! $hasText && ! $hasMedia) {
+            $errors[] = "{$where}: reply должен содержать text или media";
+        }
+
+        if ($hasMedia) {
+            $this->validateMedia($data['media'], $where, $errors);
+        }
+
+        $this->validateTextHtml($data['text'] ?? null, $where, $errors);
+    }
+
+    /** Валидировать HTML в поле text блока.
+     * @param  mixed  $text  Значение поля text.
+     * @param  string  $where  Контекст для сообщений.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
+     */
+    private function validateTextHtml(mixed $text, string $where, array &$errors): void
+    {
+        if ($text === null || trim((string) $text) === '') {
+            return;
+        }
+
+        $str = (string) $text;
+        if (TelegramHtml::sanitize($str) !== $str) {
+            $errors[] = "{$where}: text содержит неподдерживаемый Telegram HTML тег/атрибут";
+        }
+    }
+
+    /** Валидировать структуру media.
+     * @param  mixed  $media  Объект media (ожидается массив с type и url).
+     * @param  string  $where  Контекст для сообщений об ошибках.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
+     */
+    private function validateMedia(mixed $media, string $where, array &$errors): void
+    {
+        if (! is_array($media)) {
+            $errors[] = "{$where}: media должен быть объектом";
+
+            return;
+        }
+
+        $type = $media['type'] ?? null;
+        $url = $media['url'] ?? null;
+        $mediaId = $media['media_id'] ?? null;
+
+        if (! in_array($type, self::ALLOWED_MEDIA_TYPES, true)) {
+            $errors[] = "{$where}: тип медиа «{$type}» не поддерживается";
+        }
+
+        if (empty($mediaId) && empty(trim((string) $url))) {
+            $errors[] = "{$where}: media должен иметь непустой url или media_id";
+        }
+    }
+
+    /** Найти дублирующиеся имена ask-шагов.
+     * @param  array<int, array<string, mixed>>  $nodes  Список узлов flow.
      * @return array<int, string>
      */
     private function findDuplicateStepNames(array $nodes): array
@@ -88,24 +293,64 @@ class SchemaValidator
         return array_keys(array_filter($counts, fn (int $c) => $c > 1));
     }
 
-    /** Проверить, что buttons в старом плоском формате (массив объектов вместо массива рядов).
-     * Новый формат: Row[], где Row = Button[]; Button — ассоциативный массив с полем label.
-     * Старый формат: Button[] — ассоциативный массив как элемент первого уровня.
-     *
-     * @param  array<int, mixed>  $buttons
+    /** Проверить api_call-узел.
+     * @param  array<string, mixed>  $node  Узел графа.
+     * @param  array<int, array<string, mixed>>  $edges  Все рёбра flow.
+     * @param  string  $where  Описание места ошибки.
+     * @param  array<int, string>  $errors  Список ошибок (по ссылке).
      */
-    private function isLegacyKeyboardFormat(array $buttons): bool
+    private function validateApiCall(array $node, array $edges, string $where, array &$errors): void
     {
-        if (empty($buttons)) {
-            return false;
+        $data = $node['data'] ?? [];
+
+        if (empty($data['connection_id'])) {
+            $errors[] = "{$where}: не выбрано подключение";
+
+            return;
         }
 
-        $first = $buttons[0] ?? null;
-
-        if (! is_array($first)) {
-            return false;
+        if (! BotConnection::find($data['connection_id'])) {
+            $errors[] = "{$where}: подключение удалено";
         }
 
-        return array_is_list($first) === false;
+        if (trim((string) ($data['path'] ?? '')) === '') {
+            $errors[] = "{$where}: не задан путь запроса";
+        }
+
+        $allowed = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+
+        if (! in_array($data['method'] ?? '', $allowed, true)) {
+            $errors[] = "{$where}: неподдерживаемый HTTP-метод";
+        }
+
+        $stateKeys = [];
+
+        foreach ($data['response_mapping'] ?? [] as $idx => $m) {
+            if (empty($m['json_path'])) {
+                $errors[] = "{$where}: маппинг {$idx} без json_path";
+            }
+
+            $key = $m['state_key'] ?? '';
+
+            if (! preg_match('/^[a-z][a-z0-9_]*$/', $key)) {
+                $errors[] = "{$where}: state_key «{$key}» должен быть в snake_case";
+            }
+
+            if (in_array($key, $stateKeys, true)) {
+                $errors[] = "{$where}: state_key «{$key}» дублируется";
+            }
+
+            $stateKeys[] = $key;
+        }
+
+        if (($data['on_error'] ?? '') === 'branch') {
+            $hasOnError = collect($edges)->contains(
+                fn ($e) => ($e['source'] ?? '') === ($node['id'] ?? '') && ($e['sourceHandle'] ?? null) === 'on_error',
+            );
+
+            if (! $hasOnError) {
+                $errors[] = "{$where}: режим on_error=branch требует исходящего ребра с handle on_error";
+            }
+        }
     }
 }

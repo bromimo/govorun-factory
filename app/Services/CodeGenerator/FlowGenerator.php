@@ -2,6 +2,7 @@
 
 namespace App\Services\CodeGenerator;
 
+use App\Models\BotConnection;
 use Illuminate\Support\Collection;
 
 /** Генератор классов Flow из графа диалога (step-based архитектура).
@@ -13,6 +14,9 @@ class FlowGenerator
 {
     /** @var array<string, string> Дефолтные сообщения валидации на уровне бота. */
     private array $validationMessages = [];
+
+    /** @var array<int, string> Маппинг media_id → filename. */
+    private array $mediaMap = [];
 
     /** @var Collection<int, array<string, mixed>> Коллекция всех нод для поиска по id. */
     private Collection $nodes;
@@ -29,14 +33,20 @@ class FlowGenerator
     /** @var array<string, string> Имена tail-методов: nodeId → tailName. */
     private array $tailNames = [];
 
+    /** @var array<string, mixed> Полный граф (nodes + edges) для доступа внутри render-методов. */
+    private array $graph = [];
+
     /** Сгенерировать класс Flow.
      * @param  array<string, mixed>  $graph
      * @param  array<string>  $interruptCommands
      * @param  array<string, string>  $validationMessages
+     * @param  array<int, string>  $mediaMap
      */
-    public function generate(string $className, array $graph, array $interruptCommands, bool $interruptOnEvent, array $validationMessages = []): string
+    public function generate(string $className, array $graph, array $interruptCommands, bool $interruptOnEvent, array $validationMessages = [], array $mediaMap = []): string
     {
         $this->validationMessages = $validationMessages;
+        $this->mediaMap = $mediaMap;
+        $this->graph = $graph;
         $this->nodes = collect($graph['nodes'] ?? []);
         $edges = collect($graph['edges'] ?? []);
 
@@ -106,23 +116,25 @@ class FlowGenerator
             $type = $node['type'] ?? '';
             $data = $node['data'] ?? [];
 
-            if (in_array($type, ['ask_keyboard', 'reply_keyboard'], true)) {
-                $useKeyboard = true;
-                $useButton = true;
+            if (! in_array($type, ['ask', 'reply', 'reply_media'], true)) {
+                continue;
             }
 
-            if ($type === 'reply_keyboard') {
+            $hasText = trim((string) ($data['text'] ?? '')) !== '';
+            $hasMedia = ! empty($data['media']);
+            $hasKeyboard = ! empty($data['keyboard']) && ! empty($data['keyboard']['buttons'] ?? []);
+
+            if ($hasMedia) {
+                $useMedia = true;
+            }
+
+            if ($hasText && ! $hasMedia) {
                 $useMessage = true;
             }
 
-            if (in_array($type, ['ask_text', 'ask_keyboard'], true)
-                && trim((string) ($data['image'] ?? '')) !== ''
-            ) {
-                $useMedia = true;
-            }
-
-            if ($type === 'reply_media' && ($data['media_type'] ?? 'photo') === 'photo') {
-                $useMedia = true;
+            if ($hasKeyboard) {
+                $useKeyboard = true;
+                $useButton = true;
             }
         }
 
@@ -147,7 +159,7 @@ class FlowGenerator
         $fallbackCounter = 1;
 
         foreach ($nodes as $node) {
-            if (! in_array($node['type'] ?? null, ['ask_text', 'ask_keyboard'], true)) {
+            if (($node['type'] ?? null) !== 'ask') {
                 continue;
             }
 
@@ -228,7 +240,7 @@ class FlowGenerator
             $inDegree[$edge['target']] = ($inDegree[$edge['target']] ?? 0) + 1;
         }
 
-        $excluded = ['ask_text', 'ask_keyboard', 'on_complete', 'on_cancel', 'start', 'condition'];
+        $excluded = ['ask', 'on_complete', 'on_cancel', 'start', 'condition'];
         $counter = 1;
 
         foreach ($this->nodes as $node) {
@@ -277,7 +289,7 @@ class FlowGenerator
                 continue;
             }
 
-            if (in_array($node['type'], ['ask_text', 'ask_keyboard'], true)
+            if (($node['type'] ?? '') === 'ask'
                 && ! in_array($nodeId, $orderedAsks, true)
             ) {
                 $orderedAsks[] = $nodeId;
@@ -309,7 +321,7 @@ class FlowGenerator
         $askCode = $this->renderAskCode($node);
         $validation = $node['data']['validation'] ?? [];
 
-        $isKeyboard = $node['type'] === 'ask_keyboard';
+        $isKeyboard = ($node['data']['mode'] ?? 'text') === 'callback';
         $validationCode = ! empty($validation)
             ? $this->renderValidationChain($validation, 3, $isKeyboard)
             : '';
@@ -335,7 +347,7 @@ class FlowGenerator
     private function renderTailMethod(string $nodeId, string $tailName): string
     {
         $node = $this->nodes->firstWhere('id', $nodeId);
-        $actionCode = $this->renderActionBlock($node['type'], $node['data'] ?? [], 2);
+        $actionCode = $this->renderActionBlock($node, 2);
         $next = $this->adjacency[$nodeId][0] ?? null;
         $continuation = $next !== null
             ? $this->buildSequence($next, 2)
@@ -370,10 +382,10 @@ class FlowGenerator
                 break;
             }
             $type = $node['type'];
-            if (in_array($type, ['ask_text', 'ask_keyboard', 'condition', 'on_complete', 'on_cancel'], true)) {
+            if (in_array($type, ['ask', 'condition', 'on_complete', 'on_cancel'], true)) {
                 break;
             }
-            $code .= $this->renderActionBlock($type, $node['data'] ?? [], 2);
+            $code .= $this->renderActionBlock($node, 2);
             $cursor = $this->adjacency[$cursor][0] ?? null;
         }
 
@@ -405,7 +417,7 @@ class FlowGenerator
                 return $code;
             }
 
-            if (in_array($type, ['ask_text', 'ask_keyboard'], true)) {
+            if ($type === 'ask') {
                 $stepName = $this->askStepNames[$cursor];
                 $code .= $this->indent("\$this->nextStep('{$stepName}');", $indent)."\n";
 
@@ -430,7 +442,7 @@ class FlowGenerator
                 return $code;
             }
 
-            $code .= $this->renderActionBlock($type, $node['data'] ?? [], $indent);
+            $code .= $this->renderActionBlock($node, $indent);
             $cursor = $this->adjacency[$cursor][0] ?? null;
         }
 
@@ -480,7 +492,7 @@ class FlowGenerator
             return "\$this->{$tailName}();";
         }
 
-        if (in_array($type, ['ask_text', 'ask_keyboard'], true)) {
+        if ($type === 'ask') {
             $stepName = $this->askStepNames[$targetId];
 
             return "\$this->nextStep('{$stepName}');";
@@ -495,137 +507,105 @@ class FlowGenerator
         return trim(preg_replace('/\s+/', ' ', $raw));
     }
 
-    /** Отрендерить ask-часть шага. */
+    /** Отрендерить ask-часть шага (унифицированный тип ask).
+     * @param  array<string, mixed>  $node  Узел графа.
+     */
     private function renderAskCode(array $node): string
     {
         $data = $node['data'] ?? [];
-        $type = $node['type'];
+        $type = $node['type'] ?? '';
 
-        if ($type === 'ask_text') {
-            $text = $this->renderText($data['text'] ?? '');
-            $image = trim((string) ($data['image'] ?? ''));
-            if ($image !== '') {
-                $url = "'".addslashes($image)."'";
-
-                return "        \$step->ask(\n"
-                    ."            Media::photo({$url})\n"
-                    ."                ->caption({$text})\n"
-                    ."        );\n";
-            }
-
-            return "        \$step->ask({$text});\n";
+        if ($type !== 'ask') {
+            return '';
         }
 
-        if ($type === 'ask_keyboard') {
-            $text = $this->renderText($data['text'] ?? '');
-            $image = trim((string) ($data['image'] ?? ''));
-            $buttons = $data['buttons'] ?? [];
+        $expression = $this->buildOutgoingExpression($data, '        ');
 
-            $kbBody = $this->renderKeyboardBody($buttons, '            ');
-
-            if ($image !== '') {
-                $url = "'".addslashes($image)."'";
-
-                return "        \$step->ask(\n"
-                    ."            Media::photo({$url})\n"
-                    ."                ->caption({$text}),\n"
-                    ."            {$kbBody},\n"
-                    ."        );\n";
-            }
-
-            return "        \$step->ask(\n"
-                ."            {$text},\n"
-                ."            {$kbBody},\n"
-                ."        );\n";
+        if ($expression === null) {
+            return '';
         }
 
-        return '';
+        return "        \$step->ask(\n{$expression}        );\n";
     }
 
-    /** Отрендерить тело Keyboard::make()->buttons([…]) с отступом $pad
-     * для открывающей строки, $pad+4 для строки-ряда, $pad+8 для строки-кнопки.
+    /** Отрендерить action-блок с указанным уровнем отступа.
      *
-     * @param  array<int, array<int, array<string, mixed>>>  $rows
-     * @return string
+     * @param  array<string, mixed>  $node  Полный узел графа.
+     * @param  int  $indent  Количество отступов.
      */
-    private function renderKeyboardBody(array $rows, string $pad): string
+    private function renderActionBlock(array $node, int $indent): string
     {
-        $rowIndent = $pad.'    ';
-        $btnIndent = $pad.'        ';
-
-        $rowsRendered = array_map(function (array $row) use ($rowIndent, $btnIndent) {
-            if (empty($row)) {
-                return "{$rowIndent}[],";
-            }
-
-            $buttons = array_map(
-                fn (array $btn) => $btnIndent.CodeHelper::renderButton($btn).',',
-                $row,
-            );
-
-            return "{$rowIndent}[\n".implode("\n", $buttons)."\n{$rowIndent}],";
-        }, $rows);
-
-        $rowsCode = implode("\n", $rowsRendered);
-
-        return "Keyboard::make()->buttons([\n{$rowsCode}\n{$pad}])";
-    }
-
-    /** Отрендерить action-блок с указанным уровнем отступа. */
-    private function renderActionBlock(string $type, array $data, int $indent): string
-    {
+        $type = $node['type'] ?? '';
+        $data = $node['data'] ?? [];
         $pad = str_repeat('    ', $indent);
 
         return match ($type) {
             'save_state' => $this->renderSaveState($data, $pad),
-            'reply_text' => "{$pad}\$this->reply(".$this->renderText($data['text'] ?? '').");\n",
-            'reply_keyboard' => $this->renderReplyKeyboard($data, $pad),
-            'reply_media' => $this->renderReplyMedia($data, $pad),
-            'api_call' => "{$pad}\$response = \$this->apiCall('".($data['method'] ?? 'GET')."', '".addslashes($data['url'] ?? '')."');\n",
+            'reply', 'reply_media' => $this->renderReply($data, $pad),
+            'api_call' => $this->renderApiCall($node, $pad),
             default => "{$pad}// Unknown block: {$type}\n",
         };
     }
 
-    /** Отрендерить reply_media — поддерживается только photo.
-     * При наличии caption разбивает Media-цепочку на строки (ширина ≤ 120).
+    /** Отрендерить reply-блок: $this->send(<expression>);.
+     * @param  array<string, mixed>  $data  Параметры reply.
+     * @param  string  $pad  Отступ для строки.
      */
-    private function renderReplyMedia(array $data, string $pad): string
+    private function renderReply(array $data, string $pad): string
     {
-        $type = $data['media_type'] ?? 'photo';
-        if ($type !== 'photo') {
-            return "{$pad}// Unsupported media type: {$type}\n";
+        $expression = $this->buildOutgoingExpression($data, $pad);
+
+        if ($expression === null) {
+            return "{$pad}// Empty reply block\n";
         }
 
-        $url = "'".addslashes($data['url'] ?? '')."'";
-        $caption = trim((string) ($data['caption'] ?? ''));
-
-        if ($caption === '') {
-            return "{$pad}\$this->send(Media::photo({$url}));\n";
-        }
-
-        $inner = $pad.'    ';
-        $chain = $inner.'    ';
-
-        return "{$pad}\$this->send(\n"
-            ."{$inner}Media::photo({$url})\n"
-            ."{$chain}->caption(".$this->renderText($caption).")\n"
-            ."{$pad});\n";
+        return "{$pad}\$this->send(\n{$expression}{$pad});\n";
     }
 
-    /** Отрендерить reply_keyboard через Message::make()->keyboard(Keyboard::make()->buttons([…])). */
-    private function renderReplyKeyboard(array $data, string $pad): string
+    /** Построить fluent-выражение OutgoingMessage из data ask/reply.
+     * Возвращает многострочное выражение с отступом или null если data пустая.
+     *
+     * @param  array<string, mixed>  $data  Параметры узла (text, media, keyboard).
+     * @param  string  $pad  Отступ внешнего вызова ($this->send(... | $step->ask(...).
+     */
+    private function buildOutgoingExpression(array $data, string $pad): ?string
     {
-        $text = $this->renderText($data['text'] ?? '');
-        $buttons = $data['buttons'] ?? [];
+        $text = trim((string) ($data['text'] ?? ''));
+        $media = $data['media'] ?? null;
+        $keyboard = $data['keyboard'] ?? null;
+        $inner = $pad.'    ';
 
-        $kbBody = $this->renderKeyboardBody($buttons, $pad.'            ');
+        if ($text === '' && empty($media)) {
+            return null;
+        }
 
-        return "{$pad}\$this->send(\n"
-            ."{$pad}    Message::make({$text})\n"
-            ."{$pad}        ->keyboard(\n"
-            ."{$pad}            {$kbBody}\n"
-            ."{$pad}        )\n"
-            ."{$pad});\n";
+        if (! empty($media)) {
+            $type = $media['type'] ?? 'photo';
+
+            if (isset($media['media_id'])) {
+                $filename = $this->mediaMap[$media['media_id']] ?? 'unknown';
+                $mediaRef = "dirname(__DIR__, 2) . '/resources/media/{$filename}'";
+            } else {
+                $mediaRef = "'".addslashes($media['url'] ?? '')."'";
+            }
+
+            $expression = "{$inner}Media::{$type}({$mediaRef})";
+
+            if ($text !== '') {
+                $expression .= "\n{$inner}    ->caption(".$this->renderText($text).')';
+                $expression .= "\n{$inner}    ->parseMode('HTML')";
+            }
+        } else {
+            $expression = "{$inner}Message::make(".$this->renderText($text).')';
+            $expression .= "\n{$inner}    ->parseMode('HTML')";
+        }
+
+        if (! empty($keyboard) && ! empty($keyboard['buttons'] ?? [])) {
+            $kbBody = KeyboardCodeBuilder::renderKeyboard($keyboard, $inner.'        ');
+            $expression .= "\n{$inner}    ->keyboard(\n{$inner}        {$kbBody}\n{$inner}    )";
+        }
+
+        return $expression."\n";
     }
 
     /** Отрендерить save_state — одну или несколько переменных. */
@@ -728,5 +708,163 @@ class FlowGenerator
     private function indent(string $line, int $indent): string
     {
         return str_repeat('    ', $indent).$line;
+    }
+
+    /** Отрендерить api_call-блок: HTTP-запрос через connection + маппинг ответа.
+     *
+     * @param  array<string, mixed>  $node  Узел графа.
+     * @param  string  $pad  Отступ.
+     */
+    private function renderApiCall(array $node, string $pad): string
+    {
+        $data = $node['data'] ?? [];
+        $connectionId = $data['connection_id'] ?? null;
+        $connection = $connectionId ? BotConnection::find($connectionId) : null;
+
+        if (! $connection) {
+            return "{$pad}// api_call: подключение не найдено\n";
+        }
+
+        $onErrorTarget = $this->findOnErrorTarget($node['id'] ?? '');
+
+        $tpl = view('stubs.flow_api_call', [
+            'slug' => $connection->slug,
+            'method' => strtolower($data['method'] ?? 'GET'),
+            'pathExpr' => $this->renderStringExpr($data['path'] ?? ''),
+            'query' => $this->renderPairsExpr($data['query'] ?? []),
+            'headers' => $this->renderPairsExpr($data['headers'] ?? []),
+            'bodyMode' => $data['body_mode'] ?? 'none',
+            'bodyExpr' => $this->renderBodyExpr($data['body_mode'] ?? 'none', $data['body'] ?? null),
+            'mapping' => $data['response_mapping'] ?? [],
+            'onError' => $data['on_error'] ?? 'stop_flow',
+            'onErrorTarget' => $onErrorTarget,
+        ])->render();
+
+        return $this->indentBlock($tpl, $pad);
+    }
+
+    /** Найти target-ноду для ветки on_error (edge с sourceHandle === 'on_error').
+     *
+     * @param  string  $sourceId  ID исходного узла.
+     */
+    private function findOnErrorTarget(string $sourceId): ?string
+    {
+        foreach ($this->graph['edges'] ?? [] as $edge) {
+            if ($edge['source'] === $sourceId && ($edge['sourceHandle'] ?? null) === 'on_error') {
+                return $this->stepNameFor($edge['target']);
+            }
+        }
+
+        return null;
+    }
+
+    /** Рендер строкового выражения в PHP-литерал.
+     *
+     * @param  string  $template  Строка шаблона.
+     */
+    private function renderStringExpr(string $template): string
+    {
+        return "'".addslashes($template)."'";
+    }
+
+    /** Рендер пар key/value в многострочный PHP-массив.
+     *
+     * @param  array<int, array{key: string, value: string}>  $pairs  Пары ключ/значение.
+     */
+    private function renderPairsExpr(array $pairs): string
+    {
+        if (empty($pairs)) {
+            return '[]';
+        }
+
+        $parts = [];
+
+        foreach ($pairs as $p) {
+            $k = "'".addslashes($p['key'] ?? '')."'";
+            $v = $this->renderStringExpr($p['value'] ?? '');
+            $parts[] = "        {$k} => {$v},";
+        }
+
+        return "[\n".implode("\n", $parts)."\n    ]";
+    }
+
+    /** Рендер тела запроса в PHP-выражение.
+     *
+     * @param  string  $mode  Режим тела (json/form/none).
+     * @param  mixed  $body  Тело запроса.
+     */
+    private function renderBodyExpr(string $mode, mixed $body): string
+    {
+        if ($mode === 'json' && is_string($body)) {
+            $php = $this->jsonToPhpArrayExpr($body);
+
+            return $php ?? 'null';
+        }
+
+        if ($mode === 'form' && is_array($body)) {
+            return $this->renderPairsExpr($body);
+        }
+
+        return 'null';
+    }
+
+    /** Преобразовать JSON-строку в PHP-выражение array с плейсхолдерами state.
+     *
+     * @param  string  $json  JSON-строка.
+     */
+    private function jsonToPhpArrayExpr(string $json): ?string
+    {
+        $decoded = json_decode($json, true);
+
+        if (! is_array($decoded)) {
+            return null;
+        }
+
+        return $this->arrayToPhpExpr($decoded);
+    }
+
+    /** Рекурсивно преобразовать PHP-значение в строковое PHP-выражение.
+     *
+     * @param  mixed  $value  Произвольное значение.
+     */
+    private function arrayToPhpExpr(mixed $value): string
+    {
+        if (is_array($value)) {
+            $isList = array_keys($value) === range(0, count($value) - 1);
+            $parts = [];
+
+            foreach ($value as $k => $v) {
+                $parts[] = $isList
+                    ? $this->arrayToPhpExpr($v)
+                    : "'".addslashes((string) $k)."' => ".$this->arrayToPhpExpr($v);
+            }
+
+            return '['.implode(', ', $parts).']';
+        }
+
+        if (is_string($value)) {
+            return $this->renderStringExpr($value);
+        }
+
+        return var_export($value, true);
+    }
+
+    /** Найти имя шага для ноды по её ID.
+     *
+     * @param  string  $nodeId  ID узла.
+     */
+    private function stepNameFor(string $nodeId): string
+    {
+        return $this->askStepNames[$nodeId] ?? $nodeId;
+    }
+
+    /** Добавить отступ $pad к каждой строке многострочного блока.
+     *
+     * @param  string  $text  Многострочный текст.
+     * @param  string  $pad  Строка отступа.
+     */
+    private function indentBlock(string $text, string $pad): string
+    {
+        return implode("\n", array_map(fn ($line) => $line === '' ? '' : $pad.$line, explode("\n", trim($text))))."\n";
     }
 }

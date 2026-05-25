@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
-use App\Enums\UserRole;
 use App\Models\Bot;
 use App\Models\User;
+use App\Enums\UserRole;
 
 /** Политика доступа к ботам. */
 class BotPolicy

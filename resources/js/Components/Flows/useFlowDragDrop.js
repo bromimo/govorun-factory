@@ -36,6 +36,7 @@ export function useFlowDragDrop() {
             type,
             position,
             data: { ...defaultBlockParams[type] },
+            ...(type === 'start' ? { deletable: false } : {}),
         });
 
         draggedType.value = null;

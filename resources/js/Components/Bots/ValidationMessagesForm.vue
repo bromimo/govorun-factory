@@ -1,12 +1,19 @@
 <script setup>
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { useDirtyGuard } from '@/composables/useDirtyGuard';
+import { useToast } from '@/composables/useToast';
 import { validationRuleDefs, defaultMessages } from '../Blocks/validationRules.js';
+import ErButton from '@/Components/Ui/ErButton.vue';
+import ErInput from '@/Components/Ui/ErInput.vue';
+import ErFormSection from '@/Components/Ui/ErFormSection.vue';
 
 const props = defineProps({
     bot: Object,
     can: Object,
 });
+
+const toast = useToast();
 
 const fileInput = ref(null);
 const importError = ref('');
@@ -21,6 +28,8 @@ const form = useForm({
         ),
     },
 });
+
+useDirtyGuard(() => form.isDirty);
 
 function save() {
     const messages = { ...form.config.validation_messages };
@@ -47,6 +56,7 @@ function exportJson() {
     a.download = `validation-messages-${props.bot.name}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    toast.success('validation-messages.json скачана');
 }
 
 function triggerImport() {
@@ -80,39 +90,62 @@ async function onFilePicked(e) {
 </script>
 
 <template>
-    <form @submit.prevent="save" class="space-y-4">
-        <p class="text-sm text-gray-500">
+    <form @submit.prevent="save" class="space-y-2">
+        <p class="text-xs text-gray-500 mb-3">
             Настройте тексты сообщений об ошибках валидации для этого бота.
             Пустые поля используют значения по умолчанию.
         </p>
 
-        <div v-for="rule in validationRuleDefs" :key="rule.name" class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700">{{ rule.label }}</label>
-            <input v-model="form.config.validation_messages[rule.name]" type="text"
-                :placeholder="defaultMessages[rule.name]"
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-            <p v-if="hasParams(rule.name)" class="text-xs text-gray-400">
-                Используйте {value}, {min}, {max} для подстановки параметров
-            </p>
-        </div>
+        <ErFormSection title="Сообщения об ошибках">
+            <div v-for="rule in validationRuleDefs" :key="rule.name" class="vm-row">
+                <label class="vm-label">{{ rule.label }}</label>
+                <div class="vm-field">
+                    <ErInput
+                        v-model="form.config.validation_messages[rule.name]"
+                        :placeholder="defaultMessages[rule.name]"
+                        :long="true"
+                    />
+                    <p v-if="hasParams(rule.name)" class="vm-hint">
+                        Используйте {value}, {min}, {max} для подстановки параметров
+                    </p>
+                </div>
+            </div>
+        </ErFormSection>
 
-        <div class="flex flex-wrap items-center gap-2 pt-4">
-            <button v-if="can.update" type="submit" :disabled="form.processing"
-                class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">
+        <div class="flex flex-wrap items-center gap-2 pt-2">
+            <ErButton v-if="can.update" type="submit" variant="primary" :disabled="form.processing">
                 Сохранить
-            </button>
-            <button type="button" @click="exportJson"
-                class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200">
+            </ErButton>
+            <ErButton type="button" @click="exportJson">
                 Экспорт JSON
-            </button>
-            <button v-if="can.update" type="button" @click="triggerImport"
-                class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200">
+            </ErButton>
+            <ErButton v-if="can.update" type="button" @click="triggerImport">
                 Импорт JSON
-            </button>
+            </ErButton>
             <input ref="fileInput" type="file" accept="application/json,.json" class="hidden" @change="onFilePicked">
-            <span v-if="form.recentlySuccessful" class="text-sm text-green-600">Сохранено</span>
+            <span v-if="form.recentlySuccessful" class="text-xs text-green-600">Сохранено</span>
         </div>
 
-        <p v-if="importError" class="text-sm text-red-600">{{ importError }}</p>
+        <p v-if="importError" class="text-xs text-red-600">{{ importError }}</p>
     </form>
 </template>
+
+<style scoped>
+.vm-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--bdr);
+}
+.vm-row:last-child { border-bottom: none; }
+.vm-label {
+    width: 180px;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--ink);
+    padding-top: 5px;
+}
+.vm-field { flex: 1; }
+.vm-hint { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+</style>

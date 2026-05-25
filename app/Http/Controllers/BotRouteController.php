@@ -3,16 +3,39 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bot;
+use Inertia\Inertia;
+use Inertia\Response;
 use App\Enums\RouteType;
 use App\Models\BotRoute;
+use App\Enums\EntityStatus;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Services\SchemaValidator;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreBotRouteRequest;
 use App\Http\Requests\UpdateBotRouteRequest;
 use App\Http\Requests\ReorderBotRoutesRequest;
+use Illuminate\Validation\ValidationException;
 
 class BotRouteController extends Controller
 {
+    /** Страница редактирования маршрута.
+     */
+    public function edit(Bot $bot, BotRoute $route): Response
+    {
+        $this->authorize('update', $bot);
+
+        return Inertia::render('Routes/Edit', [
+            'bot' => $bot->only('id', 'name'),
+            'botRoute' => $route,
+            'flows' => $bot->flows()->where('status', EntityStatus::Active->value)->select('id', 'name')->get(),
+            'hasChildren' => $route->children()->exists(),
+            'can' => ['update' => request()->user()->can('update', $bot)],
+        ]);
+    }
+
     /** Создание маршрута для бота.
      * @return RedirectResponse
      */
@@ -22,6 +45,7 @@ class BotRouteController extends Controller
 
         $bot->routes()->create([
             ...$this->sanitizeAliases($request->validated()),
+            'status' => EntityStatus::Draft->value,
             'sort_order' => $maxOrder + 1,
         ]);
 
@@ -35,12 +59,72 @@ class BotRouteController extends Controller
      */
     public function update(UpdateBotRouteRequest $request, Bot $bot, BotRoute $route)
     {
-        $route->update($this->sanitizeAliases($request->validated()));
+        // Статус меняется только через PATCH /status — убираем из validated данных
+        $data = array_diff_key($this->sanitizeAliases($request->validated()), ['status' => true]);
+        $route->update($data);
 
-        return redirect()->route('bots.edit', $bot);
+        if (in_array($route->status, [EntityStatus::Active, EntityStatus::Inactive], true)) {
+            $result = (new SchemaValidator($bot))->validateSingleRoute($route->fresh());
+            if (! empty($result->errors)) {
+                $route->update(['status' => EntityStatus::Draft]);
+                session()->flash('auto_drafted_reasons', $result->errors);
+            }
+        }
+
+        return redirect()->route('bot-routes.edit', [$bot, $route]);
     }
 
-    /** Очистить данные маршрута: алиасы и controller_name.
+    /** Сменить статус маршрута.
+     *
+     * @throws ValidationException
+     */
+    public function changeStatus(Request $request, Bot $bot, BotRoute $route): JsonResponse
+    {
+        $this->authorize('update', $bot);
+
+        $data = $request->validate([
+            'status' => ['required', 'string', Rule::in(array_column(EntityStatus::cases(), 'value'))],
+        ]);
+
+        $target = EntityStatus::from($data['status']);
+
+        if ($target === EntityStatus::Active) {
+            if ($route->parent_id !== null) {
+                $parent = BotRoute::find($route->parent_id);
+                if ($parent && $parent->status !== EntityStatus::Active) {
+                    return response()->json([
+                        'errors' => ['Сначала активируйте родительский маршрут'],
+                    ], 422);
+                }
+            }
+
+            $result = (new SchemaValidator($bot))->validateSingleRoute($route);
+            if (! empty($result->errors)) {
+                return response()->json(['errors' => $result->errors], 422);
+            }
+        }
+
+        $cascaded = [];
+
+        DB::transaction(function () use ($route, $target, &$cascaded) {
+            $route->update(['status' => $target]);
+
+            if (in_array($target, [EntityStatus::Inactive, EntityStatus::Draft], true)) {
+                $children = $route->children()->where('status', EntityStatus::Active->value)->get();
+                foreach ($children as $child) {
+                    $child->update(['status' => EntityStatus::Inactive]);
+                    $cascaded[] = $child->id;
+                }
+            }
+        });
+
+        return response()->json([
+            'status' => $target->value,
+            'cascaded_children' => $cascaded,
+        ]);
+    }
+
+    /** Очистить данные маршрута: алиасы, controller_name и flow_id в зависимости от типа/обработчика.
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
@@ -48,6 +132,14 @@ class BotRouteController extends Controller
     {
         if (empty($data['controller_name']) || ($data['type'] ?? '') === 'fallback') {
             $data['controller_name'] = null;
+        }
+
+        if (($data['handler_type'] ?? 'controller') !== 'flow') {
+            $data['flow_id'] = null;
+        }
+
+        if (($data['handler_type'] ?? 'controller') === 'flow') {
+            $data['handler_schema'] = null;
         }
 
         if (($data['type'] ?? '') !== 'phrase') {

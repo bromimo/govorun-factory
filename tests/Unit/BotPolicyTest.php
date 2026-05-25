@@ -3,10 +3,10 @@
 namespace Tests\Unit;
 
 use App\Models\Bot;
+use Tests\TestCase;
 use App\Models\User;
 use App\Policies\BotPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
 class BotPolicyTest extends TestCase
 {

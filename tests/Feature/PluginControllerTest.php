@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Models\Plugin;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\Plugin;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class PluginControllerTest extends TestCase
 {

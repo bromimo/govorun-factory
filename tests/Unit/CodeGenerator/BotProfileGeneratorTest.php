@@ -2,10 +2,11 @@
 
 namespace Tests\Unit\CodeGenerator;
 
-use Tests\TestCase;
 use App\Models\Bot;
-use App\Models\BotRoute;
+use Tests\TestCase;
 use App\Enums\RouteType;
+use App\Models\BotRoute;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Services\CodeGenerator\BotProfileGenerator;
 
@@ -115,7 +116,7 @@ class BotProfileGeneratorTest extends TestCase
 
     public function test_resolves_photo_source_path_when_present(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('local');
+        Storage::fake('local');
 
         $bot = new Bot([
             'messenger_config' => [
@@ -126,7 +127,7 @@ class BotProfileGeneratorTest extends TestCase
             ],
         ]);
 
-        \Illuminate\Support\Facades\Storage::disk('local')->put('bot-profiles/42/profile.jpg', 'fake');
+        Storage::disk('local')->put('bot-profiles/42/profile.jpg', 'fake');
 
         $info = (new BotProfileGenerator)->resolvePhoto($bot);
 

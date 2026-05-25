@@ -4,9 +4,20 @@ const example2 = '{{ name }}';
 </script>
 
 <template>
-    <p class="mt-2 rounded bg-amber-50 px-2 py-1.5 text-xs text-amber-700">
+    <p class="vars-hint">
         Переменные оборачивайте в <code class="font-semibold" v-text="'{{ }}'" />:
         <code v-text="example1" />,
         <code v-text="example2" />
     </p>
 </template>
+
+<style scoped>
+.vars-hint {
+    margin-top: 6px;
+    border-radius: var(--r-sm);
+    padding: 4px 8px;
+    font-size: 11px;
+    background: var(--orange-soft);
+    color: var(--orange);
+}
+</style>

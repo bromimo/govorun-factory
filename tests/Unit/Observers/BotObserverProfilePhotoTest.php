@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Observers;
 
-use Tests\TestCase;
 use App\Models\Bot;
+use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -6,7 +6,6 @@ use Illuminate\Database\Migrations\Migration;
 return new class extends Migration
 {
     /** Преобразовать messenger_config из плоского массива ['telegram','vk'] в объектный {telegram: {enabled: true}, vk: {enabled: true}}.
-     * @return void
      */
     public function up(): void
     {
@@ -31,7 +30,6 @@ return new class extends Migration
     }
 
     /** Откатить миграцию: свернуть {telegram: {enabled: true}, ...} в ['telegram', ...]. Поле profile теряется.
-     * @return void
      */
     public function down(): void
     {

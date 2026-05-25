@@ -55,7 +55,6 @@ class ExportController extends Controller
     /** Удалить устаревшие zip-архивы из storage/exports.
      * Защита-в-глубину: если предыдущая загрузка прервалась и finally
      * не успел сработать, файл будет удалён при следующем экспорте.
-     * @return void
      */
     private function cleanupStaleArchives(): void
     {

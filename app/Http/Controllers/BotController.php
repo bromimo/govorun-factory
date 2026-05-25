@@ -12,8 +12,8 @@ use App\Http\Requests\UpdateBotRequest;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UploadBotPhotoRequest;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use App\Services\TelegramProfileVideoConverter;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class BotController extends Controller
 {
@@ -23,8 +23,8 @@ class BotController extends Controller
     public function index(Request $request)
     {
         $bots = Bot::query()
-            ->with('updater:id,name')
-            ->withCount(['routes', 'flows'])
+            ->with(['updater:id,name'])
+            ->withCount(['routes', 'flows', 'connections'])
             ->when($request->search, fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
             ->latest('updated_at')
             ->get();
@@ -58,10 +58,15 @@ class BotController extends Controller
     {
         $this->authorize('view', $bot);
 
-        $bot->load(['routes' => fn ($q) => $q->whereNull('parent_id')->orderBy('sort_order')->with('children'), 'flows']);
+        $bot->load([
+            'routes' => fn ($q) => $q->whereNull('parent_id')->orderBy('sort_order')->with('children'),
+            'flows',
+            'connections' => fn ($q) => $q->latest(),
+        ]);
 
         return Inertia::render('Bots/Edit', [
             'bot' => $bot,
+            'connections' => $bot->connections->map(fn ($c) => $c->toApiArray())->values(),
             'can' => [
                 'update' => request()->user()->can('update', $bot),
                 'delete' => request()->user()->can('delete', $bot),
@@ -93,7 +98,6 @@ class BotController extends Controller
     }
 
     /** Загрузить аватар бота: PNG конвертится в JPG, MP4 — нормализуется под спеку Telegram.
-     * @return RedirectResponse
      * @throws ValidationException Если конвертация видео провалилась.
      */
     public function uploadProfilePhoto(
@@ -138,7 +142,6 @@ class BotController extends Controller
     }
 
     /** Удалить аватар бота: чистит файл и обнуляет photo_path.
-     * @return RedirectResponse
      */
     public function deleteProfilePhoto(Bot $bot): RedirectResponse
     {
@@ -182,9 +185,10 @@ class BotController extends Controller
     }
 
     /** Закодировать изображение как JPEG с помощью GD.
-     * @param string $path Полный путь к исходному файлу.
-     * @param string $mime MIME исходного файла.
+     * @param  string  $path  Полный путь к исходному файлу.
+     * @param  string  $mime  MIME исходного файла.
      * @return string Бинарь JPEG.
+     *
      * @throws \RuntimeException Если MIME не поддерживается.
      */
     private function encodeAsJpeg(string $path, string $mime): string
@@ -202,4 +206,5 @@ class BotController extends Controller
 
         return $binary;
     }
+
 }

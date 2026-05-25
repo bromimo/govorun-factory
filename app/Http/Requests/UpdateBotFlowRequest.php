@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\EntityStatus;
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBotFlowRequest extends FormRequest
@@ -21,6 +23,7 @@ class UpdateBotFlowRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'status' => ['sometimes', 'string', Rule::in(array_column(EntityStatus::cases(), 'value'))],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'graph' => ['sometimes', 'required', 'array', function (string $attribute, mixed $value, \Closure $fail) {

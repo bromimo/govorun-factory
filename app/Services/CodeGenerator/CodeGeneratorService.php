@@ -3,6 +3,7 @@
 namespace App\Services\CodeGenerator;
 
 use App\Models\Bot;
+use App\Enums\EntityStatus;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 
@@ -21,6 +22,8 @@ class CodeGeneratorService
 
     private BotProfileGenerator $botProfile;
 
+    private ConnectionGenerator $connection;
+
     /** @var array<int, string> Маппинг flow_id → имя класса. */
     private array $flowClassNames = [];
 
@@ -32,21 +35,28 @@ class CodeGeneratorService
         $this->flow = new FlowGenerator;
         $this->composer = new ComposerGenerator;
         $this->botProfile = new BotProfileGenerator;
+        $this->connection = new ConnectionGenerator;
     }
 
     /** Сгенерировать полный проект в указанную директорию.
      */
     public function generate(Bot $bot, string $outputPath): void
     {
-        $bot->load(['routes.flow', 'flows']);
+        $bot->load([
+            'routes' => fn ($q) => $q->where('status', EntityStatus::Active->value)->with('flow'),
+            'flows' => fn ($q) => $q->where('status', EntityStatus::Active->value),
+            'media',
+        ]);
 
         $this->buildFlowClassNames($bot);
+        $mediaMap = $this->buildMediaMap($bot);
         $this->copySkeletonTo($outputPath);
         $this->generateConfigs($bot, $outputPath);
         $this->generateBotProfile($bot, $outputPath);
         $this->generateRoutes($bot, $outputPath);
-        $this->generateControllers($bot, $outputPath);
-        $this->generateFlows($bot, $outputPath);
+        $this->generateControllers($bot, $outputPath, $mediaMap);
+        $this->generateFlows($bot, $outputPath, $mediaMap);
+        $this->generateConnections($bot, $outputPath);
         $this->generateComposer($bot, $outputPath);
     }
 
@@ -97,7 +107,8 @@ class CodeGeneratorService
 
         File::ensureDirectoryExists("{$outputPath}/config");
 
-        $this->putPhp("{$outputPath}/config/app.php", $this->config->generateAppConfig($bot->name, $config));
+        $botUsername = $bot->messenger_config['telegram']['username'] ?? '';
+        $this->putPhp("{$outputPath}/config/app.php", $this->config->generateAppConfig($bot->name, $botUsername, $config));
         $this->putPhp("{$outputPath}/config/messenger.php", $this->config->generateMessengerConfig($drivers));
         $this->putPhp("{$outputPath}/config/database.php", $this->config->generateDatabaseConfig());
         File::put("{$outputPath}/.env.example", $this->config->generateEnvExample(
@@ -116,19 +127,24 @@ class CodeGeneratorService
 
     /** Сгенерировать контроллеры.
      */
-    private function generateControllers(Bot $bot, string $outputPath): void
+    private function generateControllers(Bot $bot, string $outputPath, array $mediaMap = []): void
     {
         File::ensureDirectoryExists("{$outputPath}/app/Controllers");
 
-        $topRoutes = $bot->routes()->whereNull('parent_id')->orderBy('sort_order')->with('children')->get();
+        $topRoutes = $bot->routes()
+            ->whereNull('parent_id')
+            ->where('status', EntityStatus::Active->value)
+            ->orderBy('sort_order')
+            ->with(['children' => fn ($q) => $q->where('status', EntityStatus::Active->value)])
+            ->get();
 
         foreach ($topRoutes as $route) {
             if ($route->children->isNotEmpty()) {
-                $this->generateGroupController($route, $outputPath);
+                $this->generateGroupController($route, $outputPath, $mediaMap);
             } elseif ($route->handler_type->value === 'controller') {
                 $className = $this->resolveControllerClassName($route);
                 $namespace = CodeHelper::controllerNamespace($route->type->value);
-                $code = $this->controller->generate($className, $route->handler_schema ?? ['blocks' => []], $namespace);
+                $code = $this->controller->generate($className, $route->handler_schema ?? ['blocks' => []], $namespace, $mediaMap);
                 $this->putControllerFile($outputPath, $route->type->value, $className, $code);
             } elseif ($route->handler_type->value === 'flow' && $route->flow_id) {
                 $flowClass = $this->flowClassNames[$route->flow_id] ?? null;
@@ -170,8 +186,9 @@ class CodeGeneratorService
     }
 
     /** Сгенерировать контроллер группы (родительская phrase с дочерними методами).
+     * @param  array<int, string>  $mediaMap
      */
-    private function generateGroupController($parentRoute, string $outputPath): void
+    private function generateGroupController($parentRoute, string $outputPath, array $mediaMap = []): void
     {
         $className = ($parentRoute->controller_name ?? Str::studly(Str::slug($parentRoute->match ?? 'handler', '_'))).'Controller';
 
@@ -185,13 +202,13 @@ class CodeGeneratorService
         }
 
         $namespace = CodeHelper::controllerNamespace($parentRoute->type->value);
-        $code = $this->controller->generateWithMethods($className, $methods, $namespace);
+        $code = $this->controller->generateWithMethods($className, $methods, $namespace, $mediaMap);
         $this->putControllerFile($outputPath, $parentRoute->type->value, $className, $code);
     }
 
     /** Сгенерировать Flow-классы.
      */
-    private function generateFlows(Bot $bot, string $outputPath): void
+    private function generateFlows(Bot $bot, string $outputPath, array $mediaMap = []): void
     {
         File::ensureDirectoryExists("{$outputPath}/app/Flows");
 
@@ -205,9 +222,26 @@ class CodeGeneratorService
                 $flow->interrupt_commands ?? [],
                 $flow->interrupt_on_event ?? false,
                 $validationMessages,
+                $mediaMap,
             );
             $this->putPhp("{$outputPath}/app/Flows/{$className}.php", $code);
         }
+    }
+
+    /** Построить маппинг media_id → filename для всех медиафайлов бота.
+     *
+     * @return array<int, string>
+     */
+    private function buildMediaMap(Bot $bot): array
+    {
+        return $bot->media()->pluck('filename', 'id')->all();
+    }
+
+    /** Сгенерировать config/connections.php и дополнить .env.example.
+     */
+    private function generateConnections(Bot $bot, string $outputPath): void
+    {
+        $this->connection->generate($bot, $outputPath);
     }
 
     /** Сгенерировать composer.json.
@@ -218,9 +252,6 @@ class CodeGeneratorService
     }
 
     /** Сгенерировать config/bot_profile.php и (если есть) скопировать фото-бинарь.
-     * @param Bot $bot
-     * @param string $outputPath
-     * @return void
      */
     private function generateBotProfile(Bot $bot, string $outputPath): void
     {

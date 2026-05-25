@@ -6,9 +6,9 @@ test('generates step-based flow from linear graph', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_name', 'type' => 'ask_text', 'data' => ['text' => 'Your name?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask_name', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Your name?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'save_name', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'name', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 200]],
-            ['id' => 'reply_thanks', 'type' => 'reply_text', 'data' => ['text' => 'Thanks, {{name}}!'], 'position' => ['x' => 0, 'y' => 300]],
+            ['id' => 'reply_thanks', 'type' => 'reply', 'data' => ['text' => 'Thanks, {{name}}!', 'media' => null, 'keyboard' => null], 'position' => ['x' => 0, 'y' => 300]],
             ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 400]],
         ],
         'edges' => [
@@ -27,13 +27,13 @@ test('generates step-based flow from linear graph', function () {
     expect($result)->toContain('use Govorun\State\Step;');
     expect($result)->toContain('use Govorun\Messaging\IncomingMessage;');
     expect($result)->not->toContain('use Govorun\Messaging\Media;');
-    expect($result)->not->toContain('use Govorun\Messaging\Message;');
+    expect($result)->toContain('use Govorun\Messaging\Message;');
     expect($result)->not->toContain('use Govorun\Messaging\Keyboard;');
     expect($result)->toContain('public function askYourNameStep(Step $step): void');
-    expect($result)->toContain("\$step->ask('Your name?')");
+    expect($result)->toContain("\$step->ask(\n            Message::make('Your name?')\n                ->parseMode('HTML')\n        );");
     expect($result)->toContain('$step->receive(function (IncomingMessage $message)');
     expect($result)->toContain("\$this->state->set('name', \$message->text)");
-    expect($result)->toContain("\$this->reply('Thanks, ' . \$this->state->get('name') . '!')");
+    expect($result)->toContain("Message::make('Thanks, ' . \$this->state->get('name') . '!')");
     expect($result)->toContain('$this->completeFlow()');
     expect($result)->not->toContain('{{name}}');
 });
@@ -42,11 +42,11 @@ test('generates multi-step flow', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_name', 'type' => 'ask_text', 'data' => ['text' => 'Name?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask_name', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Name?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'save_name', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'name', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 200]],
-            ['id' => 'ask_age', 'type' => 'ask_text', 'data' => ['text' => 'Age?'], 'position' => ['x' => 0, 'y' => 300]],
+            ['id' => 'ask_age', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Age?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 300]],
             ['id' => 'save_age', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'age', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 400]],
-            ['id' => 'reply_done', 'type' => 'reply_text', 'data' => ['text' => 'Done!'], 'position' => ['x' => 0, 'y' => 500]],
+            ['id' => 'reply_done', 'type' => 'reply', 'data' => ['text' => 'Done!', 'media' => null, 'keyboard' => null], 'position' => ['x' => 0, 'y' => 500]],
             ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 600]],
         ],
         'edges' => [
@@ -66,20 +66,20 @@ test('generates multi-step flow', function () {
     expect($result)->toContain("protected array \$steps = [\n        'askName',\n        'askAge',\n    ];");
     expect($result)->toContain('public function askNameStep(Step $step): void');
     expect($result)->toContain('public function askAgeStep(Step $step): void');
-    expect($result)->toContain("\$step->ask('Name?')");
+    expect($result)->toContain("\$step->ask(\n            Message::make('Name?')\n                ->parseMode('HTML')\n        );");
     expect($result)->toContain("\$this->state->set('name', \$message->text)");
-    expect($result)->toContain("\$step->ask('Age?')");
+    expect($result)->toContain("\$step->ask(\n            Message::make('Age?')\n                ->parseMode('HTML')\n        );");
     expect($result)->toContain("\$this->state->set('age', \$message->text)");
-    expect($result)->toContain("\$this->reply('Done!')");
+    expect($result)->toContain("Message::make('Done!')");
 });
 
 test('generates onComplete with body', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Ready?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Ready?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'complete', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
-            ['id' => 'bye', 'type' => 'reply_text', 'data' => ['text' => 'Goodbye!'], 'position' => ['x' => 0, 'y' => 300]],
+            ['id' => 'bye', 'type' => 'reply', 'data' => ['text' => 'Goodbye!', 'media' => null, 'keyboard' => null], 'position' => ['x' => 0, 'y' => 300]],
         ],
         'edges' => [
             ['source' => 'start', 'target' => 'ask'],
@@ -92,15 +92,19 @@ test('generates onComplete with body', function () {
     $result = $generator->generate('FarewellFlow', $graph, [], false);
 
     expect($result)->toContain('public function onComplete(): void');
-    expect($result)->toContain("\$this->reply('Goodbye!')");
+    expect($result)->toContain("Message::make('Goodbye!')");
 });
 
 test('generates fluent Validator chain in receive callback', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_email', 'type' => 'ask_text', 'data' => [
+            ['id' => 'ask_email', 'type' => 'ask', 'data' => [
+                'mode' => 'text',
+                'stepName' => '',
                 'text' => 'Your email?',
+                'media' => null,
+                'keyboard' => null,
                 'validation' => [
                     ['name' => 'required', 'message' => 'Обязательное поле'],
                     ['name' => 'email'],
@@ -134,8 +138,12 @@ test('uses bot-level validation messages as defaults', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => [
+            ['id' => 'ask', 'type' => 'ask', 'data' => [
+                'mode' => 'text',
+                'stepName' => '',
                 'text' => 'Email?',
+                'media' => null,
+                'keyboard' => null,
                 'validation' => [
                     ['name' => 'required'],
                     ['name' => 'email', 'message' => 'Кастомный email'],
@@ -162,7 +170,7 @@ test('interpolates state variables in text', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Hi {{name}}, your age?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Hi {{name}}, your age?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
         ],
         'edges' => [
@@ -182,7 +190,7 @@ test('save_state generates multiple variables with correct sources', function ()
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Hi?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Hi?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'save', 'type' => 'save_state', 'data' => ['variables' => [
                 ['key' => 'answer', 'source' => 'message.text'],
                 ['key' => 'user_id', 'source' => 'user.id'],
@@ -207,19 +215,25 @@ test('condition routes to named ask-steps via nextStep', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_g', 'type' => 'ask_keyboard', 'data' => [
-                'text' => 'Пол?',
+            ['id' => 'ask_g', 'type' => 'ask', 'data' => [
+                'mode' => 'callback',
                 'stepName' => 'askGender',
-                'buttons' => [
-                    [
-                        ['type' => 'action', 'label' => 'М', 'action' => 'man'],
-                        ['type' => 'action', 'label' => 'Ж', 'action' => 'woman'],
+                'text' => 'Пол?',
+                'media' => null,
+                'validation' => [],
+                'keyboard' => [
+                    'type' => 'inline',
+                    'buttons' => [
+                        [
+                            ['type' => 'action', 'label' => 'М', 'action' => 'man'],
+                            ['type' => 'action', 'label' => 'Ж', 'action' => 'woman'],
+                        ],
                     ],
                 ],
             ], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_m', 'type' => 'ask_text', 'data' => ['text' => 'Мужской', 'stepName' => 'askMan'], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_w', 'type' => 'ask_text', 'data' => ['text' => 'Женский', 'stepName' => 'askWoman'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_m', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => 'askMan', 'text' => 'Мужской', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_w', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => 'askWoman', 'text' => 'Женский', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end_m', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end_w', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
         ],
@@ -251,10 +265,17 @@ test('condition branch without ask runs inline actions then completeFlow', funct
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => ['text' => 'OK?', 'stepName' => 'askConfirm', 'buttons' => [[['type' => 'action', 'label' => 'Y', 'action' => 'y']]]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => [
+                'mode' => 'callback',
+                'stepName' => 'askConfirm',
+                'text' => 'OK?',
+                'media' => null,
+                'validation' => [],
+                'keyboard' => ['type' => 'inline', 'buttons' => [[['type' => 'action', 'label' => 'Y', 'action' => 'y']]]],
+            ], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'save', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'confirmed', 'source' => 'message.action']]], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'reply', 'type' => 'reply_text', 'data' => ['text' => 'Спасибо!'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'reply', 'type' => 'reply', 'data' => ['text' => 'Спасибо!', 'media' => null, 'keyboard' => null], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
         ],
         'edges' => [
@@ -271,7 +292,7 @@ test('condition branch without ask runs inline actions then completeFlow', funct
 
     expect($result)->toContain("'y' => (function () {");
     expect($result)->toContain("\$this->state->set('confirmed', \$message->action)");
-    expect($result)->toContain("\$this->reply('Спасибо!')");
+    expect($result)->toContain("Message::make('Спасибо!')");
     expect($result)->toContain('$this->completeFlow();');
 });
 
@@ -279,7 +300,14 @@ test('condition branch directly to on_complete calls completeFlow', function () 
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => ['text' => 'q', 'stepName' => 'askQ', 'buttons' => [[['type' => 'action', 'label' => 'S', 'action' => 'stop']]]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => [
+                'mode' => 'callback',
+                'stepName' => 'askQ',
+                'text' => 'q',
+                'media' => null,
+                'validation' => [],
+                'keyboard' => ['type' => 'inline', 'buttons' => [[['type' => 'action', 'label' => 'S', 'action' => 'stop']]]],
+            ], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
         ],
@@ -301,11 +329,18 @@ test('converging branches generate shared tail method', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_g', 'type' => 'ask_keyboard', 'data' => ['text' => 'Пол?', 'stepName' => 'askGender', 'buttons' => [[['type' => 'action', 'label' => 'М', 'action' => 'm'], ['type' => 'action', 'label' => 'Ж', 'action' => 'w']]]], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_g', 'type' => 'ask', 'data' => [
+                'mode' => 'callback',
+                'stepName' => 'askGender',
+                'text' => 'Пол?',
+                'media' => null,
+                'validation' => [],
+                'keyboard' => ['type' => 'inline', 'buttons' => [[['type' => 'action', 'label' => 'М', 'action' => 'm'], ['type' => 'action', 'label' => 'Ж', 'action' => 'w']]]],
+            ], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'cond', 'type' => 'condition', 'data' => ['field' => 'message.action'], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_m', 'type' => 'ask_text', 'data' => ['text' => 'М?', 'stepName' => 'askMan'], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask_w', 'type' => 'ask_text', 'data' => ['text' => 'Ж?', 'stepName' => 'askWoman'], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'common', 'type' => 'reply_text', 'data' => ['text' => 'Спасибо!'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_m', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => 'askMan', 'text' => 'М?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask_w', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => 'askWoman', 'text' => 'Ж?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'common', 'type' => 'reply', 'data' => ['text' => 'Спасибо!', 'media' => null, 'keyboard' => null], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
         ],
         'edges' => [
@@ -324,7 +359,7 @@ test('converging branches generate shared tail method', function () {
 
     expect($result)->toContain('private function tail1(): void');
     expect($result)->toContain('$this->tail1();');
-    expect($result)->toContain("\$this->reply('Спасибо!')");
+    expect($result)->toContain("Message::make('Спасибо!')");
     expect($result)->toContain('$this->completeFlow();');
     $defCount = substr_count($result, 'private function tail1(): void');
     expect($defCount)->toBe(1);
@@ -334,7 +369,7 @@ test('explicit stepName overrides autogenerated', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Введите email', 'stepName' => 'askEmailCustom'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => 'askEmailCustom', 'text' => 'Введите email', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
         ],
         'edges' => [
@@ -355,7 +390,7 @@ test('autogenerated stepName is used when stepName is absent', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Имя?'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Имя?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
         ],
         'edges' => [
@@ -375,7 +410,7 @@ test('linear flow without condition still generates valid step method', function
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Q'], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Q', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'save', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'q', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 0]],
             ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
         ],
@@ -398,7 +433,14 @@ test('ask_text with image generates Media::photo with caption', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Нравится?', 'image' => 'https://example.com/a.jpg'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => [
+                'mode' => 'text',
+                'stepName' => '',
+                'text' => 'Нравится?',
+                'media' => ['type' => 'photo', 'url' => 'https://example.com/a.jpg'],
+                'validation' => [],
+                'keyboard' => null,
+            ], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
         ],
         'edges' => [
@@ -410,7 +452,7 @@ test('ask_text with image generates Media::photo with caption', function () {
     $generator = new FlowGenerator;
     $result = $generator->generate('PhotoFlow', $graph, [], false);
 
-    expect($result)->toContain("        \$step->ask(\n            Media::photo('https://example.com/a.jpg')\n                ->caption('Нравится?')\n        );");
+    expect($result)->toContain("        \$step->ask(\n            Media::photo('https://example.com/a.jpg')\n                ->caption('Нравится?')\n                ->parseMode('HTML')\n        );");
     expect($result)->not->toContain("\$step->ask('Нравится?')");
     expect($result)->not->toContain("Media::photo('https://example.com/a.jpg')->caption(");
 });
@@ -419,7 +461,7 @@ test('ask_text without image keeps string ask', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Возраст?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Возраст?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
         ],
         'edges' => [
@@ -431,7 +473,7 @@ test('ask_text without image keeps string ask', function () {
     $generator = new FlowGenerator;
     $result = $generator->generate('AgeFlow', $graph, [], false);
 
-    expect($result)->toContain("\$step->ask('Возраст?')");
+    expect($result)->toContain("\$step->ask(\n            Message::make('Возраст?')\n                ->parseMode('HTML')\n        );");
     expect($result)->not->toContain('Media::photo');
 });
 
@@ -439,13 +481,19 @@ test('ask_keyboard with image generates Media::photo with caption and keyboard',
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_keyboard', 'data' => [
+            ['id' => 'ask', 'type' => 'ask', 'data' => [
+                'mode' => 'callback',
+                'stepName' => '',
                 'text' => 'Выбор?',
-                'image' => 'https://example.com/b.jpg',
-                'buttons' => [
-                    [
-                        ['type' => 'action', 'label' => 'Да', 'action' => 'yes'],
-                        ['type' => 'action', 'label' => 'Нет', 'action' => 'no'],
+                'media' => ['type' => 'photo', 'url' => 'https://example.com/b.jpg'],
+                'validation' => [],
+                'keyboard' => [
+                    'type' => 'inline',
+                    'buttons' => [
+                        [
+                            ['type' => 'action', 'label' => 'Да', 'action' => 'yes'],
+                            ['type' => 'action', 'label' => 'Нет', 'action' => 'no'],
+                        ],
                     ],
                 ],
             ], 'position' => ['x' => 0, 'y' => 100]],
@@ -460,7 +508,7 @@ test('ask_keyboard with image generates Media::photo with caption and keyboard',
     $generator = new FlowGenerator;
     $result = $generator->generate('ChoicePhotoFlow', $graph, [], false);
 
-    expect($result)->toContain("        \$step->ask(\n            Media::photo('https://example.com/b.jpg')\n                ->caption('Выбор?'),\n            Keyboard::make()->buttons([\n");
+    expect($result)->toContain("Media::photo('https://example.com/b.jpg')\n                ->caption('Выбор?')\n                ->parseMode('HTML')\n                ->keyboard(\n                    Keyboard::make()->buttons([\n");
     expect($result)->toContain("Button::make('Да')->action('yes')");
     expect($result)->toContain("Button::make('Нет')->action('no')");
     expect($result)->toContain('use Govorun\Messaging\Button;');
@@ -470,9 +518,9 @@ test('reply_media type=photo with caption generates Media::photo with caption', 
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Имя?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Имя?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'save', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'name', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 200]],
-            ['id' => 'media', 'type' => 'reply_media', 'data' => ['media_type' => 'photo', 'url' => 'https://example.com/pic.jpg', 'caption' => 'Привет, {{ name }}!'], 'position' => ['x' => 0, 'y' => 300]],
+            ['id' => 'media', 'type' => 'reply', 'data' => ['text' => 'Привет, {{ name }}!', 'media' => ['type' => 'photo', 'url' => 'https://example.com/pic.jpg'], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 300]],
             ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 400]],
         ],
         'edges' => [
@@ -486,15 +534,15 @@ test('reply_media type=photo with caption generates Media::photo with caption', 
     $generator = new FlowGenerator;
     $result = $generator->generate('GreetingFlow', $graph, [], false);
 
-    expect($result)->toContain("            \$this->send(\n                Media::photo('https://example.com/pic.jpg')\n                    ->caption('Привет, ' . \$this->state->get('name') . '!')\n            );");
+    expect($result)->toContain("            \$this->send(\n                Media::photo('https://example.com/pic.jpg')\n                    ->caption('Привет, ' . \$this->state->get('name') . '!')\n                    ->parseMode('HTML')\n            );");
 });
 
 test('reply_media type=photo without caption generates Media::photo without caption chain', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Готов?'], 'position' => ['x' => 0, 'y' => 100]],
-            ['id' => 'media', 'type' => 'reply_media', 'data' => ['media_type' => 'photo', 'url' => 'https://example.com/x.jpg', 'caption' => ''], 'position' => ['x' => 0, 'y' => 200]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Готов?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'media', 'type' => 'reply', 'data' => ['text' => null, 'media' => ['type' => 'photo', 'url' => 'https://example.com/x.jpg'], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 200]],
             ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 300]],
         ],
         'edges' => [
@@ -507,7 +555,7 @@ test('reply_media type=photo without caption generates Media::photo without capt
     $generator = new FlowGenerator;
     $result = $generator->generate('PhotoOnlyFlow', $graph, [], false);
 
-    expect($result)->toContain("\$this->send(Media::photo('https://example.com/x.jpg'));");
+    expect($result)->toContain("\$this->send(\n                Media::photo('https://example.com/x.jpg')\n            );");
     expect($result)->not->toContain('->caption');
 });
 
@@ -516,9 +564,9 @@ test('длинный текст в reply_text разбивается по кон
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'Имя?'], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Имя?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
             ['id' => 'save', 'type' => 'save_state', 'data' => ['variables' => [['key' => 'name', 'source' => 'message.text']]], 'position' => ['x' => 0, 'y' => 200]],
-            ['id' => 'reply', 'type' => 'reply_text', 'data' => ['text' => $longText.'{{name}}!'], 'position' => ['x' => 0, 'y' => 300]],
+            ['id' => 'reply', 'type' => 'reply', 'data' => ['text' => $longText.'{{name}}!', 'media' => null, 'keyboard' => null], 'position' => ['x' => 0, 'y' => 300]],
             ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 400]],
         ],
         'edges' => [
@@ -549,8 +597,8 @@ test('reply_media non-photo type generates unsupported comment', function () {
     $graph = [
         'nodes' => [
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
-            ['id' => 'ask', 'type' => 'ask_text', 'data' => ['text' => 'OK?'], 'position' => ['x' => 0, 'y' => 100]],
-            ['id' => 'media', 'type' => 'reply_media', 'data' => ['media_type' => 'video', 'url' => 'https://example.com/v.mp4'], 'position' => ['x' => 0, 'y' => 200]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'OK?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'media', 'type' => 'reply', 'data' => ['text' => null, 'media' => ['type' => 'video', 'url' => 'https://example.com/v.mp4'], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 200]],
             ['id' => 'done', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 300]],
         ],
         'edges' => [
@@ -563,7 +611,7 @@ test('reply_media non-photo type generates unsupported comment', function () {
     $generator = new FlowGenerator;
     $result = $generator->generate('VideoFlow', $graph, [], false);
 
-    expect($result)->toContain('// Unsupported media type: video');
+    expect($result)->toContain("Media::video('https://example.com/v.mp4')");
     expect($result)->not->toContain('Media::photo');
 });
 
@@ -573,16 +621,23 @@ test('ask_keyboard с двумя рядами разных размеров', fu
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
             [
                 'id' => 'ask',
-                'type' => 'ask_keyboard',
+                'type' => 'ask',
                 'data' => [
+                    'mode' => 'callback',
+                    'stepName' => '',
                     'text' => 'Выберите услугу',
-                    'buttons' => [
-                        [
-                            ['type' => 'action', 'label' => '💅 маникюр', 'action' => 'manicure'],
-                            ['type' => 'action', 'label' => '🦶 педикюр', 'action' => 'pedicure'],
-                        ],
-                        [
-                            ['type' => 'action', 'label' => '🤚 наращивание', 'action' => 'nails'],
+                    'media' => null,
+                    'validation' => [],
+                    'keyboard' => [
+                        'type' => 'inline',
+                        'buttons' => [
+                            [
+                                ['type' => 'action', 'label' => '💅 маникюр', 'action' => 'manicure'],
+                                ['type' => 'action', 'label' => '🦶 педикюр', 'action' => 'pedicure'],
+                            ],
+                            [
+                                ['type' => 'action', 'label' => '🤚 наращивание', 'action' => 'nails'],
+                            ],
                         ],
                     ],
                 ],
@@ -613,23 +668,27 @@ test('reply_keyboard со всеми типами кнопок', function () {
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
             [
                 'id' => 'ask',
-                'type' => 'ask_text',
-                'data' => ['text' => 'Имя?'],
+                'type' => 'ask',
+                'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Имя?', 'media' => null, 'validation' => [], 'keyboard' => null],
                 'position' => ['x' => 0, 'y' => 100],
             ],
             [
                 'id' => 'reply',
-                'type' => 'reply_keyboard',
+                'type' => 'reply',
                 'data' => [
                     'text' => 'Меню',
-                    'buttons' => [
-                        [
-                            ['type' => 'action', 'label' => 'Записаться', 'action' => 'book'],
-                            ['type' => 'url', 'label' => 'Сайт', 'url' => 'https://example.com'],
-                        ],
-                        [
-                            ['type' => 'contact', 'label' => 'Мой номер'],
-                            ['type' => 'location', 'label' => 'Где я'],
+                    'media' => null,
+                    'keyboard' => [
+                        'type' => 'inline',
+                        'buttons' => [
+                            [
+                                ['type' => 'action', 'label' => 'Записаться', 'action' => 'book'],
+                                ['type' => 'url', 'label' => 'Сайт', 'url' => 'https://example.com'],
+                            ],
+                            [
+                                ['type' => 'contact', 'label' => 'Мой номер'],
+                                ['type' => 'location', 'label' => 'Где я'],
+                            ],
                         ],
                     ],
                 ],
@@ -660,12 +719,19 @@ test('action с param рендерится со вторым аргументо�
             ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
             [
                 'id' => 'ask',
-                'type' => 'ask_keyboard',
+                'type' => 'ask',
                 'data' => [
+                    'mode' => 'callback',
+                    'stepName' => '',
                     'text' => 'Выбор',
-                    'buttons' => [[
-                        ['type' => 'action', 'label' => 'A', 'action' => 'pick', 'param' => ['id' => 1]],
-                    ]],
+                    'media' => null,
+                    'validation' => [],
+                    'keyboard' => [
+                        'type' => 'inline',
+                        'buttons' => [[
+                            ['type' => 'action', 'label' => 'A', 'action' => 'pick', 'param' => ['id' => 1]],
+                        ]],
+                    ],
                 ],
                 'position' => ['x' => 0, 'y' => 100],
             ],
@@ -681,4 +747,66 @@ test('action с param рендерится со вторым аргументо�
     $result = $generator->generate('ParamFlow', $graph, [], false);
 
     expect($result)->toContain("Button::make('A')->action('pick', ['id' => 1])");
+});
+
+test('reply text only generates Message with parseMode HTML', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Q?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'reply', 'type' => 'reply', 'data' => ['text' => '<b>Привет</b>!', 'media' => null, 'keyboard' => null], 'position' => ['x' => 0, 'y' => 200]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 300]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'reply'],
+            ['source' => 'reply', 'target' => 'end'],
+        ],
+    ];
+
+    $result = (new FlowGenerator)->generate('HtmlFlow', $graph, [], false);
+
+    expect($result)->toContain("->parseMode('HTML')");
+    expect($result)->toContain('Message::make(');
+});
+
+test('ask with text generates ask with parseMode HTML', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => '<i>Введите</i> имя?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 200]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'end'],
+        ],
+    ];
+
+    $result = (new FlowGenerator)->generate('ItalicAskFlow', $graph, [], false);
+
+    expect($result)->toContain('$step->ask(');
+    expect($result)->toContain("->parseMode('HTML')");
+});
+
+test('reply media without text does not generate parseMode', function () {
+    $graph = [
+        'nodes' => [
+            ['id' => 'start', 'type' => 'start', 'data' => [], 'position' => ['x' => 0, 'y' => 0]],
+            ['id' => 'ask', 'type' => 'ask', 'data' => ['mode' => 'text', 'stepName' => '', 'text' => 'Готов?', 'media' => null, 'validation' => [], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 100]],
+            ['id' => 'reply', 'type' => 'reply', 'data' => ['text' => null, 'media' => ['type' => 'photo', 'url' => 'https://example.com/img.jpg'], 'keyboard' => null], 'position' => ['x' => 0, 'y' => 200]],
+            ['id' => 'end', 'type' => 'on_complete', 'data' => [], 'position' => ['x' => 0, 'y' => 300]],
+        ],
+        'edges' => [
+            ['source' => 'start', 'target' => 'ask'],
+            ['source' => 'ask', 'target' => 'reply'],
+            ['source' => 'reply', 'target' => 'end'],
+        ],
+    ];
+
+    $result = (new FlowGenerator)->generate('PhotoOnlyFlow2', $graph, [], false);
+
+    expect($result)->toContain("Media::photo('https://example.com/img.jpg')");
+    expect($result)->not->toContain("Media::photo('https://example.com/img.jpg')\n                ->parseMode(");
+    expect($result)->toContain("->parseMode('HTML')"); // из ask-блока
 });
