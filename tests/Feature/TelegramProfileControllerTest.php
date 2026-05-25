@@ -77,11 +77,11 @@ class TelegramProfileControllerTest extends TestCase
 
         $bot->routes()->create([
             'type' => 'command', 'match' => '/start', 'description' => 'Запуск',
-            'handler_type' => 'controller', 'handler' => 'StartController', 'sort_order' => 0,
+            'handler_type' => 'controller', 'handler_schema' => ['blocks' => []], 'sort_order' => 0,
         ]);
         $bot->routes()->create([
             'type' => 'phrase', 'match' => 'привет', 'description' => null,
-            'handler_type' => 'controller', 'handler' => 'GreetController', 'sort_order' => 1,
+            'handler_type' => 'controller', 'handler_schema' => ['blocks' => []], 'sort_order' => 1,
         ]);
 
         $this->actingAs($admin)

@@ -1,14 +1,14 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BotController;
-use App\Http\Controllers\BotFlowController;
-use App\Http\Controllers\BotRouteController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PluginController;
+use App\Http\Controllers\BotFlowController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\BotRouteController;
 use App\Http\Controllers\TelegramProfileController;
-use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [BotController::class, 'index'])->name('dashboard');

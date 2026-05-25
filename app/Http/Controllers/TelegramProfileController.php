@@ -10,6 +10,7 @@ use Inertia\Response;
 class TelegramProfileController extends Controller
 {
     /** Страница настроек профиля Telegram-бота.
+     * @param Bot $bot
      * @return Response
      */
     public function edit(Bot $bot)
