@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import GuestLayout from '@/Layouts/GuestLayout.vue'
 import ErButton from '@/Components/Ui/ErButton.vue'
+import GuestLayout from '@/Layouts/GuestLayout.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 
 defineProps({ canResetPassword: Boolean, status: String })
@@ -52,7 +52,13 @@ function submit() {
                                         autocomplete="current-password"
                                         required
                                     />
-                                    <button type="button" class="eye-btn" @click="showPassword = !showPassword" tabindex="-1" :aria-label="showPassword ? 'Скрыть пароль' : 'Показать пароль'" :aria-pressed="showPassword">
+                                    <button
+                                        type="button"
+                                        class="eye-btn"
+                                        :aria-label="showPassword ? 'Скрыть пароль' : 'Показать пароль'"
+                                        :aria-pressed="showPassword"
+                                        @click="showPassword = !showPassword"
+                                    >
                                         <svg v-if="!showPassword" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                             <circle cx="12" cy="12" r="3"/>
@@ -127,4 +133,5 @@ function submit() {
     line-height: 1;
 }
 .eye-btn:hover { color: var(--blue); }
+.eye-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
 </style>
