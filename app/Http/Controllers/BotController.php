@@ -134,7 +134,7 @@ class BotController extends Controller
         $bot->messenger_config = $config;
         $bot->save();
 
-        return redirect()->route('bots.edit', $bot);
+        return redirect()->back();
     }
 
     /** Удалить аватар бота: чистит файл и обнуляет photo_path.
@@ -155,7 +155,7 @@ class BotController extends Controller
         $bot->messenger_config = $config;
         $bot->save();
 
-        return redirect()->route('bots.edit', $bot);
+        return redirect()->back();
     }
 
     /** Отдать аватар бота для превью в админке.

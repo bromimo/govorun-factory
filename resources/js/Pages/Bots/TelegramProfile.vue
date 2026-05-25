@@ -86,6 +86,9 @@ function deletePhoto() {
         onSuccess: () => {
             form.profile.photo_path = null;
         },
+        onError: (errors) => {
+            photoError.value = errors.message ?? 'Не удалось удалить файл';
+        },
         onFinish: () => {
             photoBusy.value = false;
         },
@@ -216,7 +219,7 @@ function save() {
                                                 <button
                                                     type="button"
                                                     @click="deletePhoto"
-                                                    :disabled="photoBusy"
+                                                    :disabled="photoBusy || !can.update"
                                                     class="text-red-600 hover:text-red-500 disabled:opacity-50"
                                                 >
                                                     Удалить
