@@ -1,6 +1,8 @@
 <script setup>
-import { Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { useForm } from '@inertiajs/vue3';
 import { useDirtyGuard } from '@/composables/useDirtyGuard';
+import TelegramProfileModal from '@/Components/Bots/TelegramProfileModal.vue';
 import ErButton from '@/Components/Ui/ErButton.vue';
 import ErInput from '@/Components/Ui/ErInput.vue';
 import ErFormSection from '@/Components/Ui/ErFormSection.vue';
@@ -38,6 +40,8 @@ const form = useForm({
 
 useDirtyGuard(() => form.isDirty);
 
+const showProfileModal = ref(false);
+
 function isEnabled(driverKey) {
     return form.messenger_config[driverKey]?.enabled === true;
 }
@@ -57,11 +61,10 @@ function save() {
     <form @submit.prevent="save" class="space-y-2">
         <ErFormSection v-for="driver in drivers" :key="driver.key" :title="driver.label">
             <div class="flex items-center gap-2 mb-2">
-                <Link v-if="driver.key === 'telegram' && isEnabled('telegram') && can.update"
-                    :href="route('bots.telegram.profile.edit', bot.id)"
-                    class="er-link-btn">
+                <ErButton v-if="driver.key === 'telegram' && isEnabled('telegram') && can.update"
+                    type="button" @click="showProfileModal = true">
                     Настройки профиля
-                </Link>
+                </ErButton>
                 <ErButton type="button" @click="toggleDriver(driver.key)"
                     :variant="isEnabled(driver.key) ? 'danger' : 'default'">
                     {{ isEnabled(driver.key) ? 'Отключить' : 'Подключить' }}
@@ -92,25 +95,12 @@ function save() {
             <span v-if="form.recentlySuccessful" class="text-xs text-green-600">Сохранено</span>
         </div>
     </form>
+
+    <TelegramProfileModal :show="showProfileModal" :bot="bot" :can="can"
+        @close="showProfileModal = false" />
 </template>
 
 <style scoped>
-.er-link-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: 0 10px;
-    height: 26px;
-    border: 1px solid var(--bdr-d);
-    border-radius: var(--r-sm);
-    background: var(--surface-1);
-    font-size: 12px;
-    color: var(--ink-1);
-    text-decoration: none;
-    white-space: nowrap;
-}
-.er-link-btn:hover {
-    background: var(--surface-2);
-}
 .er-prefix {
     display: inline-flex;
     align-items: center;

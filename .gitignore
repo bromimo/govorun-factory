@@ -6,7 +6,7 @@
 /storage/state/*.json
 !/storage/state/.gitkeep
 /storage/exports/*.zip
-/storage/exports/*/
+/storage/exports/test/
 !/storage/exports/.gitkeep
 /.htaccess
 
@@ -19,16 +19,16 @@
 /composer.phar
 /composer-setup.php
 /docs/superpowers/
-/docs/audit/
-/docs/design_handoff_erp_style/
 .worktrees/
 .DS_Store
 Thumbs.db
 /.superpowers
-/.backups/
 
 /node_modules
 /public/build
 /public/hot
 /storage/*.key
 .env.backup
+/.backups/
+/docs/design_handoff_erp_style/
+/docs/audit/
