@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Bot;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\UpdateTelegramProfileRequest;
 
 /** Контроллер страницы настроек профиля Telegram-бота. */
 class TelegramProfileController extends Controller
@@ -26,5 +28,18 @@ class TelegramProfileController extends Controller
                 'update' => request()->user()->can('update', $bot),
             ],
         ]);
+    }
+
+    /** Обновить секцию messenger_config.telegram.profile. */
+    public function update(UpdateTelegramProfileRequest $request, Bot $bot): RedirectResponse
+    {
+        $config = $bot->messenger_config ?? [];
+        $config['telegram'] = $config['telegram'] ?? ['enabled' => true];
+        $config['telegram']['profile'] = $request->validated()['profile'];
+
+        $bot->messenger_config = $config;
+        $bot->save();
+
+        return back();
     }
 }
