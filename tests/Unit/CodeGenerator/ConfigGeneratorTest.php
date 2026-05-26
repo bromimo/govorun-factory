@@ -119,7 +119,8 @@ test('resolves driver fields ignores unknown drivers', function () {
 test('exposes driver descriptions for known drivers', function () {
     expect(ConfigGenerator::DRIVER_DESCRIPTIONS)
         ->toHaveKey('telegram')
-        ->toHaveKey('vk');
+        ->toHaveKey('vk')
+        ->toHaveKey('viber');
 
     expect(ConfigGenerator::DRIVER_DESCRIPTIONS['telegram'])
         ->toHaveKey('title')
