@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Bot;
-use App\Models\User;
 use Tests\TestCase;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -58,7 +58,7 @@ class ViberAvatarUploadTest extends TestCase
             'messenger_config' => [
                 'viber' => [
                     'enabled' => true,
-                    'profile' => ['avatar_path' => "bots/1/viber/avatar.jpg", 'sender_name' => 'Bot', 'event_types' => ['message']],
+                    'profile' => ['avatar_path' => 'bots/1/viber/avatar.jpg', 'sender_name' => 'Bot', 'event_types' => ['message']],
                 ],
             ],
         ]);

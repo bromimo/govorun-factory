@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Bot;
-use App\Models\User;
 use Tests\TestCase;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 /** Тесты страницы настроек профиля Viber-бота. */

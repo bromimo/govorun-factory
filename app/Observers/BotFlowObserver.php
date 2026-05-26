@@ -5,8 +5,8 @@ namespace App\Observers;
 use App\Models\Bot;
 use App\Models\BotFlow;
 use App\Models\BotMedia;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 /** Наблюдатель flow-диалога: при любом изменении flow форсированно обновляет updated_at и updated_by у родительского бота. */
 class BotFlowObserver
@@ -45,11 +45,11 @@ class BotFlowObserver
             : BotMedia::whereIn('id', $mediaIds)->sum('size');
 
         DB::table('bot_flows')->where('id', $flow->id)->update([
-            'blocks_count'     => count($nodes),
-            'ask_count'        => count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'ask')),
-            'api_call_count'   => count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'api_call')),
+            'blocks_count' => count($nodes),
+            'ask_count' => count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'ask')),
+            'api_call_count' => count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'api_call')),
             'used_media_count' => count($mediaIds),
-            'used_media_size'  => $usedMediaSize,
+            'used_media_size' => $usedMediaSize,
         ]);
     }
 

@@ -2,8 +2,8 @@
 
 use App\Models\Bot;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
 /** Добавить кешированную статистику медиа в bots. */
@@ -24,7 +24,7 @@ return new class extends Migration
             $size = empty($ids) ? 0 : DB::table('bot_media')->whereIn('id', $ids)->sum('size');
             DB::table('bots')->where('id', $bot->id)->update([
                 'used_media_count' => count($ids),
-                'used_media_size'  => $size,
+                'used_media_size' => $size,
             ]);
         });
     }

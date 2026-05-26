@@ -9,8 +9,6 @@ use Illuminate\Support\Facades\Storage;
 class ViberProfileGenerator
 {
     /** Сгенерировать содержимое config/viber_profile.php или null если Viber отключён.
-     * @param Bot $bot
-     * @return string|null
      */
     public function renderConfig(Bot $bot): ?string
     {
@@ -36,7 +34,6 @@ class ViberProfileGenerator
     }
 
     /** Получить пути исходного и целевого файлов аватара или null если аватара нет.
-     * @param Bot $bot
      * @return array{source_absolute_path: string, zip_relative_path: string}|null
      */
     public function resolveAvatar(Bot $bot): ?array

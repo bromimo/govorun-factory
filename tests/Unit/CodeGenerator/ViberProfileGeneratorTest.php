@@ -2,10 +2,11 @@
 
 use App\Models\Bot;
 use App\Models\User;
-use App\Services\CodeGenerator\ViberProfileGenerator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Services\CodeGenerator\ViberProfileGenerator;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 test('returns null when viber is disabled', function () {
     $bot = Bot::factory()->for(User::factory(), 'creator')->create([

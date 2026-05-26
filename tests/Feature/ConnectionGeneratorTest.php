@@ -1,11 +1,11 @@
 <?php
 
 use App\Models\Bot;
-use App\Enums\ConnectionAuthType;
 use App\Models\BotConnection;
-use App\Services\CodeGenerator\ConnectionGenerator;
+use App\Enums\ConnectionAuthType;
 use Illuminate\Support\Facades\File;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Services\CodeGenerator\ConnectionGenerator;
 
 uses(RefreshDatabase::class);
 
@@ -22,7 +22,7 @@ it('генерирует config/connections.php и env.example', function () {
     mkdir($tmp.'/config', recursive: true);
     file_put_contents($tmp.'/.env.example', '');
 
-    (new ConnectionGenerator())->generate($bot, $tmp);
+    (new ConnectionGenerator)->generate($bot, $tmp);
 
     $config = file_get_contents($tmp.'/config/connections.php');
     $env = file_get_contents($tmp.'/.env.example');

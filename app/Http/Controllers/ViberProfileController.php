@@ -6,10 +6,10 @@ use App\Models\Bot;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Storage;
 use App\Services\MediaOptimizerService;
-use App\Http\Requests\UpdateViberProfileRequest;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UploadViberAvatarRequest;
+use App\Http\Requests\UpdateViberProfileRequest;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /** Контроллер страницы настроек профиля Viber-бота. */

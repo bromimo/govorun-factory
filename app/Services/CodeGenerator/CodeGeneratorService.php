@@ -6,7 +6,6 @@ use App\Models\Bot;
 use App\Enums\EntityStatus;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
-use App\Services\CodeGenerator\ViberProfileGenerator;
 
 /** Оркестратор генерации полного проекта из схемы бота. */
 class CodeGeneratorService

@@ -5,7 +5,6 @@ namespace App\Observers;
 use App\Models\Bot;
 use App\Models\BotRoute;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 /** Наблюдатель маршрута бота: при любом изменении маршрута форсированно обновляет updated_at и updated_by у родительского бота. */
 class BotRouteObserver

@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Bot;
-use App\Models\User;
 use Tests\TestCase;
+use App\Models\User;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,7 +19,7 @@ class ViberExportTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->outputDir = sys_get_temp_dir() . '/govorun-test-' . uniqid();
+        $this->outputDir = sys_get_temp_dir().'/govorun-test-'.uniqid();
         File::makeDirectory($this->outputDir, 0755, true);
     }
 

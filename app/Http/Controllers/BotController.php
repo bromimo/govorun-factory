@@ -206,5 +206,4 @@ class BotController extends Controller
 
         return $binary;
     }
-
 }

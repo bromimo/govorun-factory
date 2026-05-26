@@ -53,7 +53,7 @@ class BotConnection extends Model
 
         foreach (['token', 'password', 'value'] as $key) {
             if (! empty($auth[$key])) {
-                $auth[$key] = '••••' . mb_substr($auth[$key], -4);
+                $auth[$key] = '••••'.mb_substr($auth[$key], -4);
             }
         }
 
@@ -69,7 +69,7 @@ class BotConnection extends Model
             'base_url' => $this->base_url,
             'auth_type' => $this->auth_type->value,
             'auth_config' => $auth,
-            'auth_config_preview' => $secret ? '••••' . mb_substr($secret, -4) : null,
+            'auth_config_preview' => $secret ? '••••'.mb_substr($secret, -4) : null,
             'default_headers' => $this->default_headers ?? [],
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

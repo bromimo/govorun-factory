@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
 /** Добавить кешированные счётчики нод в bot_flows. */
@@ -31,11 +31,11 @@ return new class extends Migration
                 : DB::table('bot_media')->whereIn('id', $mediaIds)->sum('size');
 
             DB::table('bot_flows')->where('id', $row->id)->update([
-                'blocks_count'     => count($nodes),
-                'ask_count'        => count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'ask')),
-                'api_call_count'   => count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'api_call')),
+                'blocks_count' => count($nodes),
+                'ask_count' => count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'ask')),
+                'api_call_count' => count(array_filter($nodes, fn ($n) => ($n['type'] ?? '') === 'api_call')),
                 'used_media_count' => count($mediaIds),
-                'used_media_size'  => $usedMediaSize,
+                'used_media_size' => $usedMediaSize,
             ]);
         });
     }

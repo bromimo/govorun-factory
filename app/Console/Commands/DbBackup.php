@@ -22,7 +22,7 @@ class DbBackup extends Command
             File::delete($old);
         }
 
-        $filename = "{$dir}/".now()->format('Y_m_d_His')."_govorun.sql";
+        $filename = "{$dir}/".now()->format('Y_m_d_His').'_govorun.sql';
         $pdo = DB::getPdo();
         $dbName = DB::getDatabaseName();
 
