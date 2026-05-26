@@ -47,6 +47,7 @@ function toggleDriver(driverKey) {
     const next = { ...form.messenger_config };
     next[driverKey] = { ...(next[driverKey] ?? {}), enabled: ! isEnabled(driverKey) };
     form.messenger_config = next;
+    save();
 }
 
 function save() {
@@ -67,7 +68,8 @@ function save() {
                     <ErButton type="button">Настройки профиля</ErButton>
                 </Link>
                 <ErButton type="button" @click="toggleDriver(driver.key)"
-                    :variant="isEnabled(driver.key) ? 'danger' : 'default'">
+                    :variant="isEnabled(driver.key) ? 'danger' : 'default'"
+                    :disabled="!can.update || form.processing">
                     {{ isEnabled(driver.key) ? 'Отключить' : 'Подключить' }}
                 </ErButton>
             </div>
