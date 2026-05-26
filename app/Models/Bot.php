@@ -102,7 +102,7 @@ class Bot extends Model
 
         DB::table('bots')->where('id', $botId)->update([
             'used_media_count' => count($ids),
-            'used_media_size'  => $size,
+            'used_media_size' => $size,
         ]);
     }
 

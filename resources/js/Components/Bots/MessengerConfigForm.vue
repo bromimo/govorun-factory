@@ -12,6 +12,7 @@ const props = defineProps({
 
 const drivers = [
     { key: 'telegram', label: 'Telegram' },
+    { key: 'viber', label: 'Viber' },
     { key: 'vk', label: 'VKontakte' },
 ];
 
@@ -59,6 +60,10 @@ function save() {
             <div class="flex items-center gap-2 mb-2">
                 <Link v-if="driver.key === 'telegram' && isEnabled('telegram') && can.update"
                       :href="route('bots.telegram.profile.edit', bot.id)">
+                    <ErButton type="button">Настройки профиля</ErButton>
+                </Link>
+                <Link v-if="driver.key === 'viber' && isEnabled('viber') && can.update"
+                      :href="route('bots.viber.profile.edit', bot.id)">
                     <ErButton type="button">Настройки профиля</ErButton>
                 </Link>
                 <ErButton type="button" @click="toggleDriver(driver.key)"
