@@ -158,3 +158,17 @@ test('resolves viber driver fields from messenger config', function () {
     expect($result)->toHaveKey('viber')
         ->and($result['viber'])->toBe(['auth_token' => 'VIBER_AUTH_TOKEN']);
 });
+
+test('resolves driver fields skips disabled drivers in object format', function () {
+    $messengerConfig = [
+        'telegram' => ['enabled' => true],
+        'viber' => ['enabled' => true],
+        'vk' => ['enabled' => false],
+    ];
+
+    $result = (new ConfigGenerator)->resolveDriverFields($messengerConfig);
+
+    expect($result)->toHaveKey('telegram')
+        ->toHaveKey('viber')
+        ->not->toHaveKey('vk');
+});

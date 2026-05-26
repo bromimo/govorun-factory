@@ -101,7 +101,7 @@ class ConfigGenerator
     {
         $driverNames = array_is_list($messengerConfig)
             ? $messengerConfig
-            : array_keys($messengerConfig);
+            : array_keys(array_filter($messengerConfig, fn ($entry) => ($entry['enabled'] ?? false) === true));
 
         $drivers = [];
         foreach ($driverNames as $driverName) {
