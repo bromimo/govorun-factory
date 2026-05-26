@@ -9,6 +9,7 @@ use App\Http\Controllers\BotFlowController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BotMediaController;
 use App\Http\Controllers\BotRouteController;
+use App\Http\Controllers\ViberProfileController;
 use App\Http\Controllers\BotConnectionController;
 use App\Http\Controllers\TelegramProfileController;
 use App\Http\Controllers\BotConnectionTestController;
@@ -32,6 +33,11 @@ Route::middleware('auth')->group(function () {
             ->name('bots.telegram.profile.edit');
         Route::put('{bot}/telegram/profile', [TelegramProfileController::class, 'update'])
             ->name('bots.telegram.profile.update');
+
+        Route::get('{bot}/viber/profile', [ViberProfileController::class, 'edit'])
+            ->name('bots.viber.profile.edit');
+        Route::put('{bot}/viber/profile', [ViberProfileController::class, 'update'])
+            ->name('bots.viber.profile.update');
 
         Route::get('{bot}/media', [BotMediaController::class, 'index'])->name('bots.media.index');
         Route::post('{bot}/media', [BotMediaController::class, 'store'])->name('bots.media.store');
