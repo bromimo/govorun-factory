@@ -16,6 +16,9 @@ class ConfigGenerator
             'secret' => 'VK_SECRET',
             'confirmation' => 'VK_CONFIRMATION',
         ],
+        'viber' => [
+            'auth_token' => 'VIBER_AUTH_TOKEN',
+        ],
     ];
 
     /** Описания драйверов для баннеров в config/messenger.php и .env.example.
@@ -37,6 +40,15 @@ class ConfigGenerator
                 'Параметры подключения к VK Callback API.',
                 'Токен сообщества, secret и confirmation выдаются в настройках',
                 'сообщества VK.',
+            ],
+        ],
+        'viber' => [
+            'title' => 'Viber',
+            'description' => [
+                'Параметры подключения к Viber Bot API.',
+                'auth_token выдаётся в кабинете Viber Public Account и используется',
+                'как для авторизации исходящих запросов, так и для проверки подписи',
+                'входящих webhook-событий.',
             ],
         ],
     ];

@@ -125,3 +125,35 @@ test('exposes driver descriptions for known drivers', function () {
         ->toHaveKey('title')
         ->toHaveKey('description');
 });
+
+test('messenger config supports viber driver', function () {
+    $drivers = [
+        'viber' => ['auth_token' => 'VIBER_AUTH_TOKEN'],
+    ];
+
+    $result = (new ConfigGenerator)->generateMessengerConfig($drivers);
+
+    expect($result)
+        ->toContain("'viber'")
+        ->toContain("env('VIBER_AUTH_TOKEN', '')")
+        ->toContain('| Viber');
+});
+
+test('env example includes viber auth token when viber enabled', function () {
+    $drivers = ['viber' => ['auth_token' => 'VIBER_AUTH_TOKEN']];
+
+    $result = (new ConfigGenerator)->generateEnvExample('Test Bot', $drivers);
+
+    expect($result)->toContain('VIBER_AUTH_TOKEN=');
+});
+
+test('resolves viber driver fields from messenger config', function () {
+    $messengerConfig = [
+        'viber' => ['enabled' => true, 'profile' => ['sender_name' => 'Bot']],
+    ];
+
+    $result = (new ConfigGenerator)->resolveDriverFields($messengerConfig);
+
+    expect($result)->toHaveKey('viber')
+        ->and($result['viber'])->toBe(['auth_token' => 'VIBER_AUTH_TOKEN']);
+});
