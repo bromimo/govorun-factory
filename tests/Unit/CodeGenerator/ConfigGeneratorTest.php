@@ -172,3 +172,25 @@ test('resolves driver fields skips disabled drivers in object format', function 
         ->toHaveKey('viber')
         ->not->toHaveKey('vk');
 });
+
+test('messenger config drivers array contains all active drivers hardcoded', function () {
+    $drivers = [
+        'telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET'],
+        'viber' => ['auth_token' => 'VIBER_AUTH_TOKEN'],
+    ];
+
+    $result = (new ConfigGenerator)->generateMessengerConfig($drivers);
+
+    expect($result)
+        ->toContain("'telegram',")
+        ->toContain("'viber',")
+        ->not->toContain('MESSENGER_DRIVER');
+});
+
+test('env example does not contain MESSENGER_DRIVER', function () {
+    $drivers = ['telegram' => ['token' => 'TELEGRAM_BOT_TOKEN', 'secret' => 'TELEGRAM_WEBHOOK_SECRET']];
+
+    $result = (new ConfigGenerator)->generateEnvExample('Test Bot', $drivers);
+
+    expect($result)->not->toContain('MESSENGER_DRIVER');
+});

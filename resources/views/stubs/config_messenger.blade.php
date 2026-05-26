@@ -5,12 +5,12 @@ return [
     | Драйвер мессенджера по умолчанию
     |--------------------------------------------------------------------------
     |
-    | Драйвер, который используется по умолчанию, если иной не указан явно.
-    | Берётся из переменной окружения MESSENGER_DRIVER.
+    | Драйвер, используемый по умолчанию при работе с одним мессенджером.
+    | Определяется автоматически на основе подключённых при генерации.
     |
     */
 
-    'default' => env('MESSENGER_DRIVER', '{!! array_key_first($drivers) !!}'),
+    'default' => '{!! array_key_first($drivers) !!}',
 
     /*
     |--------------------------------------------------------------------------
@@ -23,7 +23,9 @@ return [
     */
 
     'drivers' => [
-        env('MESSENGER_DRIVER', '{!! array_key_first($drivers) !!}'),
+@foreach(array_keys($drivers) as $driverName)
+        '{{ $driverName }}',
+@endforeach
     ],
 
 @foreach($drivers as $driverName => $fields)
