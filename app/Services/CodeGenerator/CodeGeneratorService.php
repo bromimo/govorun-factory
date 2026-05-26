@@ -6,6 +6,7 @@ use App\Models\Bot;
 use App\Enums\EntityStatus;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
+use App\Services\CodeGenerator\ViberProfileGenerator;
 
 /** Оркестратор генерации полного проекта из схемы бота. */
 class CodeGeneratorService
@@ -22,6 +23,8 @@ class CodeGeneratorService
 
     private BotProfileGenerator $botProfile;
 
+    private ViberProfileGenerator $viberProfile;
+
     private ConnectionGenerator $connection;
 
     /** @var array<int, string> Маппинг flow_id → имя класса. */
@@ -35,6 +38,7 @@ class CodeGeneratorService
         $this->flow = new FlowGenerator;
         $this->composer = new ComposerGenerator;
         $this->botProfile = new BotProfileGenerator;
+        $this->viberProfile = new ViberProfileGenerator;
         $this->connection = new ConnectionGenerator;
     }
 
@@ -53,6 +57,7 @@ class CodeGeneratorService
         $this->copySkeletonTo($outputPath);
         $this->generateConfigs($bot, $outputPath);
         $this->generateBotProfile($bot, $outputPath);
+        $this->generateViberProfile($bot, $outputPath);
         $this->generateRoutes($bot, $outputPath);
         $this->generateControllers($bot, $outputPath, $mediaMap);
         $this->generateFlows($bot, $outputPath, $mediaMap);
@@ -115,6 +120,28 @@ class CodeGeneratorService
             $bot->name,
             $drivers,
         ));
+    }
+
+    /** Сгенерировать config/viber_profile.php и (если есть) скопировать аватар-бинарь. */
+    private function generateViberProfile(Bot $bot, string $outputPath): void
+    {
+        $configPhp = $this->viberProfile->renderConfig($bot);
+        if ($configPhp === null) {
+            return;
+        }
+
+        $configPath = "{$outputPath}/config/viber_profile.php";
+        File::ensureDirectoryExists(dirname($configPath));
+        $this->putPhp($configPath, $configPhp);
+
+        $avatar = $this->viberProfile->resolveAvatar($bot);
+        if ($avatar === null) {
+            return;
+        }
+
+        $avatarTargetPath = "{$outputPath}/{$avatar['zip_relative_path']}";
+        File::ensureDirectoryExists(dirname($avatarTargetPath));
+        File::copy($avatar['source_absolute_path'], $avatarTargetPath);
     }
 
     /** Сгенерировать файл маршрутов.
