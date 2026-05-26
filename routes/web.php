@@ -38,6 +38,12 @@ Route::middleware('auth')->group(function () {
             ->name('bots.viber.profile.edit');
         Route::put('{bot}/viber/profile', [ViberProfileController::class, 'update'])
             ->name('bots.viber.profile.update');
+        Route::post('{bot}/viber/avatar', [ViberProfileController::class, 'uploadAvatar'])
+            ->name('bots.viber.avatar.upload');
+        Route::get('{bot}/viber/avatar', [ViberProfileController::class, 'showAvatar'])
+            ->name('bots.viber.avatar.show');
+        Route::delete('{bot}/viber/avatar', [ViberProfileController::class, 'deleteAvatar'])
+            ->name('bots.viber.avatar.delete');
 
         Route::get('{bot}/media', [BotMediaController::class, 'index'])->name('bots.media.index');
         Route::post('{bot}/media', [BotMediaController::class, 'store'])->name('bots.media.store');
