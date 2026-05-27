@@ -4,4 +4,7 @@ use Govorun\Http\Request;
 
 $app = require __DIR__.'/../bootstrap/app.php';
 
-$app->handleWebhook(Request::capture());
+$response = $app->handleWebhook(Request::capture());
+
+http_response_code($response->status);
+echo $response->body;
