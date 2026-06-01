@@ -12,6 +12,7 @@ use App\Http\Controllers\BotRouteController;
 use App\Http\Controllers\ViberProfileController;
 use App\Http\Controllers\BotConnectionController;
 use App\Http\Controllers\TelegramProfileController;
+use App\Http\Controllers\WhatsAppProfileController;
 use App\Http\Controllers\BotConnectionTestController;
 
 Route::middleware('auth')->group(function () {
@@ -44,6 +45,17 @@ Route::middleware('auth')->group(function () {
             ->name('bots.viber.avatar.show');
         Route::delete('{bot}/viber/avatar', [ViberProfileController::class, 'deleteAvatar'])
             ->name('bots.viber.avatar.delete');
+
+        Route::get('{bot}/whatsapp/profile', [WhatsAppProfileController::class, 'edit'])
+            ->name('bots.whatsapp.profile.edit');
+        Route::put('{bot}/whatsapp/profile', [WhatsAppProfileController::class, 'update'])
+            ->name('bots.whatsapp.profile.update');
+        Route::post('{bot}/whatsapp/photo', [WhatsAppProfileController::class, 'uploadPhoto'])
+            ->name('bots.whatsapp.photo.upload');
+        Route::get('{bot}/whatsapp/photo', [WhatsAppProfileController::class, 'showPhoto'])
+            ->name('bots.whatsapp.photo.show');
+        Route::delete('{bot}/whatsapp/photo', [WhatsAppProfileController::class, 'deletePhoto'])
+            ->name('bots.whatsapp.photo.delete');
 
         Route::get('{bot}/media', [BotMediaController::class, 'index'])->name('bots.media.index');
         Route::post('{bot}/media', [BotMediaController::class, 'store'])->name('bots.media.store');
