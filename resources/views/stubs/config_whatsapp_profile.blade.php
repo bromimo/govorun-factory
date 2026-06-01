@@ -23,7 +23,7 @@ return [
 
     'websites' => [
 @foreach($websites as $website)
-        '{{ $website }}',
+        {!! var_export($website, true) !!},
 @endforeach
     ],
 
