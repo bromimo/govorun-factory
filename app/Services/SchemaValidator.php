@@ -210,6 +210,7 @@ class SchemaValidator
             if (empty($kb) || empty($kb['buttons'] ?? [])) {
                 $errors[] = "{$where}: ask в режиме callback должен иметь непустую клавиатуру";
             }
+            $this->validateKeyboard($data['keyboard'] ?? [], $where, $errors);
         } elseif ($mode === 'text') {
             if (! empty($data['keyboard'])) {
                 $errors[] = "{$where}: ask в режиме text не должен иметь клавиатуру";
@@ -236,6 +237,7 @@ class SchemaValidator
         }
 
         $this->validateTextHtml($data['text'] ?? null, $where, $errors);
+        $this->validateKeyboard($data['keyboard'] ?? [], $where, $errors);
     }
 
     /** Валидировать HTML в поле text блока.
@@ -352,5 +354,73 @@ class SchemaValidator
                 $errors[] = "{$where}: режим on_error=branch требует исходящего ребра с handle on_error";
             }
         }
+    }
+
+    /** Проверить клавиатуру под лимиты WhatsApp (если он включён).
+     * @param array $keyboard Структура клавиатуры из ноды/блока
+     * @param string $where Человекочитаемое место (для текста ошибки)
+     * @param array<int, string> $errors Накопитель ошибок (по ссылке)
+     * @return void
+     */
+    private function validateKeyboard(array $keyboard, string $where, array &$errors): void
+    {
+        if (! $this->isWhatsAppEnabled()) {
+            return;
+        }
+
+        $buttons = [];
+        foreach ($keyboard['buttons'] ?? [] as $row) {
+            foreach ((array) $row as $btn) {
+                $buttons[] = $btn;
+            }
+        }
+
+        $count = count($buttons);
+        if ($count === 0) {
+            return;
+        }
+
+        if ($count > 10) {
+            $errors[] = "{$where}: WhatsApp поддерживает не более 10 кнопок в клавиатуре (сейчас {$count}).";
+        }
+
+        $maxTitle = $count <= 3 ? 20 : 24;
+        foreach ($buttons as $btn) {
+            $type = $btn['type'] ?? 'action';
+            $label = (string) ($btn['label'] ?? '');
+
+            if ($type === 'url') {
+                $errors[] = "{$where}: WhatsApp не поддерживает URL-кнопки в интерактивных сообщениях (кнопка «{$label}»).";
+            }
+
+            if ($type === 'contact' || $type === 'location') {
+                $errors[] = "{$where}: WhatsApp не поддерживает кнопки запроса контакта/локации (кнопка «{$label}»).";
+            }
+
+            if (mb_strlen($label) > $maxTitle) {
+                $errors[] = "{$where}: подпись кнопки «{$label}» превышает {$maxTitle} символов (лимит WhatsApp).";
+            }
+        }
+    }
+
+    /** Включён ли WhatsApp у бота.
+     * @return bool Включён ли
+     */
+    private function isWhatsAppEnabled(): bool
+    {
+        return ($this->bot->messenger_config['whatsapp']['enabled'] ?? false) === true;
+    }
+
+    /** Тестовая обёртка для изолированной проверки правил клавиатуры WhatsApp.
+     * @param array $keyboard Структура клавиатуры
+     * @param string $where Место
+     * @return ValidationResult Результат
+     */
+    public function validateKeyboardForTest(array $keyboard, string $where): ValidationResult
+    {
+        $errors = [];
+        $this->validateKeyboard($keyboard, $where, $errors);
+
+        return new ValidationResult($errors);
     }
 }
