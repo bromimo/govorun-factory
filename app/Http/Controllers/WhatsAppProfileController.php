@@ -71,6 +71,7 @@ class WhatsAppProfileController extends Controller
         @unlink($optimized['tmp_path']);
 
         $config = $bot->messenger_config ?? [];
+        $config['whatsapp'] = $config['whatsapp'] ?? ['enabled' => true];
         $config['whatsapp']['profile']['photo_path'] = $relativePath;
         $bot->messenger_config = $config;
         $bot->save();
