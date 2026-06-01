@@ -19,6 +19,15 @@ class ConfigGenerator
         'viber' => [
             'auth_token' => 'VIBER_AUTH_TOKEN',
         ],
+        'whatsapp' => [
+            'access_token' => 'WHATSAPP_ACCESS_TOKEN',
+            'phone_number_id' => 'WHATSAPP_PHONE_NUMBER_ID',
+            'waba_id' => 'WHATSAPP_WABA_ID',
+            'app_id' => 'WHATSAPP_APP_ID',
+            'verify_token' => 'WHATSAPP_VERIFY_TOKEN',
+            'app_secret' => 'WHATSAPP_APP_SECRET',
+            'api_version' => 'WHATSAPP_API_VERSION',
+        ],
     ];
 
     /** Описания драйверов для баннеров в config/messenger.php и .env.example.
@@ -49,6 +58,15 @@ class ConfigGenerator
                 'auth_token выдаётся в кабинете Viber Public Account и используется',
                 'как для авторизации исходящих запросов, так и для проверки подписи',
                 'входящих webhook-событий.',
+            ],
+        ],
+        'whatsapp' => [
+            'title' => 'WhatsApp',
+            'description' => [
+                'Параметры подключения к WhatsApp Cloud API (Meta Graph API).',
+                'access_token, phone_number_id, waba_id, app_id выдаются в Meta App',
+                'Dashboard → WhatsApp. verify_token и app_secret нужны для проверки',
+                'входящих webhook-запросов. api_version — версия Graph API (напр. v25.0).',
             ],
         ],
     ];

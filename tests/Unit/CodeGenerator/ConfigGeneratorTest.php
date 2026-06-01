@@ -194,3 +194,28 @@ test('env example does not contain MESSENGER_DRIVER', function () {
 
     expect($result)->not->toContain('MESSENGER_DRIVER');
 });
+
+test('exposes whatsapp driver description', function () {
+    expect(ConfigGenerator::DRIVER_DESCRIPTIONS)->toHaveKey('whatsapp');
+    expect(ConfigGenerator::DRIVER_DESCRIPTIONS['whatsapp'])
+        ->toHaveKey('title')->toHaveKey('description');
+});
+
+test('messenger config supports whatsapp driver', function () {
+    $drivers = (new ConfigGenerator)->resolveDriverFields(['whatsapp' => ['enabled' => true]]);
+    $result = (new ConfigGenerator)->generateMessengerConfig($drivers);
+
+    expect($result)
+        ->toContain("'whatsapp'")
+        ->toContain("env('WHATSAPP_ACCESS_TOKEN', '')")
+        ->toContain("env('WHATSAPP_PHONE_NUMBER_ID', '')")
+        ->toContain('| WhatsApp');
+});
+
+test('resolves whatsapp driver fields from messenger config', function () {
+    $result = (new ConfigGenerator)->resolveDriverFields(['whatsapp' => ['enabled' => true]]);
+
+    expect($result)->toHaveKey('whatsapp')
+        ->and($result['whatsapp'])->toHaveKey('access_token')
+        ->and($result['whatsapp']['access_token'])->toBe('WHATSAPP_ACCESS_TOKEN');
+});
