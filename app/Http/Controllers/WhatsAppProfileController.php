@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class WhatsAppProfileController extends Controller
 {
     /** Показать страницу профиля.
-     * @param Bot $bot Бот
+     * @param  Bot  $bot  Бот
      * @return Response Inertia-страница
      */
     public function edit(Bot $bot): Response
@@ -30,8 +30,8 @@ class WhatsAppProfileController extends Controller
     }
 
     /** Сохранить поля профиля.
-     * @param UpdateWhatsAppProfileRequest $request Запрос
-     * @param Bot $bot Бот
+     * @param  UpdateWhatsAppProfileRequest  $request  Запрос
+     * @param  Bot  $bot  Бот
      * @return RedirectResponse Назад
      */
     public function update(UpdateWhatsAppProfileRequest $request, Bot $bot): RedirectResponse
@@ -47,9 +47,9 @@ class WhatsAppProfileController extends Controller
     }
 
     /** Загрузить фото профиля.
-     * @param UploadWhatsAppPhotoRequest $request Запрос
-     * @param Bot $bot Бот
-     * @param MediaOptimizerService $optimizer Оптимизатор
+     * @param  UploadWhatsAppPhotoRequest  $request  Запрос
+     * @param  Bot  $bot  Бот
+     * @param  MediaOptimizerService  $optimizer  Оптимизатор
      * @return RedirectResponse На страницу профиля
      */
     public function uploadPhoto(
@@ -80,7 +80,7 @@ class WhatsAppProfileController extends Controller
     }
 
     /** Удалить фото профиля.
-     * @param Bot $bot Бот
+     * @param  Bot  $bot  Бот
      * @return RedirectResponse На страницу профиля
      */
     public function deletePhoto(Bot $bot): RedirectResponse
@@ -101,7 +101,7 @@ class WhatsAppProfileController extends Controller
     }
 
     /** Отдать файл фото профиля.
-     * @param Bot $bot Бот
+     * @param  Bot  $bot  Бот
      * @return BinaryFileResponse|\Illuminate\Http\Response Файл или 404
      */
     public function showPhoto(Bot $bot): BinaryFileResponse|\Illuminate\Http\Response

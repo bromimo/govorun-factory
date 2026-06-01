@@ -148,9 +148,8 @@ class CodeGeneratorService
     }
 
     /** Сгенерировать config/whatsapp_profile.php и скопировать фото профиля.
-     * @param Bot $bot Бот
-     * @param string $outputPath Каталог сборки
-     * @return void
+     * @param  Bot  $bot  Бот
+     * @param  string  $outputPath  Каталог сборки
      */
     private function generateWhatsAppProfile(Bot $bot, string $outputPath): void
     {

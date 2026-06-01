@@ -357,10 +357,9 @@ class SchemaValidator
     }
 
     /** Проверить клавиатуру под лимиты WhatsApp (если он включён).
-     * @param array $keyboard Структура клавиатуры из ноды/блока
-     * @param string $where Человекочитаемое место (для текста ошибки)
-     * @param array<int, string> $errors Накопитель ошибок (по ссылке)
-     * @return void
+     * @param  array  $keyboard  Структура клавиатуры из ноды/блока
+     * @param  string  $where  Человекочитаемое место (для текста ошибки)
+     * @param  array<int, string>  $errors  Накопитель ошибок (по ссылке)
      */
     private function validateKeyboard(array $keyboard, string $where, array &$errors): void
     {
@@ -412,8 +411,8 @@ class SchemaValidator
     }
 
     /** Тестовая обёртка для изолированной проверки правил клавиатуры WhatsApp.
-     * @param array $keyboard Структура клавиатуры
-     * @param string $where Место
+     * @param  array  $keyboard  Структура клавиатуры
+     * @param  string  $where  Место
      * @return ValidationResult Результат
      */
     public function validateKeyboardForTest(array $keyboard, string $where): ValidationResult

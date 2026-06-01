@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 class WhatsAppProfileGenerator
 {
     /** Сгенерировать содержимое config/whatsapp_profile.php или null если WhatsApp отключён.
-     * @param Bot $bot Бот
+     * @param  Bot  $bot  Бот
      * @return ?string PHP-код конфига или null
      */
     public function renderConfig(Bot $bot): ?string
@@ -31,7 +31,7 @@ class WhatsAppProfileGenerator
     }
 
     /** Получить пути исходного и целевого файлов фото или null если фото нет.
-     * @param Bot $bot Бот
+     * @param  Bot  $bot  Бот
      * @return array{source_absolute_path: string, zip_relative_path: string}|null
      */
     public function resolvePhoto(Bot $bot): ?array
