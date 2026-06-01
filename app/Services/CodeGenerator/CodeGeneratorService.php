@@ -24,6 +24,8 @@ class CodeGeneratorService
 
     private ViberProfileGenerator $viberProfile;
 
+    private WhatsAppProfileGenerator $whatsAppProfile;
+
     private ConnectionGenerator $connection;
 
     /** @var array<int, string> Маппинг flow_id → имя класса. */
@@ -38,6 +40,7 @@ class CodeGeneratorService
         $this->composer = new ComposerGenerator;
         $this->botProfile = new BotProfileGenerator;
         $this->viberProfile = new ViberProfileGenerator;
+        $this->whatsAppProfile = new WhatsAppProfileGenerator;
         $this->connection = new ConnectionGenerator;
     }
 
@@ -57,6 +60,7 @@ class CodeGeneratorService
         $this->generateConfigs($bot, $outputPath);
         $this->generateBotProfile($bot, $outputPath);
         $this->generateViberProfile($bot, $outputPath);
+        $this->generateWhatsAppProfile($bot, $outputPath);
         $this->generateRoutes($bot, $outputPath);
         $this->generateControllers($bot, $outputPath, $mediaMap);
         $this->generateFlows($bot, $outputPath, $mediaMap);
@@ -141,6 +145,32 @@ class CodeGeneratorService
         $avatarTargetPath = "{$outputPath}/{$avatar['zip_relative_path']}";
         File::ensureDirectoryExists(dirname($avatarTargetPath));
         File::copy($avatar['source_absolute_path'], $avatarTargetPath);
+    }
+
+    /** Сгенерировать config/whatsapp_profile.php и скопировать фото профиля.
+     * @param Bot $bot Бот
+     * @param string $outputPath Каталог сборки
+     * @return void
+     */
+    private function generateWhatsAppProfile(Bot $bot, string $outputPath): void
+    {
+        $configPhp = $this->whatsAppProfile->renderConfig($bot);
+        if ($configPhp === null) {
+            return;
+        }
+
+        $configPath = "{$outputPath}/config/whatsapp_profile.php";
+        File::ensureDirectoryExists(dirname($configPath));
+        $this->putPhp($configPath, $configPhp);
+
+        $photo = $this->whatsAppProfile->resolvePhoto($bot);
+        if ($photo === null) {
+            return;
+        }
+
+        $photoTargetPath = "{$outputPath}/{$photo['zip_relative_path']}";
+        File::ensureDirectoryExists(dirname($photoTargetPath));
+        File::copy($photo['source_absolute_path'], $photoTargetPath);
     }
 
     /** Сгенерировать файл маршрутов.
