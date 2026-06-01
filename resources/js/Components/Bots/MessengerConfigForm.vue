@@ -14,6 +14,7 @@ const drivers = [
     { key: 'telegram', label: 'Telegram' },
     { key: 'viber', label: 'Viber' },
     { key: 'vk', label: 'VKontakte' },
+    { key: 'whatsapp', label: 'WhatsApp' },
 ];
 
 function buildInitialConfig(source) {
@@ -65,6 +66,10 @@ function save() {
                 </Link>
                 <Link v-if="driver.key === 'viber' && isEnabled('viber') && can.update"
                       :href="route('bots.viber.profile.edit', bot.id)">
+                    <ErButton type="button">Настройки профиля</ErButton>
+                </Link>
+                <Link v-if="driver.key === 'whatsapp' && isEnabled('whatsapp') && can.update"
+                      :href="route('bots.whatsapp.profile.edit', bot.id)">
                     <ErButton type="button">Настройки профиля</ErButton>
                 </Link>
                 <ErButton type="button" @click="toggleDriver(driver.key)"
